@@ -130,17 +130,17 @@ SIOPS <- SIOPS %>%
          cod_mun = substr(cod_mun, 1, 6),
          ano = as.numeric(substr(ano, 2, 5)))
 
-SIOPS <- SIOPS %>% 
-  mutate(target_ec29 = 15)
-SIOPS$target_ec29[SIOPS$ano==2000] <- 7
-SIOPS$target_ec29[SIOPS$ano==2001] <- 8.6
-SIOPS$target_ec29[SIOPS$ano==2002] <- 10.2
-SIOPS$target_ec29[SIOPS$ano==2003] <- 11.8
-
-SIOPS <- SIOPS %>% 
-  mutate(ano = as.character(ano)) %>% 
-  mutate(data = as.Date(ano, format=c('%Y'))) %>% 
-  mutate(ano = as.numeric(ano))
+# SIOPS <- SIOPS %>% 
+#   mutate(target_ec29 = 15)
+# SIOPS$target_ec29[SIOPS$ano==2000] <- 7
+# SIOPS$target_ec29[SIOPS$ano==2001] <- 8.6
+# SIOPS$target_ec29[SIOPS$ano==2002] <- 10.2
+# SIOPS$target_ec29[SIOPS$ano==2003] <- 11.8
+# 
+# SIOPS <- SIOPS %>% 
+#   mutate(ano = as.character(ano)) %>% 
+#   mutate(data = as.Date(ano, format=c('%Y'))) %>% 
+#   mutate(ano = as.numeric(ano))
 
 SIOPS$pct_recproprios_ec29[SIOPS$pct_recproprios_ec29<0] <- NA
 SIOPS$pct_recproprios_ec29[SIOPS$pct_recproprios_ec29>100] <- NA
@@ -148,40 +148,40 @@ SIOPS$pct_recproprios_ec29[SIOPS$pct_recproprios_ec29>100] <- NA
 
 # generating variable of change in pct_recpróprios
 
-for (i in seq(1,12,1)){
-  if(i<10){
-    varname1 <- paste0("change0",i,"_pct_recproprios")
-    varname2 <- paste0("var0",i,"_pct_recproprios")
-    SIOPS <- SIOPS %>%
-      group_by(cod_mun) %>%
-      mutate(!!varname1 := dplyr::lead(pct_recproprios_ec29,i) - pct_recproprios_ec29,
-             !!varname2 := (dplyr::lead(pct_recproprios_ec29,i) - pct_recproprios_ec29)/ pct_recproprios_ec29) %>% 
-      # mutate(!!varname1 := pct_recproprios_ec29 - dplyr::lag(pct_recproprios_ec29,i),
-      #        !!varname2 := (pct_recproprios_ec29 - dplyr::lag(pct_recproprios_ec29,i))/dplyr::lag(pct_recproprios_ec29,i)) %>% 
-      ungroup()
-  }else{
-    varname1 <- paste0("change",i,"_pct_recproprios")
-    varname2 <- paste0("var",i,"_pct_recproprios")
-    SIOPS <- SIOPS %>%
-      group_by(cod_mun) %>%
-      mutate(!!varname1 := dplyr::lead(pct_recproprios_ec29,i) - pct_recproprios_ec29,
-             !!varname2 := (dplyr::lead(pct_recproprios_ec29,i) - pct_recproprios_ec29)/ pct_recproprios_ec29) %>% 
-      # mutate(!!varname1 := pct_recproprios_ec29 - dplyr::lag(pct_recproprios_ec29,i),
-      #        !!varname2 := (pct_recproprios_ec29 - dplyr::lag(pct_recproprios_ec29,i))/dplyr::lag(pct_recproprios_ec29,i)) %>% 
-      ungroup()
-  }
-}
-
-
-# generating distance to target variables
-
-SIOPS <- SIOPS %>%
-  mutate(dist_ec29 = - (pct_recproprios_ec29 - 15)/15,
-         achieved_ec29 = ifelse(pct_recproprios_ec29 > target_ec29, 1, 0)) %>% 
-  mutate(dist_ec29_pct_desp = (dist_ec29 * desptotalsaude) / desptotalsaude,
-         dist_ec29_desp = (dist_ec29 * desptotalsaude),
-         dist_ec29_desp_pc = (dist_ec29 * desptotalsaude) / pop,
-         desprecproprio_desptotal_pc = desprecpropriosaude_pcapita / despsaude_pcapita)
+# for (i in seq(1,12,1)){
+#   if(i<10){
+#     varname1 <- paste0("change0",i,"_pct_recproprios")
+#     varname2 <- paste0("var0",i,"_pct_recproprios")
+#     SIOPS <- SIOPS %>%
+#       group_by(cod_mun) %>%
+#       mutate(!!varname1 := dplyr::lead(pct_recproprios_ec29,i) - pct_recproprios_ec29,
+#              !!varname2 := (dplyr::lead(pct_recproprios_ec29,i) - pct_recproprios_ec29)/ pct_recproprios_ec29) %>% 
+#       # mutate(!!varname1 := pct_recproprios_ec29 - dplyr::lag(pct_recproprios_ec29,i),
+#       #        !!varname2 := (pct_recproprios_ec29 - dplyr::lag(pct_recproprios_ec29,i))/dplyr::lag(pct_recproprios_ec29,i)) %>% 
+#       ungroup()
+#   }else{
+#     varname1 <- paste0("change",i,"_pct_recproprios")
+#     varname2 <- paste0("var",i,"_pct_recproprios")
+#     SIOPS <- SIOPS %>%
+#       group_by(cod_mun) %>%
+#       mutate(!!varname1 := dplyr::lead(pct_recproprios_ec29,i) - pct_recproprios_ec29,
+#              !!varname2 := (dplyr::lead(pct_recproprios_ec29,i) - pct_recproprios_ec29)/ pct_recproprios_ec29) %>% 
+#       # mutate(!!varname1 := pct_recproprios_ec29 - dplyr::lag(pct_recproprios_ec29,i),
+#       #        !!varname2 := (pct_recproprios_ec29 - dplyr::lag(pct_recproprios_ec29,i))/dplyr::lag(pct_recproprios_ec29,i)) %>% 
+#       ungroup()
+#   }
+# }
+# 
+# 
+# # generating distance to target variables
+# 
+# SIOPS <- SIOPS %>%
+#   mutate(dist_ec29 = - (pct_recproprios_ec29 - 15)/15,
+#          achieved_ec29 = ifelse(pct_recproprios_ec29 > target_ec29, 1, 0)) %>% 
+#   mutate(dist_ec29_pct_desp = (dist_ec29 * desptotalsaude) / desptotalsaude,
+#          dist_ec29_desp = (dist_ec29 * desptotalsaude),
+#          dist_ec29_desp_pc = (dist_ec29 * desptotalsaude) / pop,
+#          desprecproprio_desptotal_pc = desprecpropriosaude_pcapita / despsaude_pcapita)
 
 
 # generating main mechanical outcomes variables

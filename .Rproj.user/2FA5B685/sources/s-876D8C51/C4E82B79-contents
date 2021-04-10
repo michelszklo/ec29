@@ -1,0 +1,90 @@
+---
+title: "Research"
+output:
+  
+ html_document:
+    theme: flatly
+    highlight: tango
+    # code_folding: hide
+    toc_depth: 3
+    toc: true
+    toc_float: true
+    # include:
+    #   after_body: footer.html
+    # css: styles.css
+---    
+
+\
+\
+
+### Publications
+
+Desigualdade em gastos municipais em saúde no Brasil e mecanismos redistributivos: uma análise longitudinal para o período 1998-2018 (with <a href="http://www.rudirocha.org/" target="_blank">Rudi Rocha</a>). <a href="https://www.apsemrevista.org/aps/article/view/178" target="_blank">**APS em Revista**</a>, Abril 2021.
+<details>
+<summary><font size = '2'>Resumo</font></summary>
+
+<font size = '2'>Neste artigo analisamos a evolução dos gastos municipais e da equidade no financiamento municipal da saúde no Brasil entre 1998-2018. Documentamos um avanço na equidade coincidente com a introdução do Piso da Atenção Básica (PAB) e a Emenda Constitucional 29 do
+ano 2000. A queda na desigualdade, no entanto, perde força no início dos anos 2010. Além disso, observamos que as desigualdades persistem entre municípios com alta versus baixa capacidade de arrecadação. Documentamos também que o arrefecimento da queda na desigualdade, principalmente das transferências federais, ocorre apesar do esforço equalizador presente na reforma da PNAB de 2011 e da redefinição dos valores do PAB fixo. O montante de recursos redistribuído não foi o suficiente para promover mudanças relevantes no gasto em saúde e para promover mais equidade.</font>
+
+</details>
+
+<details>
+<summary><font size = '2'>Abstract</font></summary>
+
+<font size = '2'>In this paper we assess trends in health expenditures and equity in health financing across Brazilian municipalities over the period 1998-2018. We document improvements in equity occurred in tandem with the introduction of the Piso da Atenção Básica (PAB) and the 29th  Constitutional Amendment of 2000. Yet, the reduction in inequality faded by the beginning of the 2010s. Moreover, we observe that inequalities persist among municipalities with high and low fiscal capacity. We also document that the reduction in inequality fades despite the equalizing
+efforts of the PNAB reform that redefined the PAB fixo. Redistribution of resources introduced via PAB fixo was not sufficiently effective for relevant changes in equity.</font>
+
+</details>
+
+
+\
+\
+
+### Working Papers
+
+
+<!-- <a href="https://michelszklo.github.io/wp/Soares-Rocha-Szklo.pdf" target="_blank">American Delusion: Life Expectancy and Welfare in the US from an International Perspective</a> (with <a href="https://sites.google.com/view/rodrigo-r-soares/" target="_blank">Rodrigo R. Soares</a> and <a href="http://www.rudirocha.org/" target="_blank">Rudi Rocha</a>). Revised for the **Journal of Human Capital**. -->
+<!-- <details> <summary>Abstract</summary> -->
+
+<!-- Recent increases in mortality have brought life expectancy back to the forefront of the public health debate in the US. Though unprecedented, this trend comes after an equally striking phenomenon: a decades long deterioration in the relative position of the US in the world's life expectancy distribution, culminating in the late 2010s in a gap of close to 3 years to the OECD average. This paper takes a comparative approach and documents the relative performance of life expectancy in the US from an international perspective. We characterize the changes in this relative performance over time, its age and cause of death profiles, and estimate its welfare implications. We show that this phenomenon is not recent, is not restricted to very particular causes of death, but is mostly driven by adult and old age mortality. We calculate that welfare gains in the US over the last few decades could have been between 19\% and 28\% higher had the US been able to reproduce the average health performance of OECD countries at their typical health expenditures.   -->
+
+<!-- </details> -->
+
+American Delusion: Life Expectancy and Welfare in the US from an International Perspective (with <a href="https://sites.google.com/view/rodrigo-r-soares/" target="_blank">Rodrigo R. Soares</a> and <a href="http://www.rudirocha.org/" target="_blank">Rudi Rocha</a>). Revised for the **Journal of Human Capital**.
+<details>
+<summary><font size = '2'>Abstract</font></summary>
+
+<font size = '2'>Recent increases in mortality have brought life expectancy back to the forefront of the public health debate in the US. Though unprecedented, this trend comes after an equally striking phenomenon: a decades long deterioration in the relative position of the US in the world's life expectancy distribution, culminating in the late 2010s in a gap of close to 3 years to the OECD average. This paper takes a comparative approach and documents the relative performance of life expectancy in the US from an international perspective. We characterize the changes in this relative performance over time, its age and cause of death profiles, and estimate its welfare implications. We show that this phenomenon is not recent, is not restricted to very particular causes of death, but is mostly driven by adult and old age mortality. We calculate that welfare gains in the US over the last few decades could have been between 19\% and 28\% higher had the US been able to reproduce the average health performance of OECD countries at their typical health expenditures.</font>
+
+</details>
+
+
+
+\
+\
+
+
+### Policy Briefs
+These policy briefs were developed by the LAPP initiative for the <a href="http://fgvclear.org/en/" target="_blank">FGV EESP CLEAR</a>
+<details>
+<summary><font size = '2'>More about LAPP</font></summary>
+
+<font size = '2'>LAPP, “Laboratório de Políticas Públicas e Programas Sociais” [Public Policy and Social Programs Lab], is a platform that seeks to gather, organize and provide in a straightforward fashion, information (causal evidence) on the impacts of public policy and social programs that went under rigorous evaluation worldwide.</font>
+
+</details>
+
+\
+
+* [Pathways to Education (Toronto, Canada)](https://michelszklo.github.io/briefs/EDUC_CS_Pathways%20(en).pdf)
+* [Jóvenes en Acción (Colombia)](https://michelszklo.github.io/briefs/LM&W_CS_JeA%20(en).pdf)
+* [Vocational Training Programs, ISKUR (Turkey)](https://michelszklo.github.io/briefs/LM&W_CS_ISKUR%20(en).pdf)
+* [“Programa de Fiscalização a Partir de Sorteios Públicos” (Brazil)](https://michelszklo.github.io/briefs/P&G_CS_CGU%20(en).pdf)
+* [Electronic Voting Technology (Brazil)](https://michelszklo.github.io/briefs/P&G_CS_EVT%20(en).pdf)
+
+
+\
+\
+
+### Older Projects
+
+Challenges of Evaluating the Impact of Access to Online Information on Parenting: Experimental Evidence from 20,000 Mothers (with <a href="https://flavioriva-policy.github.io/site/" target="_blank">Flavio Riva</a>)    

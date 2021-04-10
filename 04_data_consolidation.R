@@ -223,7 +223,7 @@ finbra_vars_new <- sapply(finbra_vars, function(x) paste0(x,"_pcapita"), simplif
 df[finbra_vars_new] <- df[finbra_vars]
 
 df <- df %>% 
-  # mutate_at(siops_vars, `/`, quote(deflator_saude)) %>% 
+  mutate_at(siops_vars, `/`, quote(deflator_saude)) %>%
   mutate_at(finbra_vars_new, `/`, quote(pop)) %>% 
   mutate_at(finbra_vars_new, `/`, quote(deflator_saude))
   

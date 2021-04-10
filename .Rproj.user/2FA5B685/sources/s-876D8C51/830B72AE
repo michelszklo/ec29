@@ -3,7 +3,7 @@
     "path": "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/ec29/04_data_consolidation.R",
     "project_path": "04_data_consolidation.R",
     "type": "r_source",
-    "hash": "4172661489",
+    "hash": "0",
     "contents": "",
     "dirty": false,
     "created": 1617990269926.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "43,23",
-        "scrollLine": "26"
+        "cursorPosition": "211,6",
+        "scrollLine": "210"
     },
     "folds": "",
-    "lastKnownWriteTime": 1618011848,
+    "lastKnownWriteTime": 1618072438,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1618011849011,
+    "last_content_update": 1618072438097,
     "read_only": false,
     "read_only_alternatives": []
 }

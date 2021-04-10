@@ -1,0 +1,1312 @@
+---
+title: "COVID-19 - BRASIL"
+output:
+  
+ html_document:
+    theme: flatly
+    highlight: tango
+#    code_folding: hide
+    toc_depth: 3
+    toc: true
+    toc_float: true
+    # include:
+    #   after_body: footer.html
+    # css: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+# COVID-19 VISUALIZATIONS
+# ----------------------------
+
+# This script downloads and creates interactive visualizations
+# of COVID-19 data provided by John Hopkins University and related data,
+# focusing on Brazil
+
+
+# Author: Michel Szklo
+# Date: March 2020
+
+###################################################################
+
+
+# =================================================================
+# 0 Set-up
+# =================================================================
+
+rm(list=ls())
+
+# packages
+packages<-c('readr','tidyverse','dplyr','RCurl','tidyr','scales','RColorBrewer',
+            'plotly','knitr','ggplot2','sf','sp','xlsx','httr','mapview','zoo',
+            'emdbook','lattice','geogrid','countrycode','spData','R.utils',
+            'plainview','leafpop','leaflet')
+to_install<-packages[!(packages %in% installed.packages()[,"Package"])]
+if(length(to_install)>0) install.packages(to_install)
+
+lapply(packages,require,character.only=TRUE)
+
+today <- "2021-04-09"
+
+
+
+
+# =================================================================
+# 1 Data download and consolidation
+# =================================================================
+
+# -----------------------------------------------------------------
+#   A. Country and Brazil Polygons
+# -----------------------------------------------------------------
+
+shape_world <- world
+shape_world <- shape_world %>% 
+  select(name_long)
+
+shape_world$iso <- countrycode(sourcevar = shape_world$name_long, origin = 'country.name', destination = 'iso3c')
+shape_world <- shape_world %>%
+  select(iso)
+
+
+shape_mun <- read_sf("C:/Users/Michel/Google Drive/DOUTORADO FGV/IEPS/Agua/shapefiles/Brazil_s.shp")
+shape_mun <- shape_mun %>% st_transform(4326)
+shape_mun <- shape_mun %>% mutate(ibgeID = as.numeric(substr(CD_GEOCODM,1,6))) %>% select(c("ibgeID","geometry","NM_MUNICIP"))
+
+
+shape_estado <- read_sf("C:/Users/Michel/Google Drive/Website/_site/shapefiles_uf/UFEBRASIL.shp")
+shape_estado <- shape_estado %>% st_transform(4326)
+shape_estado <- shape_estado %>%
+  rename(uf = CD_GEOCODU) %>% 
+  select(c("uf","NM_ESTADO")) %>% 
+  mutate(uf = as.numeric(uf))
+
+
+
+
+# -----------------------------------------------------------------
+#   B. Population Data
+# -----------------------------------------------------------------
+
+pop <- read.csv("https://raw.githubusercontent.com/michelszklo/michelszklo.github.io/master/country_pop.csv", sep = ";")
+
+pop$iso <- countrycode(sourcevar = pop$Location, origin = 'country.name', destination = 'iso3c')
+
+pop <- pop %>% mutate(Location = as.character(Location), Pop_total = 10*Pop_total)
+colnames(pop)[1] <- "País"
+
+pop$País[grep("dependencies",pop$País)] <- "delete"
+
+pop <- pop %>%
+  filter(!is.na(iso)) %>% 
+  filter(País!="delete")
+  # right_join(shape_world, by = "iso") %>%
+  # st_as_sf %>%
+  # st_transform(4326)
+
+
+  
+
+# -----------------------------------------------------------------
+#   C. John Hopkins country data
+# -----------------------------------------------------------------
+jh_confirmed <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
+
+jh_death <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
+
+jh_recov <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv')
+
+
+# reshaping data to long
+jh_tolong <- function(df,var){
+  df <- df %>% 
+    select(-c('Province.State','Lat','Long')) %>% 
+    group_by(Country.Region) %>% 
+    summarise_all(funs(sum))
+  
+  dates <- colnames(df[2:ncol(df)])
+  df <- df %>% pivot_longer(cols = all_of(dates),
+                            names_to = "date",
+                            values_to = var)
+}
+
+# data mgmt
+jh_confirmed <- jh_confirmed %>% jh_tolong("cases")
+jh_death <- jh_death %>% jh_tolong("deaths")
+jh_recov <- jh_recov %>% jh_tolong("recoveries")
+
+# joining df
+jh <- jh_confirmed %>%
+  left_join(jh_death, by = c('Country.Region','date')) %>% 
+  left_join(jh_recov, by = c('Country.Region','date'))
+
+jh[is.na(jh)] <- 0
+
+rm(list = ls()[(ls() %in% rbind("jh_confirmed","jh_death","jh_recov"))])
+
+# adding iso 3 codes
+
+jh$iso <- countrycode(sourcevar = jh$Country.Region, origin = 'country.name', destination = 'iso3c')
+
+# jh <- jh %>% 
+#   right_join(shape_world, by = "iso") %>%
+#   st_as_sf %>%
+#   st_transform(4326)
+
+# data base mgmt and new variables
+countries <- jh %>% 
+  left_join(pop, by = "iso") %>% 
+  mutate(num = ifelse(cases >= 100, 1, 0)) %>% 
+  group_by(Country.Region) %>% 
+  filter(cases>0) %>% 
+  mutate(start_date=cumsum(num)) %>%
+  select(-num) %>% # days since the 100th case
+  mutate(start_date= ifelse(Country.Region=="China",start_date+22,start_date)) %>% 
+  group_by(Country.Region) %>% 
+  mutate(max=max(cases)) %>% # adjustment for China
+  mutate(Data=as.character(date)) %>% 
+  mutate(Data=substring(date,2,length(date))) %>%
+  mutate(Data = paste0(substr(Data,1,nchar(Data)-2),"20",substr(Data,nchar(Data)-1,nchar(Data)))) %>% 
+  mutate(Data=as.Date(Data, format=c('%m.%d.%Y'))) %>% # adjusting data variable
+  select(c('iso','Country.Region','cases','deaths','recoveries','start_date','Data','max',"Pop_total")) %>% 
+  rename('País'='Country.Region',
+         'Dias desde o 100º caso' = 'start_date',
+         'Casos confirmados' = 'cases',
+         'Mortes'= 'deaths',
+         'Casos recuperados'='recoveries') %>% # selecting variables and renaming
+  group_by(País) %>% 
+  mutate(novos_casos = `Casos confirmados` - dplyr::lag(`Casos confirmados`,1),
+         novas_mortes = `Mortes` - dplyr::lag(`Mortes`,1)) %>% 
+  mutate(`Casos confirmados (média móvel, 7 dias)` = as.numeric(rollmean(novos_casos, k = 7, fill = NA, align = "right")),
+         `Novas mortes (média móvel, 7 dias)` = as.numeric(rollmean(novas_mortes, k = 7, fill = NA, align = "right"))) %>%
+  mutate(`Casos confirmados (por 100 mil habitantes)` = `Casos confirmados`/Pop_total,
+         `Mortes (por 100 mil habitantes)` = Mortes/Pop_total) %>%
+  ungroup() # moving average of new cases and new deaths
+
+
+countries_total <- countries %>% 
+  group_by(Data) %>% 
+  summarise(novos_casos_total = sum(`Casos confirmados (média móvel, 7 dias)`, na.rm = T),
+            novas_mortes_total = sum(`Novas mortes (média móvel, 7 dias)`, na.rm = T)) %>% 
+  ungroup()
+
+countries <- countries %>% 
+  left_join(countries_total, by = "Data") %>% 
+  mutate(`% dos novos casos` = `Casos confirmados (média móvel, 7 dias)`/novos_casos_total*100,
+         `% das novas mortes` = `Novas mortes (média móvel, 7 dias)`/novas_mortes_total*100)
+
+
+# -----------------------------------------------------------------
+#   D. Wesley Cota Brazil's State and Municipal data
+# -----------------------------------------------------------------
+
+# municipalities  
+setwd("C:/Users/Michel/Google Drive/Website/")
+download.file("https://github.com/wcota/covid19br/raw/master/cases-brazil-cities-time.csv.gz", destfile = "cases-brazil-cities-time.csv.gz" )
+gunzip("C:/Users/Michel/Google Drive/Website/cases-brazil-cities-time.csv.gz", overwrite = T)
+mun_raw <- read.csv("C:/Users/Michel/Google Drive/Website/cases-brazil-cities-time.csv", fileEncoding = "UTF-8")
+
+mun <- mun_raw
+
+mun$city[mun$city=="ESTRANGEIRO/SP"] <- "São Paulo/SP"
+mun$city[mun$city=="ESTRANGEIRO/PE"] <- "Recife/PE"
+mun$city[mun$city=="ESTRANGEIRO/SC"] <- "Florianópolis/SC"
+mun$city[grep("NÃO ESPECIFICADA",mun$city)] <- "NÃO ESPECIFICADA"
+mun$city[grep("INDEFINIDA",mun$city)] <- "NÃO ESPECIFICADA"
+mun$city[grep("CASO SEM LOCALIZAÇÃO DEFINIDA",mun$city)] <- "NÃO ESPECIFICADA"
+
+mun <- mun %>%
+  filter(city!="TOTAL") %>%
+  filter(city!="NÃO ESPECIFICADA") %>% 
+  rename("Casos confirmados"="totalCases","Mortes" = "deaths","Cidade"="city","Estado"="state","Casos confirmados (por 100 mil habitantes)" = "totalCases_per_100k_inhabitants","Mortes (por 100 mil habitantes)"="deaths_per_100k_inhabitants") %>% 
+  mutate(date=as.character(date)) %>%
+  mutate(Data=as.Date(date, format=c('%Y-%m-%d'))) %>% 
+  select(-date) %>% 
+  mutate(ibgeID = as.numeric(substr(ibgeID,1,6))) %>%
+  mutate(num = ifelse(`Casos confirmados` >= 100, 1, 0)) %>%
+  group_by(Cidade) %>% 
+  filter(`Casos confirmados`>0) %>% 
+  mutate(start_date=cumsum(num)) %>% 
+  select(-num) %>% 
+  rename("Dias desde o 100º caso"="start_date") %>% 
+  mutate(`Taxa de mortalidade`=(Mortes/`Casos confirmados`)) %>% 
+  group_by(Cidade) %>% 
+  mutate(`Casos confirmados (média móvel, 7 dias)` = as.numeric(rollmean(newCases, k = 7, fill = NA, align = "right")),
+         `Mortes confirmadas (média móvel, 7 dias)` = as.numeric(rollmean(newDeaths, k = 7, fill = NA, align = "right"))) %>% 
+  ungroup() %>% 
+  mutate(Pop_total = `Casos confirmados`*100000/`Casos confirmados (por 100 mil habitantes)`/100000) %>%
+  select(c("Cidade", "Estado", "ibgeID","Data", "Casos confirmados", "Mortes", "Casos confirmados (média móvel, 7 dias)", "Taxa de mortalidade","Casos confirmados (por 100 mil habitantes)","Mortes confirmadas (média móvel, 7 dias)"),"Mortes (por 100 mil habitantes)","Dias desde o 100º caso","Pop_total") %>% 
+  mutate(Cidade = as.character(Cidade))
+
+
+  # left_join(shape_mun, by = "ibgeID") %>%
+  # st_as_sf() %>%
+  # st_transform(4326)
+  
+  
+# auxiliary df with state codes and names
+estado_uf <- mun %>% 
+  select(c("ibgeID","Estado")) %>% 
+  rename(uf = ibgeID) %>% 
+  mutate(uf = as.numeric(substr(uf,1,2))) %>% 
+  group_by(Estado) %>% 
+  summarise(uf = mean(uf)) %>% 
+  ungroup()
+
+# states
+estado_raw <- read.csv('https://raw.githubusercontent.com/wcota/covid19br/master/cases-brazil-states.csv')
+
+estado <- estado_raw %>% 
+  filter(state!="TOTAL") %>% 
+  rename("Casos confirmados"="totalCases","Casos confirmados (por 100 mil habitantes)" = "totalCases_per_100k_inhabitants","Cidade"="city","Estado"="state","Mortes"="deaths","Mortes (por 100 mil habitantes)"="deaths_per_100k_inhabitants") %>%
+  mutate(date=as.character(date)) %>%
+  mutate(Data=as.Date(date, format=c('%Y-%m-%d'))) %>% 
+  select(-date) %>% 
+  mutate(Pop_total = `Casos confirmados`*100000/`Casos confirmados (por 100 mil habitantes)`/100000) %>% 
+  select(c("Estado","Data","Casos confirmados","Casos confirmados (por 100 mil habitantes)","Mortes","Mortes (por 100 mil habitantes)","newCases","newDeaths","Pop_total")) %>% 
+  mutate(num = ifelse(`Casos confirmados` >= 100, 1, 0)) %>%
+  group_by(Estado) %>% 
+  filter(`Casos confirmados`>0) %>% 
+  mutate(start_date=cumsum(num)) %>% 
+  select(-num) %>% 
+  rename("Dias desde o 100º caso"="start_date") %>% 
+  mutate(`Casos confirmados (média móvel, 7 dias)` = as.numeric(rollmean(newCases, k = 7, fill = NA, align = "right")),
+         `Mortes confirmadas (média móvel, 7 dias)` = as.numeric(rollmean(newDeaths, k = 7, fill = NA, align = "right"))) %>% 
+  ungroup() %>% 
+  left_join(estado_uf, by = "Estado")
+
+
+  # left_join(shape_estado, by = "uf") %>% 
+  # st_as_sf() %>%
+  # st_transform(4326)
+
+
+
+# -----------------------------------------------------------------
+#   E. Vaccines
+# -----------------------------------------------------------------
+
+vaccines <- read.csv('https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations.csv')
+
+vaccines <- vaccines %>% 
+  mutate(date=as.character(date)) %>%
+  mutate(Data=as.Date(date, format=c('%Y-%m-%d'))) %>% 
+  select(-date) %>% 
+  select(c("location","Data","total_vaccinations","total_vaccinations_per_hundred","people_fully_vaccinated","people_fully_vaccinated_per_hundred","daily_vaccinations_per_million")) %>% 
+  rename("País" = "location",
+         "Total de vacinas administradas" = "total_vaccinations",
+         "Total de vacinas administradas (por 100 hab.)" = "total_vaccinations_per_hundred",
+         "Total de pessoas imunizadas" = "people_fully_vaccinated",
+         "Total de pessoas imunizadas (por 100 hab.)" = "people_fully_vaccinated_per_hundred",
+         "Vacinas administradas por dia (por 1 mil. hab.)" = "daily_vaccinations_per_million") %>% 
+  mutate(País = ifelse(País=="United States","US",País))
+
+
+vaccines$iso <- countrycode(sourcevar = vaccines$País, origin = 'country.name', destination = 'iso3c')
+
+# -----------------------------------------------------------------
+#   F. Sub-samples
+# -----------------------------------------------------------------
+
+# total cases, deaths, recoveries in the world
+world <- countries %>%
+  group_by(Data) %>% 
+  summarise(`Casos confirmados`=sum(`Casos confirmados`),Mortes=sum(Mortes),`Casos recuperados`=sum(`Casos recuperados`)) %>% 
+  ungroup() %>% 
+  pivot_longer(cols=c('Casos confirmados','Casos recuperados','Mortes'),
+               names_to='Afetados',
+               values_to = 'Número')
+
+# total cases, deaths, recoveries in Brazil
+brazil <- countries %>% 
+  filter(País=="Brazil") %>% 
+  select(c('Casos confirmados','Casos recuperados','Mortes','Data')) %>% 
+  pivot_longer(cols=c('Casos confirmados','Casos recuperados','Mortes'),
+               names_to='Afetados',
+               values_to = 'Número')
+  
+
+# vector of 15 countries with most cases
+select_countries <- countries %>%
+  group_by(País) %>% 
+  summarise(max=max(`Casos confirmados`)) %>% 
+  arrange(-max) %>% 
+  slice(1:15) %>%
+  select(País) %>% 
+  ungroup()
+  
+
+
+# vector of 30 countries with most cases
+select_countries2 <- countries %>%
+  group_by(País) %>% 
+  summarise(max=max(`Casos confirmados`)) %>% 
+  arrange(-max) %>% 
+  slice(1:30) %>%
+  select(País) %>% 
+  ungroup()
+
+# vector of 15 states with most cases
+  
+select_estado <- estado %>% 
+  group_by(Estado) %>%
+  summarise(max=max(`Casos confirmados`)) %>% 
+  arrange(-max) %>% 
+  slice(1:15) %>%
+  select(Estado) %>% 
+  ungroup()
+
+select_mun <- mun %>% 
+  group_by(Cidade) %>%
+  summarise(max=max(`Casos confirmados`)) %>% 
+  arrange(-max) %>% 
+  slice(1:15) %>%
+  select(Cidade) %>% 
+  ungroup()
+
+
+# ############################################################################################################
+# ############################################################################################################
+# ############################################################################################################
+
+
+
+# CREATING ALL GRAPHS SILENTELY
+# ###############################################
+
+
+
+# States
+select <- estado
+select$select <- select$Estado %in% select_estado$Estado
+select <- select %>% filter(select==TRUE)
+
+g_estado_nc <- select %>% 
+  ggplot(aes(x=Data,
+             y=`Casos confirmados (média móvel, 7 dias)`,
+             color=Estado)) +
+  geom_point(aes(
+                  text = paste0("<b>", Estado,"</b> ", "<br>",
+                                "Novos casos (média móvel, 7 dias): ", scales::comma(`Casos confirmados (média móvel, 7 dias)`, 1), "<br>",
+                                "Casos (100mil hab.): ", scales::comma(`Casos confirmados (por 100 mil habitantes)`,1),"<br>",
+                                "Dias desde o 100º caso: ", `Dias desde o 100º caso`,"<br>",
+                                "Data: ", format(Data,format = "%d-%m-%Y"),"<br>")
+                ),size = 0.000001) +
+  geom_line(size=0.5, alpha=0.7, linetype="solid") +
+    scale_fill_brewer(palette="Set3") +
+  scale_y_continuous(labels = comma) +
+  scale_x_date(date_minor_breaks = "30 day",
+                               breaks = "30 day",
+                               labels = date_format("%d-%m-%Y")) +
+  ggtitle("Novos casos de covid-19") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        axis.text.x = element_text(angle=90))
+
+
+g_estado_nc100 <- select %>% 
+  ggplot(aes(x=Data,
+             y=`Casos confirmados (por 100 mil habitantes)`,
+             color=Estado)) +
+  geom_point(aes(
+                  text = paste0("<b>", Estado,"</b> ", "<br>",
+                                "Novos casos (média móvel, 7 dias): ", scales::comma(`Casos confirmados (média móvel, 7 dias)`, 1), "<br>",
+                                "Casos (100mil hab.): ", scales::comma(`Casos confirmados (por 100 mil habitantes)`,1),"<br>",
+                                "Dias desde o 100º caso: ", `Dias desde o 100º caso`,"<br>",
+                                "Data: ", format(Data,format = "%d-%m-%Y"),"<br>")
+                ),size = 0.000001) +
+  geom_line(size=0.5, alpha=0.7, linetype="solid") +
+    scale_fill_brewer(palette="Set3") +
+  scale_y_continuous(labels = comma) +
+  scale_x_date(date_minor_breaks = "30 day",
+                               breaks = "30 day",
+                               labels = date_format("%d-%m-%Y")) +
+  ggtitle("Casos de covid-19 (por 100 mil hab.)") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        axis.text.x = element_text(angle=90))
+
+
+
+g_estado_nd <- select %>% 
+  ggplot(aes(x=Data,
+             y=`Mortes confirmadas (média móvel, 7 dias)`,
+             color=Estado)) +
+   geom_point(aes(
+                  text = paste0("<b>", Estado,"</b> ", "<br>",
+                                "Novas mortes (média móvel, 7 dias): ", scales::comma(`Mortes confirmadas (média móvel, 7 dias)`, 1), "<br>",
+                                "Mortes (100mil hab.): ", scales::comma(`Mortes (por 100 mil habitantes)`,1),"<br>",
+                                "Dias desde o 100º caso: ", `Dias desde o 100º caso`,"<br>",
+                                "Data: ", format(Data,format = "%d-%m-%Y"),"<br>")
+                ),size = 0.000001) +
+  geom_line(size=0.5, alpha=0.7, linetype="solid") +
+    scale_fill_brewer(palette="Set3") +
+  scale_y_continuous(labels = comma, breaks = seq(0,500,by = 25)) +
+  scale_x_date(date_minor_breaks = "30 day",
+                               breaks = "30 day",
+                               labels = date_format("%d-%m-%Y")) +
+  ggtitle("Novas mortes de COVID-19") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        axis.text.x = element_text(angle=90))
+
+
+
+g_estado_nd100 <- select %>% 
+  ggplot(aes(x=Data,
+             y=`Mortes (por 100 mil habitantes)`,
+             color=Estado)) +
+   geom_point(aes(
+                  text = paste0("<b>", Estado,"</b> ", "<br>",
+                                "Novas mortes (média móvel, 7 dias): ", scales::comma(`Mortes confirmadas (média móvel, 7 dias)`, 1), "<br>",
+                                "Mortes (100mil hab.): ", scales::comma(`Mortes (por 100 mil habitantes)`,1),"<br>",
+                                "Dias desde o 100º caso: ", `Dias desde o 100º caso`,"<br>",
+                                "Data: ", format(Data,format = "%d-%m-%Y"),"<br>")
+                ),size = 0.000001) +
+  geom_line(size=0.5, alpha=0.7, linetype="solid") +
+    scale_fill_brewer(palette="Set3") +
+  scale_y_continuous(labels = comma, breaks = seq(0,500,by = 25)) +
+  scale_x_date(date_minor_breaks = "30 day",
+                               breaks = "30 day",
+                               labels = date_format("%d-%m-%Y")) +
+  ggtitle("Mortes de COVID-19 (por 100 mil hab.)") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        axis.text.x = element_text(angle=90))
+
+
+
+rm(select)
+
+# Municipalities
+select <- mun
+select$select <- select$Cidade %in% select_mun$Cidade
+select <- select %>% filter(select==TRUE)
+
+g_mun_nc <- select %>% 
+  ggplot(aes(x=Data,
+             y=`Casos confirmados (média móvel, 7 dias)`,
+             color=Cidade)) +
+   geom_point(aes(
+                  text = paste0("<b>", Cidade,"</b> ", "<br>",
+                                "Novos casos (média móvel, 7 dias): ", scales::comma(`Casos confirmados (média móvel, 7 dias)`, 1), "<br>",
+                                "Casos (100mil hab.): ", scales::comma(`Casos confirmados (por 100 mil habitantes)`,1),"<br>",
+                                "Dias desde o 100º caso: ", `Dias desde o 100º caso`,"<br>",
+                                "Data: ", format(Data,format = "%d-%m-%Y"),"<br>")
+                ),size = 0.000001) +
+  geom_line(size=0.5, alpha=0.7, linetype="solid") +
+    scale_fill_brewer(palette="Set3") +
+  scale_y_continuous(labels = comma) +
+  scale_x_date(date_minor_breaks = "30 day",
+                               breaks = "30 day",
+                               labels = date_format("%d-%m-%Y")) +
+  ggtitle("Novos casos de covid-19") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        axis.text.x = element_text(angle=90))
+
+
+g_mun_nc100 <- select %>% 
+  ggplot(aes(x=Data,
+             y=`Casos confirmados (por 100 mil habitantes)`,
+             color=Cidade)) +
+   geom_point(aes(
+                  text = paste0("<b>", Cidade,"</b> ", "<br>",
+                                "Novos casos (média móvel, 7 dias): ", scales::comma(`Casos confirmados (média móvel, 7 dias)`, 1), "<br>",
+                                "Casos (100mil hab.): ", scales::comma(`Casos confirmados (por 100 mil habitantes)`,1),"<br>",
+                                "Dias desde o 100º caso: ", `Dias desde o 100º caso`,"<br>",
+                                "Data: ", format(Data,format = "%d-%m-%Y"),"<br>")
+                ),size = 0.000001) +
+  geom_line(size=0.5, alpha=0.7, linetype="solid") +
+    scale_fill_brewer(palette="Set3") +
+  scale_y_continuous(labels = comma) +
+  scale_x_date(date_minor_breaks = "30 day",
+                               breaks = "30 day",
+                               labels = date_format("%d-%m-%Y")) +
+  ggtitle("Casos de covid-19 (por 100 mil hab.)") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        axis.text.x = element_text(angle=90))
+
+
+
+
+
+g_mun_nd <- select %>% 
+  ggplot(aes(x=Data,
+             y=`Mortes confirmadas (média móvel, 7 dias)`,
+             color=Cidade)) +
+   geom_point(aes(
+                  text = paste0("<b>", Cidade,"</b> ", "<br>",
+                                "Novas mortes (média móvel, 7 dias): ", scales::comma(`Mortes confirmadas (média móvel, 7 dias)`, 1), "<br>",
+                                "Mortes (100mil hab.): ", scales::comma(`Mortes (por 100 mil habitantes)`,1),"<br>",
+                                "Dias desde o 100º caso: ", `Dias desde o 100º caso`,"<br>",
+                                "Data: ", format(Data,format = "%d-%m-%Y"),"<br>")
+                ),size = 0.000001) +
+  geom_line(size=0.5, alpha=0.7, linetype="solid") +
+    scale_fill_brewer(palette="Set3") +
+  scale_y_continuous(labels = comma, breaks = seq(0,500,by = 25)) +
+  scale_x_date(date_minor_breaks = "30 day",
+                               breaks = "30 day",
+                               labels = date_format("%d-%m-%Y")) +
+  ggtitle("Novas mortes de COVID-19") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        axis.text.x = element_text(angle=90))
+
+
+
+g_mun_nd100 <- select %>% 
+  ggplot(aes(x=Data,
+             y=`Mortes (por 100 mil habitantes)`,
+             color=Cidade)) +
+   geom_point(aes(
+                  text = paste0("<b>", Cidade,"</b> ", "<br>",
+                                "Novas mortes (média móvel, 7 dias): ", scales::comma(`Mortes confirmadas (média móvel, 7 dias)`, 1), "<br>",
+                                "Mortes (100mil hab.): ", scales::comma(`Mortes (por 100 mil habitantes)`,1),"<br>",
+                                "Dias desde o 100º caso: ", `Dias desde o 100º caso`,"<br>",
+                                "Data: ", format(Data,format = "%d-%m-%Y"),"<br>")
+                ),size = 0.000001) +
+  geom_line(size=0.5, alpha=0.7, linetype="solid") +
+    scale_fill_brewer(palette="Set3") +
+  scale_y_continuous(labels = comma, breaks = seq(0,500,by = 25)) +
+  scale_x_date(date_minor_breaks = "30 day",
+                               breaks = "30 day",
+                               labels = date_format("%d-%m-%Y")) +
+  ggtitle("Mortes de COVID-19 (por 100 mil hab.)") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 12),
+        panel.grid.major = element_blank(),
+        axis.text.x = element_text(angle=90))
+
+
+
+
+
+
+# -----------------------------------------------------------------
+#   B. Total of people affected by the Virus
+# -----------------------------------------------------------------
+
+max <- ceiling(max(brazil$Número)/1000000)*1000000
+
+g_brazil <- brazil %>% ggplot(aes(x=`Data`,
+                                  y=Número,
+                                  fill=Afetados)) +
+                geom_area(data = brazil %>% filter(Afetados == "Casos confirmados"),
+                          aes(x=`Data`,
+                              y=Número,
+                              fill=Afetados),
+                          alpha = 0.8) +
+                geom_area(data = brazil %>% filter(Afetados == "Casos recuperados"),
+                          aes(x=`Data`,
+                              y=Número,
+                              fill=Afetados),
+                          alpha = 0.8) +
+                geom_area(data = brazil %>% filter(Afetados == "Mortes"),
+                          aes(x=`Data`,
+                              y=Número,
+                              fill=Afetados),
+                          alpha = 0.8) +
+                geom_area(aes(text = paste0("<b>", Afetados,"</b>: ", scales::comma(Número, 1),"<br>",
+                                            "Data: ", format(Data,format = "%d-%m-%Y"),"<br>"))) +
+                scale_y_continuous(labels = comma, limits = c(0,max)) +
+                scale_x_date(date_minor_breaks = "30 day",
+                               breaks = "30 day",
+                               labels = date_format("%d-%m-%Y")) +
+                scale_fill_brewer(palette="Set2",name="") +
+                theme_minimal() +
+                theme(plot.title = element_text(size = 12),
+                      axis.title.y=element_blank(),
+                      axis.text.x = element_text(angle=90)) +
+                theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank())
+
+
+# g_brazil <- brazil %>% ggplot(aes(x=`Data`,
+#                                   y=Número,
+#                                   fill=Afetados)) +
+#                 geom_point(aes(
+#                   text = paste0("<b>", Afetados,"</b>: ", scales::comma(Número, 1), "<br>",
+#                                 "Data: ", format(Data,format = "%d-%m-%Y"),"<br>")
+#                 ),size = 0.000001) +
+#                 geom_area(alpha=0.8) +
+#                 scale_y_continuous(labels = comma) +
+#                 scale_x_date(date_minor_breaks = "30 day",
+#                                breaks = "30 day",
+#                                labels = date_format("%d-%m-%Y")) +
+#                 scale_fill_brewer(palette="Set2",name="") +
+#                 theme_minimal() +
+#                 theme(plot.title = element_text(size = 12),
+#                       axis.title.y=element_blank(),
+#                       axis.text.x = element_text(angle=90)) +
+#                 theme(plot.title = element_text(size = 12),
+#                         panel.grid.major = element_blank())
+
+
+# 
+# g_world <- world %>% ggplot(aes(x=`Data`,
+#                                   y=Número,
+#                                   fill=Afetados)) +
+#                 geom_point(aes(
+#                   text = paste0("<b>", Afetados,"</b>: ", scales::comma(Número, 1), "<br>",
+#                                 "Data: ", format(Data,format = "%d-%m-%Y"),"<br>")
+#                 ), size = 0.000001) +
+#                 geom_area() +
+#                 scale_y_continuous(labels = comma) +
+#                 scale_x_date(date_minor_breaks = "30 day",
+#                                breaks = "30 day",
+#                                labels = date_format("%d-%m-%Y")) +
+#                 scale_fill_brewer(palette="Set2",name="") +
+#                 theme_minimal() +
+#                 theme(plot.title = element_text(size = 12),
+#                       axis.title.y=element_blank(),
+#                       axis.text.x = element_text(angle=90)) +
+#                 theme(plot.title = element_text(size = 12),
+#                         panel.grid.major = element_blank())
+
+
+
+
+
+
+
+# ############################################################################################################
+# ############################################################################################################
+# ############################################################################################################
+
+
+
+# CREATING ALL MAPS SILENTELY
+# ###############################################
+
+color_map1 <-  c('#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026')
+
+# -----------------------------------------------------------------
+#   B. Município
+# -----------------------------------------------------------------
+
+mun_map <- mun %>%
+  filter(Data==today) %>% 
+  mutate(`Novos casos (por 100 mil habitantes)` = `Casos confirmados (média móvel, 7 dias)`/Pop_total,
+         `Novas mortes (por 100 mil habitantes)` = `Mortes confirmadas (média móvel, 7 dias)`/Pop_total) %>% 
+  select(c("ibgeID","Cidade","Novos casos (por 100 mil habitantes)","Novas mortes (por 100 mil habitantes)","Casos confirmados (por 100 mil habitantes)","Mortes (por 100 mil habitantes)")) %>% 
+  left_join(shape_mun, by = "ibgeID")  %>%
+  st_as_sf() %>%
+  st_transform(4326) %>% 
+  # st_simplify() %>% 
+  select(-ibgeID) %>% 
+  mutate(`Casos confirmados (por 100 mil habitantes)` = round(`Casos confirmados (por 100 mil habitantes)`, digits = 0),
+         `Mortes (por 100 mil habitantes)` = round(`Mortes (por 100 mil habitantes)`, digits = 0),
+         `Novos casos (por 100 mil habitantes)` = round(`Novos casos (por 100 mil habitantes)`, digits = 0),
+         `Novas mortes (por 100 mil habitantes)` = round(`Novas mortes (por 100 mil habitantes)`, digits = 3)) %>% 
+  filter(!st_is_empty(geometry)) %>% 
+  mutate(`Novos casos (por 100 mil habitantes)` = ifelse(`Novos casos (por 100 mil habitantes)`<0,0,`Novos casos (por 100 mil habitantes)`),
+         `Novas mortes (por 100 mil habitantes)` = ifelse(`Novas mortes (por 100 mil habitantes)`<0,0,`Novas mortes (por 100 mil habitantes)`))
+
+
+# countries_point <- countries_point %>% st_centroid()
+
+map_df <- mun_map
+
+#   Incidence: cases per 100k
+# -----------------------------------------------------------------
+
+
+max <- ceiling(max(map_df$`Casos confirmados (por 100 mil habitantes)`,na.rm = T)/1000)*1000
+
+mapviewOptions(legend.pos ="bottomleft")
+m_mun_tc <- map_df %>%
+  select(-c("Mortes (por 100 mil habitantes)","Novas mortes (por 100 mil habitantes)","NM_MUNICIP")) %>% 
+  filter(!is.na(`Casos confirmados (por 100 mil habitantes)`)) %>%
+  mapview(zcol="Casos confirmados (por 100 mil habitantes)",
+          # color = "#000000",
+          na.color = "#FFFFFF",
+          legend=T,
+          layer.name = "Casos confirmados (por 100 mil habitantes)",
+          alpha.region=0.8,
+          alpha=0.05,
+          at = round(lseq(80,max,length.out = 9)),
+          #at = c(0,round(lseq(100,max,9),0)),
+          col.regions = color_map1,
+          map.types = c("CartoDB.Positron", "OpenStreetMap.DE"),
+          popup = popupTable(map_df %>% filter(!is.na(`Casos confirmados (por 100 mil habitantes)`)) %>% select(-c("Mortes (por 100 mil habitantes)","Novas mortes (por 100 mil habitantes)","NM_MUNICIP")),
+                             zcol = c("Cidade",
+                              "Casos confirmados (por 100 mil habitantes)",
+                              "Novos casos (por 100 mil habitantes)")))
+
+
+# mapshot(m_mun_tc,url = paste0("C:/Users/Michel/Google Drive/Website/_site/","mun_tc.html"))
+
+
+#   Incidence: deaths per 100k
+# -----------------------------------------------------------------
+
+max <- ceiling(max(map_df$`Mortes (por 100 mil habitantes)`,na.rm = T)/100)*100
+
+mapviewOptions(legend.pos ="bottomleft")
+m_mun_td <- map_df %>%
+  select(-c("Casos confirmados (por 100 mil habitantes)","Novos casos (por 100 mil habitantes)")) %>% 
+  filter(!is.na(`Mortes (por 100 mil habitantes)`)) %>%
+  mapview(zcol="Mortes (por 100 mil habitantes)",
+          # color = "#000000",
+          na.color = "#FFFFFF",
+          legend=T,
+          layer.name = "Mortes (por 100 mil habitantes)",
+          alpha.region=0.8,
+          alpha=0.05,
+          at = round(lseq(1,max,length.out = 9)),
+          #at = c(0,round(lseq(100,max,9),0)),
+          col.regions = color_map1,
+          map.types = c("CartoDB.Positron", "OpenStreetMap.DE"),
+          popup = popupTable(map_df %>% filter(!is.na(`Mortes (por 100 mil habitantes)`)) %>% select(-c("Casos confirmados (por 100 mil habitantes)","Novos casos (por 100 mil habitantes)")),
+                             zcol = c("Cidade",
+                              "Mortes (por 100 mil habitantes)",
+                              "Novas mortes (por 100 mil habitantes)")))
+
+# mapshot(m_mun_td,url = paste0("C:/Users/Michel/Google Drive/Website/_site/","mun_td.html"))
+
+
+#   New: cases per 100k
+# -----------------------------------------------------------------
+
+max <- ceiling(max(map_df$`Novos casos (por 100 mil habitantes)`,na.rm = T))
+min <- ceiling(min(map_df$`Novos casos (por 100 mil habitantes)`,na.rm = T))
+
+mapviewOptions(legend.pos ="bottomleft")
+m_mun_nc <- map_df %>%
+  select(-c("Mortes (por 100 mil habitantes)","Novas mortes (por 100 mil habitantes)")) %>% 
+  filter(!is.na(`Novos casos (por 100 mil habitantes)`)) %>%
+  mapview(zcol="Novos casos (por 100 mil habitantes)",
+          # color = "#000000",
+          na.color = "#FFFFFF",
+          legend=T,
+          layer.name = "Novos casos (por 100 mil habitantes)",
+          alpha.region=0.8,
+          alpha=0.05,
+          at = c(0,round(lseq(1,max,length.out = 8))),
+          col.regions = color_map1,
+          map.types = c("CartoDB.Positron", "OpenStreetMap.DE"),
+          popup = popupTable(map_df %>% filter(!is.na(`Novos casos (por 100 mil habitantes)`)) %>% select(-c("Mortes (por 100 mil habitantes)","Novas mortes (por 100 mil habitantes)")),
+                             zcol = c("Cidade",
+                              "Casos confirmados (por 100 mil habitantes)",
+                              "Novos casos (por 100 mil habitantes)")))
+
+
+# mapshot(m_mun_nc,url = paste0("C:/Users/Michel/Google Drive/Website/_site/","mun_nc.html"))
+
+#   New: deaths per 100k
+# -----------------------------------------------------------------
+
+max <- ceiling(max(map_df$`Novas mortes (por 100 mil habitantes)`,na.rm = T)*100)/100
+min <- ceiling(min(map_df$`Novas mortes (por 100 mil habitantes)`,na.rm = T)*100)/100
+
+mapviewOptions(legend.pos ="bottomleft")
+m_mun_nd <- map_df %>%
+  select(-c("Casos confirmados (por 100 mil habitantes)","Novos casos (por 100 mil habitantes)")) %>% 
+  filter(!is.na(`Novas mortes (por 100 mil habitantes)`)) %>%
+  mapview(zcol="Novas mortes (por 100 mil habitantes)",
+          # color = "#000000",
+          na.color = "#FFFFFF",
+          legend=T,
+          layer.name = "Novas mortes (por 100 mil habitantes)",
+          alpha.region=0.8,
+          alpha=0.05,
+          at = c(0,round(lseq(0.1,max,length.out = 8),2)),
+          col.regions = color_map1,
+          map.types = c("CartoDB.Positron", "OpenStreetMap.DE"),
+          popup = popupTable(map_df %>% filter(!is.na(`Novas mortes (por 100 mil habitantes)`)) %>% select(-c("Casos confirmados (por 100 mil habitantes)","Novos casos (por 100 mil habitantes)")) ,
+                             zcol = c("Cidade",
+                              "Mortes (por 100 mil habitantes)",
+                              "Novas mortes (por 100 mil habitantes)")))
+
+# mapshot(m_mun_nd,url = paste0("C:/Users/Michel/Google Drive/Website/_site/","mun_nd.html"))
+
+# -----------------------------------------------------------------
+#   C. Estados
+# -----------------------------------------------------------------
+
+estado_map <- estado %>%
+  filter(Data==today) %>% 
+  mutate(`Novos casos (por 100 mil habitantes)` = `Casos confirmados (média móvel, 7 dias)`/Pop_total,
+         `Novas mortes (por 100 mil habitantes)` = `Mortes confirmadas (média móvel, 7 dias)`/Pop_total) %>% 
+  select(c("uf","Estado","Novos casos (por 100 mil habitantes)","Novas mortes (por 100 mil habitantes)","Casos confirmados (por 100 mil habitantes)","Mortes (por 100 mil habitantes)")) %>% 
+  left_join(shape_estado, by = "uf")  %>%
+  st_as_sf() %>%
+  st_transform(4326) %>% 
+  select(-uf) %>% 
+  mutate(`Casos confirmados (por 100 mil habitantes)` = round(`Casos confirmados (por 100 mil habitantes)`, digits = 0),
+         `Mortes (por 100 mil habitantes)` = round(`Mortes (por 100 mil habitantes)`, digits = 0),
+         `Novos casos (por 100 mil habitantes)` = round(`Novos casos (por 100 mil habitantes)`, digits = 0),
+         `Novas mortes (por 100 mil habitantes)` = round(`Novas mortes (por 100 mil habitantes)`, digits = 3)) %>% 
+  filter(!st_is_empty(geometry)) %>% 
+  mutate(`Novos casos (por 100 mil habitantes)` = ifelse(`Novos casos (por 100 mil habitantes)`<0,0,`Novos casos (por 100 mil habitantes)`),
+         `Novas mortes (por 100 mil habitantes)` = ifelse(`Novas mortes (por 100 mil habitantes)`<0,0,`Novas mortes (por 100 mil habitantes)`))
+
+
+# countries_point <- countries_point %>% st_centroid()
+
+map_df <- estado_map
+
+#   Incidence: cases per 100k
+# -----------------------------------------------------------------
+
+
+max <- ceiling(max(map_df$`Casos confirmados (por 100 mil habitantes)`,na.rm = T)/1000)*1000
+
+mapviewOptions(legend.pos ="bottomleft")
+m_estado_tc <- map_df %>%
+  select(-c("Mortes (por 100 mil habitantes)","Novas mortes (por 100 mil habitantes)")) %>% 
+  filter(!is.na(`Casos confirmados (por 100 mil habitantes)`)) %>%
+  mapview(zcol="Casos confirmados (por 100 mil habitantes)",
+          # color = "#000000",
+          na.color = "#FFFFFF",
+          legend=T,
+          layer.name = "Casos confirmados (por 100 mil habitantes)",
+          alpha.region=0.8,
+          alpha=0.05,
+          at = round(seq(100,max,length.out = 9)),
+          #at = c(0,round(lseq(100,max,9),0)),
+          col.regions = color_map1,
+          map.types = c("CartoDB.Positron", "OpenStreetMap.DE"),
+          popup = popupTable(map_df %>% filter(!is.na(`Casos confirmados (por 100 mil habitantes)`)) %>% select(-c("Mortes (por 100 mil habitantes)","Novas mortes (por 100 mil habitantes)")),
+                             zcol = c("Estado",
+                              "Casos confirmados (por 100 mil habitantes)",
+                              "Novos casos (por 100 mil habitantes)")))
+
+#   Incidence: deaths per 100k
+# -----------------------------------------------------------------
+
+max <- ceiling(max(map_df$`Mortes (por 100 mil habitantes)`,na.rm = T)/100)*100
+
+mapviewOptions(legend.pos ="bottomleft")
+m_estado_td <- map_df %>%
+  select(-c("Casos confirmados (por 100 mil habitantes)","Novos casos (por 100 mil habitantes)")) %>% 
+  filter(!is.na(`Mortes (por 100 mil habitantes)`)) %>%
+  mapview(zcol="Mortes (por 100 mil habitantes)",
+          # color = "#000000",
+          na.color = "#FFFFFF",
+          legend=T,
+          layer.name = "Mortes (por 100 mil habitantes)",
+          alpha.region=0.8,
+          alpha=0.05,
+          at = round(seq(1,max,length.out = 9)),
+          #at = c(0,round(lseq(100,max,9),0)),
+          col.regions = color_map1,
+          map.types = c("CartoDB.Positron", "OpenStreetMap.DE"),
+          popup = popupTable(map_df %>% filter(!is.na(`Mortes (por 100 mil habitantes)`)) %>% select(-c("Casos confirmados (por 100 mil habitantes)","Novos casos (por 100 mil habitantes)")) ,
+                             zcol = c("Estado",
+                              "Mortes (por 100 mil habitantes)",
+                              "Novas mortes (por 100 mil habitantes)")))
+ 
+
+#   New: cases per 100k
+# -----------------------------------------------------------------
+
+max <- ceiling(max(map_df$`Novos casos (por 100 mil habitantes)`,na.rm = T))
+min <- ceiling(min(map_df$`Novos casos (por 100 mil habitantes)`,na.rm = T))
+
+mapviewOptions(legend.pos ="bottomleft")
+m_estado_nc <- map_df %>%
+  select(-c("Mortes (por 100 mil habitantes)","Novas mortes (por 100 mil habitantes)")) %>% 
+  filter(!is.na(`Novos casos (por 100 mil habitantes)`)) %>%
+  mapview(zcol="Novos casos (por 100 mil habitantes)",
+          color = "#000000",
+          na.color = "#FFFFFF",
+          legend=T,
+          layer.name = "Novos casos (por 100 mil habitantes)",
+          alpha.region=0.8,
+          alpha=0.05,
+          at = c(0,round(lseq(min,max,length.out = 8))),
+          col.regions = color_map1,
+          map.types = c("CartoDB.Positron", "OpenStreetMap.DE"),
+          popup = popupTable(map_df %>% filter(!is.na(`Novos casos (por 100 mil habitantes)`)) %>% select(-c("Mortes (por 100 mil habitantes)","Novas mortes (por 100 mil habitantes)")),
+                             zcol = c("Estado",
+                              "Casos confirmados (por 100 mil habitantes)",
+                              "Novos casos (por 100 mil habitantes)")))
+
+
+#   New: deaths per 100k
+# -----------------------------------------------------------------
+
+max <- ceiling(max(map_df$`Novas mortes (por 100 mil habitantes)`,na.rm = T)*100)/100
+min <- ceiling(min(map_df$`Novas mortes (por 100 mil habitantes)`,na.rm = T)*100)/100
+
+mapviewOptions(legend.pos ="bottomleft")
+m_estado_nd <- map_df %>%
+  select(-c("Casos confirmados (por 100 mil habitantes)","Novos casos (por 100 mil habitantes)")) %>% 
+  filter(!is.na(`Novas mortes (por 100 mil habitantes)`)) %>%
+  mapview(zcol="Novas mortes (por 100 mil habitantes)",
+          color = "#000000",
+          na.color = "#FFFFFF",
+          legend=T,
+          layer.name = "Novas mortes (por 100 mil habitantes)",
+          alpha.region=0.8,
+          alpha=0.05,
+          at = c(0,round(lseq(min,max,length.out = 8),2)),
+          col.regions = color_map1,
+          map.types = c("CartoDB.Positron", "OpenStreetMap.DE"),
+          popup = popupTable(map_df %>% filter(!is.na(`Novas mortes (por 100 mil habitantes)`)) %>% select(-c("Casos confirmados (por 100 mil habitantes)","Novos casos (por 100 mil habitantes)")) ,
+                             zcol = c("Estado",
+                              "Mortes (por 100 mil habitantes)",
+                              "Novas mortes (por 100 mil habitantes)")))
+
+
+rm(countries)
+rm(countries_map)
+rm(estado)
+rm(estado_map)
+rm(mun)
+rm(mun_map)
+rm(shape_world)
+rm(shape_estado)
+rm(shape_mun)
+
+```
+
+<font size = '5'>Para acessar a página com dados globais clique <a href="coronavirus_mundo.html">aqui</a></font>
+
+\
+
+Bem vindo! O objetivo dessa página é apresentar algumas visualizações de dados sobre a COVID-19. Os dados são atualizados diariamente.
+**Aproveite a interatividade dos gráficos!** Eles possuem um _menu_ no canto superior direito que permite: `dar zoom`, `comparar dados em hover`, `clicar na legenda para filtrar o que será plotado no gráfico`, `fazer download de um snapshot`.
+
+Qualquer sugestão, dúvida, questionamento entre em contato: [`mszklo@gmail.com`](mszklo@gmail.com). 
+
+
+
+
+# Total de pessoas afetadas
+
+```{r, results='asis', fig.width=8, fig.height=4.5}
+
+
+g_brazil %>%
+  ggplotly(tooltip = c("text")) %>%
+  layout(dragmode = 'pan',hovermode='compare')
+
+
+
+```
+
+
+<font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19" target="_blank"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+
+
+
+
+
+
+
+# COVID-19 nos Estados
+
+## Tendências temporais
+
+### Novos casos e mortes
+
+
+Os gráficos abaixo apresentam a média móvel (7 dias) de novos casos e novas mortes confirmadas para os 15 estados com os maiores números de casos.   
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+g_estado_nc %>% 
+  ggplotly(tooltip = c("text")) %>% 
+  layout(dragmode = 'pan')
+
+
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+g_estado_nd %>% 
+  ggplotly(tooltip = c("text")) %>% 
+  layout(dragmode = 'pan')
+
+
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+
+### Incidência
+
+
+Os gráficos abaixo apresentam a incidência de casos e mortes (por 100 mil habitantes) para os 15 estados com os maiores números de casos.   
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+g_estado_nc100 %>% 
+  ggplotly(tooltip = c("text")) %>% 
+  layout(dragmode = 'pan')
+
+
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+g_estado_nd100 %>% 
+  ggplotly(tooltip = c("text")) %>% 
+  layout(dragmode = 'pan')
+
+
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+
+
+
+
+
+
+
+
+## Mapas
+
+Os mapas abaixo apresentam a média móvel (7 dias) de novos casos e novas mortes confirmadas por 100 mil habitantes nos estados brasileiros para o último dia de dados disponível
+
+
+```{r, results='asis', fig.width=8, fig.height=4.5}
+
+m_estado_nc
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+
+```{r, results='asis', fig.width=8, fig.height=4.5}
+
+m_estado_nd
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+Já os mapas abaixo representam a incidência de casos e mortes por Covid
+
+
+
+```{r, results='asis', fig.width=8, fig.height=4.5}
+
+m_estado_tc
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+
+```{r, results='asis', fig.width=8, fig.height=4.5}
+
+m_estado_td
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# COVID-19 nos Municípios
+
+## Tendências temporais
+
+### Novos casos e mortes
+
+Os gráficos abaixo apresentam a média móvel (7 dias) de novos casos e novas mortes confirmadas para os 15 municípios com os maiores números de casos.   
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+g_mun_nc %>% 
+  ggplotly(tooltip = c("text")) %>% 
+  layout(dragmode = 'pan')
+
+
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+g_mun_nd %>% 
+  ggplotly(tooltip = c("text")) %>% 
+  layout(dragmode = 'pan')
+
+
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+
+
+### Incidência
+
+Os gráficos abaixo apresentam a incidência de casos e mortes (por 100 mil habitantes) para os 15 municípios com os maiores números de casos.   
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+g_mun_nc100 %>% 
+  ggplotly(tooltip = c("text")) %>% 
+  layout(dragmode = 'pan')
+
+
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+g_mun_nd100 %>% 
+  ggplotly(tooltip = c("text")) %>% 
+  layout(dragmode = 'pan')
+
+
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+
+
+
+## Mapas
+
+Os mapas abaixo apresentam a média móvel (7 dias) de novos casos e novas mortes confirmadas por 100 mil habitantes nos municípios brasileiros para o último dia de dados disponível
+
+
+```{r, results='asis', fig.width=8, fig.height=4.5}
+
+m_mun_nc
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+
+```{r, results='asis', fig.width=8, fig.height=4.5}
+
+m_mun_nd
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 09 de Abril, 2021</font>
+
+
+<!-- Já os mapas abaixo representam a incidência de casos e mortes por Covid -->
+
+
+
+<!-- ```{r, results='asis', fig.width=8, fig.height=4.5} -->
+
+<!-- m_mun_tc -->
+
+<!-- ``` -->
+
+<!-- <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font> -->
+<!-- <br> -->
+<!-- <font size = '2'> Atualizado em: 09 de Abril, 2021</font> -->
+
+
+
+<!-- ```{r, results='asis', fig.width=8, fig.height=4.5} -->
+
+<!-- m_mun_td -->
+
+<!-- ``` -->
+
+<!-- <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font> -->
+<!-- <br> -->
+<!-- <font size = '2'> Atualizado em: 09 de Abril, 2021</font> -->
+
+
+
+
+
+
+
+# Fontes de dados
+
+* Dados de casos e mortes de COVID-19 internacionais: <a href="https://github.com/CSSEGISandData/COVID-19" target="_blank">Center for Systems Science and Engineering (CSSE)</a> da John Hopkins University.
+
+* Dados de casos e mortes de COVID-19 para municípios e estados brasileiros consolidados e disponibilizados em <a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank">labs.wesleycota.com/sarscov2/br/</a>.
+
+* Dados globais de vacinação: <a href="https://ourworldindata.org/covid-vaccinations" target="_blank">Our World in Data</a>.
