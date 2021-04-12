@@ -30,6 +30,9 @@ if(length(to_install)>0) install.packages(to_install)
 
 lapply(packages,require,character.only=TRUE)
 
+
+options(digits = 15)
+
 raw <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/data/"
 
 
@@ -70,7 +73,7 @@ finbra <- finbra %>% left_join(finbra_receita, by = c("ano","cod_mun"))
 rm(finbra_receita)
 
 
-finbra[8:33] <- lapply(finbra[8:33], as.numeric)
+finbra[8:33] <- lapply(finbra[8:33], function(x) as.numeric(gsub(",","",x),digits = 15))
 
 
 # 4. Importing SIOPS data
@@ -115,7 +118,8 @@ ams <- data.frame(read.dta13(paste0(raw,"AMS/ams.dta")))
 # 6. Infrastructure data (PSF Romero's files)
 # =================================================================
 
-leitos <- data.frame(read.dta13(paste0(raw,"Infra/Leitos.dta"))) %>% filter(ano>=1998)
+leitos <- data.frame(read.dta13(paste0(raw,"Infra/Leitos.dta"))) %>%
+  filter(ano>=1998) 
 
 
 # 7. Atlas 2013 data (Baseline controls)
@@ -144,7 +148,11 @@ censo <- data.frame(read.dta13(paste0(raw,"censo/censo.dta"))) %>%
 
 # 9. Electoral Data
 # ==============================================================
-elect <- read.csv(paste0(raw,"TSE/run_reelection.csv"), encoding = "UTF-8")
+elect <- read.csv(paste0(raw,"TSE/run_reelection.csv"), encoding = "UTF-8") %>% 
+  distinct(cod_mun, .keep_all = T) %>% 
+  filter(!is.na(cod_mun)) %>% 
+  filter(!(cod_mun==420860 & reelect==1))
+  
 
 
 
@@ -170,7 +178,9 @@ df <- mun_list %>%
   # datasus - sia
   left_join(sia, by = c("ano","cod_mun")) %>%
   # leitos
-  left_join(leitos, by = c("ano","cod_mun")) %>%
+  left_join(leitos, by = c("ano","cod_mun")) %>% 
+  mutate(leitos_pc = leitos/pop*1000,
+         hospital = ifelse(leitos>0,1,0)) %>% 
   # atlas
   left_join(atlas, by = c("ano","cod_mun")) %>%
   # censo
@@ -180,6 +190,7 @@ df <- mun_list %>%
   group_by(cod_mun) %>% 
   mutate(reelect_sample = max(reelect,na.rm = T),
          reelect_sample = ifelse(is.infinite(reelect_sample),0,1)) %>% 
+  ungroup() %>% 
   # ams
   left_join(ams, by = c("ano","cod_mun")) %>%
   mutate(hospital_nmun = ifelse(!is.na(hospital_est) & !is.na(hospital_fed),0,NA)) %>%
@@ -218,35 +229,74 @@ siops_vars <- grep("siops",names(df), value = T)
 siops_vars <- siops_vars[siops_vars %in% exclude_vars]
 
 finbra_vars <- grep("finbra",names(df),value = T)
-finbra_vars_new <- sapply(finbra_vars, function(x) paste0(x,"_pcapita"), simplify = "array")
+finbra_vars_new <- sapply(finbra_vars, function(x) paste0(x,"_pcapita"), simplify = "array", USE.NAMES = F)
 
 df[finbra_vars_new] <- df[finbra_vars]
+
+
 
 df <- df %>% 
   mutate_at(siops_vars, `/`, quote(deflator_saude)) %>%
   mutate_at(finbra_vars_new, `/`, quote(pop)) %>% 
-  mutate_at(finbra_vars_new, `/`, quote(deflator_saude))
+  mutate_at(finbra_vars_new, `/`, quote(deflator_saude)) %>% 
+  select(-all_of(finbra_vars))
   
 
 
-for(v in siops_vars){
-  df <- df %>% 
-    mutate(!!v := !!sym(v)/deflator_saude)
-}
+# 12. Creating mortality rates
+# ==============================================================
+
+
+# infant mortality
+sim_vars <- grep("^mi",names(df), value = T)
+sim_vars_new <- sapply(sim_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F)
+df[sim_vars_new] <- df[sim_vars]
+
+df <- df %>% 
+  mutate_at(sim_vars_new, `/`, quote(birth_nasc_vivos)) %>% 
+  mutate_at(sim_vars_new, `*`, quote(1000))
+
+df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x),0))
+
+# adult mortality
+
+sim_vars <- grep("^ma",names(df), value = T)
+sim_vars_new <- sapply(sim_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F)
+df[sim_vars_new] <- df[sim_vars]
+
+df <- df %>% 
+  mutate_at(sim_vars_new, `/`, quote(pop40)) %>% 
+  mutate_at(sim_vars_new, `*`, quote(1000))
+
+df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x),0))
 
 
 
 
-for(v in finbra_vars){
-  pcvar <- paste0(v,"_pcapita")
-  df <- df %>% 
-    mutate(!!pcvar := !!sym(v)/pop/deflator_saude) %>% 
-    select(-c(v))
-}
-  
-  
+# 13. Creating per capita figurues for specific variables
+# ==============================================================
 
-  
+infra_vars <- c("ACS_I", "eSF_I")
+sia_vars <- grep("^sia",names(df),value = T)
+ams_vars <- c(grep("^hospital_",names(df), value = T),
+         grep("^unity_",names(df), value = T),
+         grep("^therapy_",names(df), value = T),
+         grep("^hr_",names(df), value = T))
+
+vars <- c(infra_vars,sia_vars,ams_vars)
+vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
+
+df[vars_new] <- df[vars]
+
+df <- df %>% 
+  mutate_at(vars_new,`/`,quote(pop)) %>% 
+  mutate_at(vars_new,`*`,quote(1000))
+
+
+
+# 14. Creating per capita figurues for specific variables
+# ==============================================================
+saveRDS(df, paste0(raw,"CONSOL_DATA.rds"))
 
 
 

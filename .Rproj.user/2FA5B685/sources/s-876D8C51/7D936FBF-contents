@@ -1,0 +1,43 @@
+---
+title: ""
+output:
+  
+ html_document:
+    theme: flatly
+    highlight: tango
+#    code_folding: hide
+    toc_depth: 3
+    toc: true
+    toc_float: true
+    # include:
+    #   after_body: footer.html
+    
+---
+
+```{css, echo=FALSE}
+
+.icon:not(:first-child) {
+  margin-left: 20px;
+}
+
+.fa, .ai {
+  font-size: 30px;
+  width: 30px;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 50%;
+}
+  
+.fa:hover, .ai:hover {
+  opacity: 0.7;
+}
+
+```
+  
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
+<!-- Add font awesome icons -->
+<a href="https://www.linkedin.com/in/michel-szklo-95841759/" class="fa fa-linkedin icon"></a>
+<a href="http://lattes.cnpq.br/5148138552010544" class="ai ai-lattes icon"></a>
+<a href="https://scholar.google.com/citations?hl=en&user=WiWAVlwAAAAJ" class="ai ai-google-scholar icon"></a>

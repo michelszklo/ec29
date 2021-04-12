@@ -1,0 +1,56 @@
+---
+name: "Michel Szklo"
+navbar:
+  title: "Michel Szklo"
+  type: default
+  right:
+    - text: "Home"
+      icon: fa-home
+      href: index.html
+    - text: "Research"
+      href: research.html
+      icon: fa-search
+    # - text: "LAPP"
+    #   href: lapp.html
+    #   icon: fa-seedling
+    - text: "Coding"
+      icon: fa-code
+      menu:
+        - text: "Web Scraping workshop"
+          href: web_scraping.html
+    - text: "COVID 19"
+      icon: fa-thermometer
+      menu:
+        - text: "Covid-19 Brasil"
+          href: coronavirus.html
+        - text: "Covid-19 Mundo"
+          href: coronavirus_mundo.html
+    - text: "CV"
+      icon: fa-id-card
+      href: cvitae.html
+  
+output:
+  html_document:
+    theme: cosmo
+    highlight: tango
+#    code_folding: hide
+    toc_depth: 3
+    toc: true
+    toc_float: true
+#     include:
+#       after_body: _footer.html
+# #    css: styles.css
+
+
+
+
+    
+#output:
+#  rmdformats::readthedown:
+#    highlight: tango
+    # include:
+    #   after_body: footer.html
+    # css: styles.css
+---
+
+

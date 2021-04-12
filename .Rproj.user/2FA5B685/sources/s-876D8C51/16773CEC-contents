@@ -1,0 +1,1734 @@
+---
+title: "COVID-19"
+output:
+  
+ html_document:
+    theme: flatly
+    highlight: tango
+#    code_folding: hide
+    toc_depth: 3
+    toc: true
+    toc_float: true
+    # include:
+    #   after_body: footer.html
+    # css: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+# COVID-19 VISUALIZATIONS
+# ----------------------------
+
+# This script downloads and creates interactive visualizations
+# of COVID-19 data provided by John Hopkins University and related data,
+# focusing on Brazil
+
+
+# Author: Michel Szklo
+# Date: March 2020
+
+###################################################################
+
+
+# =================================================================
+# 0 Set-up
+# =================================================================
+
+rm(list=ls())
+
+# packages
+packages<-c('readr','tidyverse','dplyr','RCurl','tidyr','scales','RColorBrewer','plotly','knitr','ggplot2','sf','sp','xlsx','httr','mapview','zoo','emdbook','lattice','geogrid')
+to_install<-packages[!(packages %in% installed.packages()[,"Package"])]
+if(length(to_install)>0) install.packages(to_install)
+
+lapply(packages,require,character.only=TRUE)
+
+today <- "2020-11-25"
+
+# =================================================================
+# 1 Data download and mgmt of John Hopkins Data
+# =================================================================
+
+# -----------------------------------------------------------------
+# confirmed
+# -----------------------------------------------------------------
+url_confirmed <- getURL('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
+confirmed <- read.csv(text=url_confirmed)
+
+confirmed <-  confirmed %>%
+  select(-c('Province.State','Lat','Long')) %>% 
+  group_by(Country.Region) %>%
+  summarise_all(funs(sum))
+
+dates <- colnames(confirmed)
+dates <- dates[2:length(dates)]
+
+confirmed <- pivot_longer(confirmed,
+                          cols=all_of(dates),
+                          names_to = 'date',
+                          values_to = 'cases')
+
+
+
+
+# -----------------------------------------------------------------
+# deaths
+# -----------------------------------------------------------------
+
+url_death <- getURL('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
+death <- read.csv(text=url_death)
+
+death <-  death %>%
+  select(-c('Province.State','Lat','Long')) %>% 
+  group_by(Country.Region) %>%
+  summarise_all(funs(sum))
+
+dates <- colnames(death)
+dates <- dates[2:length(dates)]
+
+death <- pivot_longer(death,
+                          cols=all_of(dates),
+                          names_to = 'date',
+                          values_to = 'deaths')
+
+# -----------------------------------------------------------------
+# Recovered
+# -----------------------------------------------------------------
+
+url_recovered <- getURL('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv')
+recovered <- read.csv(text=url_recovered)
+
+recovered <-  recovered %>%
+  select(-c('Province.State','Lat','Long')) %>% 
+  group_by(Country.Region) %>%
+  summarise_all(funs(sum))
+
+# dates_aux <- as.vector(unique(death$date))[1:63]
+# names(recovered)[2:64] <- dates_aux
+# dates <- colnames(recovered)
+# dates <- dates[2:length(dates)]
+
+dates <- colnames(recovered)
+dates <- dates[2:length(dates)]
+
+
+recovered <- pivot_longer(recovered,
+                          cols=all_of(dates),
+                          names_to = 'date',
+                          values_to = 'recoveries')
+
+
+
+# -----------------------------------------------------------------
+#  Confirmed + Deaths + Recovered
+# -----------------------------------------------------------------
+
+covid <- left_join(confirmed,
+                   death,
+                   by=c('Country.Region','date'))
+covid <- left_join(covid,
+                   recovered,
+                   by=c('Country.Region','date'))
+
+covid[is.na(covid)]<-0
+
+
+# -----------------------------------------------------------------
+#  Creating variable 'days since 100th case' 
+# -----------------------------------------------------------------
+
+covid <- covid %>%
+  mutate(num = ifelse(cases >= 100, 1, 0)) %>% 
+  group_by(Country.Region) %>% 
+  filter(cases>0) %>% 
+  mutate(start_date=cumsum(num)) %>%
+  select(-num)
+
+
+# adjustment for China as JHU only started to provide information on Jan22nd, after the outbreak in china 
+covid <- covid %>%
+  mutate(start_date= ifelse(Country.Region=="China",start_date+22,start_date)) %>% 
+  group_by(Country.Region) %>% 
+  mutate(max=max(cases))
+
+# -----------------------------------------------------------------
+# selecting only the  13 countries with more cases + brasil
+# -----------------------------------------------------------------
+covid_max <- covid %>%
+  group_by(Country.Region) %>% 
+  summarise(max=max(cases)) %>% 
+  arrange(-max) %>% 
+  slice(1:12) %>%
+  select(Country.Region)
+covid_max[13,] <- "Brazil"
+
+covid_select <- covid
+covid_select$select <- covid$Country.Region %in% covid_max$Country.Region
+covid_select <- covid_select %>%
+  filter(select==TRUE) %>%
+  mutate(Data=as.character(date)) %>% 
+  mutate(Data=substring(date,2,length(date))) %>% 
+  mutate(Data=as.Date(Data, format=c('%m.%d'))) %>%
+  select(c('Country.Region','cases','deaths','recoveries','start_date','Data','max')) %>% 
+  rename('País'='Country.Region') %>% 
+  rename('Dias desde o 100º caso' = 'start_date') %>% 
+  rename ('Casos confirmados' = 'cases') %>% 
+  rename('Mortes'= 'deaths') %>%
+  rename ('Casos recuperados'='recoveries')
+
+
+# -----------------------------------------------------------------
+# selecting only the 50 countries with more cases + brasil
+# -----------------------------------------------------------------
+covid_max2 <- covid %>%
+  group_by(Country.Region) %>% 
+  summarise(max=max(cases)) %>% 
+  arrange(-max) %>% 
+  slice(1:50) %>%
+  select(Country.Region)
+
+covid_select2 <- covid
+covid_select2$select <- covid$Country.Region %in% covid_max2$Country.Region
+covid_select2 <- covid_select2 %>%
+  filter(select==TRUE) %>%
+  mutate(Data=as.character(date)) %>% 
+  mutate(Data=substring(date,2,length(date))) %>% 
+  mutate(Data=as.Date(Data, format=c('%m.%d'))) %>%
+  select(c('Country.Region','cases','deaths','recoveries','start_date','Data','max')) %>% 
+  rename('País'='Country.Region') %>% 
+  rename('Dias desde o 100º caso' = 'start_date') %>% 
+  rename ('Casos confirmados' = 'cases') %>% 
+  rename('Mortes'= 'deaths') %>%
+  rename ('Casos recuperados'='recoveries')
+
+
+
+# -----------------------------------------------------------------
+# collapsing world cases, death, recoveries by date
+# -----------------------------------------------------------------
+covid_all <- covid %>%
+  group_by(date) %>%
+  summarise(`Casos confirmados`=sum(cases),Mortes=sum(deaths),`Casos recuperados`=sum(recoveries)) %>% 
+  mutate(Data=as.character(date)) %>% 
+  mutate(Data=substring(date,2,length(date))) %>% 
+  mutate(Data=as.Date(Data, format=c('%m.%d'))) %>% 
+  arrange(Data) %>% 
+  select(-date)
+
+
+covid_all_pct <-  covid_all %>% 
+  mutate(rec_death= Mortes +`Casos recuperados`,
+         Mortes=Mortes/rec_death,
+         `Casos recuperados`=`Casos recuperados`/rec_death)
+
+covid_all_pct <- pivot_longer(covid_all_pct,
+                            cols=c('Mortes','Casos recuperados'),
+                            names_to = 'Atingidos',
+                            values_to = 'Percentual')
+
+# -----------------------------------------------------------------
+# Data for brazil 'affected' plot
+# -----------------------------------------------------------------
+
+covid_brazil <- covid_select %>% 
+  filter(País=="Brazil")
+
+covid_brazil_aff <- covid_brazil %>%
+  select(c('Casos confirmados','Casos recuperados','Mortes','Data'))
+
+covid_brazil_aff <- pivot_longer(covid_brazil_aff,
+                                 cols=c('Casos confirmados','Casos recuperados','Mortes'),
+                                 names_to='Afetados',
+                                 values_to = 'Número')
+
+
+# -----------------------------------------------------------------
+# New cases per day moving average
+# -----------------------------------------------------------------
+
+covid_select <- covid_select %>%
+  group_by(País) %>% 
+  mutate(novos = `Casos confirmados` - dplyr::lag(`Casos confirmados`,1)) %>% 
+  mutate(`Casos confirmados (média móvel, 7 dias)` = as.numeric(rollmean(novos, k = 7, fill = NA, align = "right"))) %>% 
+  ungroup()
+
+
+# -----------------------------------------------------------------
+# Adding population size to covid_select data
+# -----------------------------------------------------------------
+
+pop <- read.csv("C:/Users/Michel/Google Drive/Website/country_pop.csv", sep = ";")
+pop <- pop %>% mutate(Location = as.character(Location), Pop_total = 10*Pop_total)
+pop$Location[pop$Location=="United States of America"] <- "US"
+pop$Location[pop$Location=="Russian Federation"] <- "Russia"
+pop$Location[pop$Location=="Iran (Islamic Republic of)"] <- "Iran"
+colnames(pop)[1] <- "País"
+
+covid_select <- left_join(covid_select,pop, by = "País")
+covid_select <- covid_select %>% 
+  mutate(`Casos confirmados (por 100 mil habitantes)` = `Casos confirmados` / Pop_total,
+         `Casos confirmados (média móvel, 7 dias - por 100 mil habitantes)` = `Casos confirmados (média móvel, 7 dias)` / Pop_total)
+
+
+
+
+# =================================================================
+# 2 Brazil cases by states (wesley cota data)
+# =================================================================
+
+url_estado <- getURL('https://raw.githubusercontent.com/wcota/covid19br/master/cases-brazil-states.csv')
+estado <- read.csv(text=url_estado)
+
+estado <- estado %>% 
+  filter(state!="TOTAL") %>% 
+  rename("Casos confirmados"="totalCases","Casos confirmados (por 100 mil habitantes)" = "totalCases_per_100k_inhabitants","Cidade"="city","Estado"="state","Mortes"="deaths") %>%
+  mutate(date=as.character(date)) %>%
+  mutate(Data=as.Date(date, format=c('%Y-%m-%d'))) %>% 
+  select(-date) %>% 
+  select(c("Estado","Data","Casos confirmados","Casos confirmados (por 100 mil habitantes)","Mortes","newCases","newDeaths"))
+
+estado_max <- estado %>%
+  group_by(Estado) %>% 
+  summarise(max=max(`Casos confirmados`)) %>% 
+  arrange(-max) %>% 
+  slice(1:15) %>% 
+  select(Estado)
+
+estado_select <- estado
+estado_select$select <- estado$Estado %in% estado_max$Estado
+estado_select <- estado_select %>% 
+  filter(select==TRUE) %>% 
+  select(-select)
+
+estado_select <- estado_select %>% 
+  mutate(num = ifelse(`Casos confirmados` >= 100, 1, 0)) %>%
+  group_by(Estado) %>% 
+  filter(`Casos confirmados`>0) %>% 
+  mutate(start_date=cumsum(num)) %>% 
+  select(-num) %>% 
+  rename("Dias desde o 100º caso"="start_date") %>% 
+  mutate(`Casos confirmados (média móvel, 7 dias)` = as.numeric(rollmean(newCases, k = 7, fill = NA, align = "right")),
+         `Mortes confirmadas (média móvel, 7 dias)` = as.numeric(rollmean(newDeaths, k = 7, fill = NA, align = "right"))) %>% 
+  ungroup()
+
+
+
+brazil_select <- estado %>% 
+  group_by(Data) %>% 
+  summarise(`Casos confirmados`=sum(`Casos confirmados`),Mortes = sum(Mortes)) %>% 
+  mutate(num = ifelse(`Casos confirmados` >= 100, 1, 0)) %>%
+  filter(`Casos confirmados`>0) %>% 
+  mutate(start_date=cumsum(num)) %>% 
+  select(-num) %>% 
+  rename("Dias desde o 100º caso"="start_date")
+
+brazil_select$País <- "Brasil"
+
+# =================================================================
+# 3 Brazil cases by municipalities (wesley cota data)
+# =================================================================
+
+url_mun <- getURL('https://raw.githubusercontent.com/wcota/covid19br/master/cases-brazil-cities-time.csv')
+mun <- read.csv(text=url_mun)
+
+mun <- mun %>%
+  filter(city!="TOTAL") %>% 
+  rename("Casos confirmados"="totalCases","Mortes" = "deaths","Cidade"="city","Estado"="state","Casos confirmados (por 100 mil habitantes)" = "totalCases_per_100k_inhabitants") %>% 
+  mutate(date=as.character(date)) %>%
+  mutate(Data=as.Date(date, format=c('%Y-%m-%d'))) %>% 
+  select(-date) %>% 
+  mutate(ibgeID = as.numeric(substr(ibgeID,1,6)))
+
+mun$Cidade[mun$Cidade=="ESTRANGEIRO/SP"] <- "São Paulo/SP"
+mun$Cidade[mun$Cidade=="ESTRANGEIRO/PE"] <- "Recife/PE"
+mun$Cidade[mun$Cidade=="ESTRANGEIRO/SC"] <- "Florianópolis/SC"
+mun$Cidade[grep("NÃO ESPECIFICADA",mun$Cidade)] <- "NÃO ESPECIFICADA"
+mun$Cidade[grep("INDEFINIDA",mun$Cidade)] <- "NÃO ESPECIFICADA"
+mun$Cidade[grep("CASO SEM LOCALIZAÇÃO DEFINIDA",mun$Cidade)] <- "NÃO ESPECIFICADA"
+
+
+mun <- mun %>%
+  filter(Cidade!="NÃO ESPECIFICADA")
+
+
+brazil_select_mun <- mun %>% 
+  group_by(Data) %>% 
+  summarise(`Casos confirmados`=sum(`Casos confirmados`)) %>% 
+  mutate(num = ifelse(`Casos confirmados` >= 100, 1, 0)) %>%
+  filter(`Casos confirmados`>0) %>% 
+  mutate(start_date=cumsum(num)) %>% 
+  select(-num) %>% 
+  rename("Dias desde o 100º caso"="start_date")
+
+brazil_select_mun$País <- "Brasil"
+
+mun <- mun %>%
+  mutate(`Taxa de mortalidade`=(Mortes/`Casos confirmados`)) %>% 
+  group_by(Cidade) %>% 
+  mutate(`Casos confirmados (média móvel, 7 dias)` = as.numeric(rollmean(newCases, k = 7, fill = NA, align = "right")),
+         `Mortes confirmadas (média móvel, 7 dias)` = as.numeric(rollmean(newDeaths, k = 7, fill = NA, align = "right"))) %>% 
+  ungroup() %>% 
+  select(c("Cidade", "Estado", "ibgeID","Data", "Casos confirmados", "Mortes", "Casos confirmados (média móvel, 7 dias)", "Taxa de mortalidade","Casos confirmados (por 100 mil habitantes)","Mortes confirmadas (média móvel, 7 dias)"))
+
+
+mun_max <- mun %>%
+  group_by(Cidade) %>% 
+  summarise(max=max(`Casos confirmados`)) %>% 
+  arrange(-max) %>% 
+  slice(1:15) %>%
+  select(Cidade)
+
+
+mun_select <- mun
+mun_select$select <- mun$Cidade %in% mun_max$Cidade
+mun_select <- mun_select %>% 
+  filter(select==TRUE) %>% 
+  select(-select)
+
+
+mun_select <- mun_select %>%
+  mutate(num = ifelse(`Casos confirmados` >= 100, 1, 0)) %>% 
+  group_by(Cidade) %>% 
+  filter(`Casos confirmados`>0) %>% 
+  mutate(start_date=cumsum(num)) %>%
+  select(-num) %>% 
+  rename("Dias desde o 100º caso"="start_date")
+
+
+
+mun <- mun %>%
+  mutate(num = ifelse(`Casos confirmados` >= 100, 1, 0)) %>% 
+  group_by(Cidade) %>% 
+  filter(`Casos confirmados`>0) %>% 
+  mutate(start_date=cumsum(num)) %>%
+  select(-num) %>% 
+  rename("Dias desde o 100º caso"="start_date") %>% 
+  mutate(num = ifelse(`Casos confirmados` >= 1, 1, 0)) %>% 
+  group_by(Cidade) %>% 
+  filter(`Casos confirmados`>0) %>% 
+  mutate(start_date=cumsum(num)) %>%
+  select(-num) %>% 
+  rename("Dias desde o 1º caso"="start_date") %>% 
+  ungroup() %>% 
+  mutate(Cidade = as.character(Cidade)) %>% 
+  mutate(Cidade = substr(Cidade,1,nchar(Cidade)-3))
+
+
+# =================================================================
+# 4 Municipalities population profile
+# =================================================================
+
+# # total population
+# pop <- read.csv("psf_pop_dez_2019.csv",sep = ";")
+# pop <- pop %>% rename("ibgeID" = "IBGE")
+# 
+# mun <- left_join(mun,pop, by = "ibgeID")
+# 
+# # percent of population with 60y+
+# 
+#         # IBGE - Estimativas populacionais enviadas para o TCU, estratificadas por idade e sexo pelo MS/SGEP/Datasus (2010)
+#         # http://www2.datasus.gov.br/DATASUS/index.php?area=0206&id=6942&VObj=http://tabnet.datasus.gov.br/cgi/deftohtm.exe?ibge/cnv/pop
+# 
+# idosos <- read.csv("pop_mun_idade.csv",sep = ";")
+# mun <- left_join(mun,idosos, by = "ibgeID")
+# 
+# # percent of deaths due to hypertension (icd-10: i10-15), diabetes (icd-10: e11-14), coronary heart disease (icd-10: i20-25) [preconditions]
+# 
+#       #total deaths
+#       mun_deaths <- read.csv("total_mortes_mun_2018.csv",sep = ";") 
+# 
+# 
+#       #deaths due to pre-conditions
+#       preconditions <- read.csv("precond_mortes_mun_2018.csv",sep = ";") 
+# 
+# preconditions <- left_join(mun_deaths,preconditions, by = "ibgeID")
+# preconditions <- preconditions %>% 
+#   mutate(pcent_death_precond=preconditions/total_deaths) %>% 
+#   select(c("ibgeID","pcent_death_precond"))
+# 
+# mun <- left_join(mun,preconditions, by = "ibgeID")
+# 
+# last <- mun %>% 
+#   group_by(Data) %>% 
+#   summarise() %>% 
+#   arrange(desc(Data)) %>% 
+#   dplyr::slice(1:1)
+# 
+# last <- last$Data
+# 
+# 
+# mun_last <- mun %>%
+#   filter(Data==last) %>% 
+#   filter(`Casos confirmados`>=50)
+# 
+# teste <- mun_last %>% ggplot (aes(x=`Taxa de mortalidade`)) + geom_histogram()
+
+
+# =================================================================
+# 5 Government Response Tracker (Oxford)
+# =================================================================
+
+# https://github.com/OxCGRT/covid-policy-tracker/tree/master/data
+# data download
+url_grt <- getURL('https://raw.githubusercontent.com/OxCGRT/covid-policy-tracker/master/data/OxCGRT_latest.csv')
+grt <- read.csv(text = url_grt)
+
+
+# selecting main variables
+grt <- grt %>%
+  select(c('CountryName','Date','StringencyIndex','RegionName')) %>%
+  mutate(CountryName=as.character(CountryName),Date=as.character(Date))
+
+# renaming US to match covid dataset
+grt$CountryName[grt$CountryName=="United States"] <- "US"
+
+# selecting countries with the most confirmed cases and adjusting to merge
+grt_select <- grt
+grt_select$select <- grt$CountryName %in% covid_max$Country.Region
+grt_select <- grt_select %>%
+  filter(select==T) %>%
+  select(-select) %>%
+  filter(RegionName=="") %>% 
+  select(-RegionName) %>% 
+  mutate(Data=as.Date(Date, format('%Y%m%d')),CountryName=as.factor(CountryName)) %>%
+  select(-Date) %>%
+  rename("País"="CountryName","Índice de Ação Governamental"="StringencyIndex")
+
+grt_select2 <- grt
+grt_select2$select <- grt$CountryName %in% covid_max2$Country.Region
+grt_select2 <- grt_select2 %>%
+  filter(select==T) %>%
+  select(-select) %>%
+  filter(RegionName=="") %>% 
+  select(-RegionName) %>% 
+  mutate(Data=as.Date(Date, format('%Y%m%d')),CountryName=as.factor(CountryName)) %>%
+  select(-Date) %>%
+  rename("País"="CountryName","Índice de Ação Governamental"="StringencyIndex")
+
+
+# mergin with covid database with selected countries
+
+
+
+# -----------------------------------------------------------------
+# selecting only the  13 countries with more cases + brasil
+# -----------------------------------------------------------------
+covid_max <- covid %>%
+  group_by(Country.Region) %>%
+  summarise(max=max(cases)) %>%
+  arrange(-max) %>%
+  slice(1:12) %>%
+  select(Country.Region)
+covid_max[13,] <- "Brazil"
+
+# covid_select <- covid
+# covid_select$select <- covid$Country.Region %in% covid_max$Country.Region
+# covid_select <- covid_select %>%
+#   filter(select==TRUE) %>%
+#   mutate(Data=as.character(date)) %>%
+#   mutate(Data=substring(date,2,length(date))) %>%
+#   mutate(Data=as.Date(Data, format=c('%m.%d'))) %>%
+#   select(c('Country.Region','cases','deaths','recoveries','start_date','Data','max')) %>%
+#   rename('País'='Country.Region') %>%
+#   rename('Dias desde o 100º caso' = 'start_date') %>%
+#   rename ('Casos confirmados' = 'cases') %>%
+#   rename('Mortes'= 'deaths') %>%
+#   rename ('Casos recuperados'='recoveries')
+
+
+covid_select <- left_join(covid_select,grt_select, by=c('País','Data'))
+
+
+# # -----------------------------------------------------------------
+# # selecting only the 50 countries with more cases + brasil
+# # -----------------------------------------------------------------
+# covid_max2 <- covid %>%
+#   group_by(Country.Region) %>% 
+#   summarise(max=max(cases)) %>% 
+#   arrange(-max) %>% 
+#   slice(1:50) %>%
+#   select(Country.Region)
+# 
+# covid_select2 <- covid
+# covid_select2$select <- covid$Country.Region %in% covid_max2$Country.Region
+# covid_select2 <- covid_select2 %>%
+#   filter(select==TRUE) %>%
+#   mutate(Data=as.character(date)) %>% 
+#   mutate(Data=substring(date,2,length(date))) %>% 
+#   mutate(Data=as.Date(Data, format=c('%m.%d'))) %>%
+#   select(c('Country.Region','cases','deaths','recoveries','start_date','Data','max')) %>% 
+#   rename('País'='Country.Region') %>% 
+#   rename('Dias desde o 100º caso' = 'start_date') %>% 
+#   rename ('Casos confirmados' = 'cases') %>% 
+#   rename('Mortes'= 'deaths') %>%
+#   rename ('Casos recuperados'='recoveries')
+# 
+# 
+# #   
+# 
+# 
+# 
+# covid_select2 <- left_join(covid_select2,grt_select, by=c('País','Data'))
+# 
+# covid_select2 <- covid_select2 %>% 
+#   mutate(`Índice de Ação Governamental` = dplyr::lag(`Índice de Ação Governamental`,11),
+#          `Casos confirmados lag`= dplyr::lag(`Casos confirmados`,1)) %>% 
+#   mutate(`Var.% diária de casos confirmados (após 11 dias)`= (`Casos confirmados`)/(`Casos confirmados lag`)-1)
+# 
+# 
+# # covid_select2 <- left_join(covid_select2,grt_select2, by=c('País','Data'))
+# # 
+# # covid_select2 <- covid_select2 %>% 
+# #   mutate(`Índice de Ação Governamental` = dplyr::lag(`Índice de Ação Governamental`,11),
+# #          `Casos confirmados lag`= dplyr::lag(`Casos confirmados`,1)) %>% 
+# #   mutate(`Casos confirmados 11 dias depois (var%)`= (`Casos confirmados`)/(`Casos confirmados lag`)-1)
+# 
+# 
+# 
+# covid_select_scatter <- covid_select2 %>% filter(País!="China")
+# # covid_select_scatter2 <- covid_select2 %>% filter(País!="China")
+# 
+# 
+# plot1 <-  ggplot(covid_select_scatter,
+#                  aes(x = `Índice de Ação Governamental`, y =`Var.% diária de casos confirmados (após 11 dias)`)) +
+#               geom_point(aes(size= `Casos confirmados`),color = "steelblue4") +
+#               geom_smooth(method='loess', color = "sienna2",fill = "sienna2") +
+#               scale_x_continuous(breaks = seq(0,100,10)) +
+#               scale_y_continuous(trans = 'log10',labels = percent) +
+#               annotation_logticks(alpha=0.7, sides = "l") +
+#               theme_gray() +
+#               theme(legend.position = "none", panel.grid.minor.y = element_blank()) +
+#               labs(title="Ações governamentais para promover distanciamento social São eficientes?",
+#                    subtitle="Amostra dos 50 Países com mais casos confirmados",
+#                    caption = "Fonte: Oxford COVID-19 Government Response Tracker and Johns Hopkins University (CSSE/JHU)")
+# 
+# 
+
+# =================================================================
+# 6 Traffic Congestion Intensity Data (IDB)
+# =================================================================
+
+tci <- read_csv('http://tiny.cc/idb-traffic-daily')
+tci_meta <- read_csv('http://tiny.cc/idb-traffic-metadata')
+
+tci_meta <- tci_meta %>% 
+  select(c("region_slug","region_shapefile_wkt"))
+
+tci_latam <- tci %>% 
+  filter(region_type=="country") %>%
+  rename("País" = "region_name") %>%
+  select("País", "month","day","ratio_20","tcp") %>%
+  mutate(aux=nchar(day)) %>% 
+  mutate(Data=ifelse(aux==2, paste0("20200",month,day), paste0("20200",month,"0",day))) %>%
+  select(-c("aux","month","day")) %>%
+  mutate(Data=as.Date(Data, format('%Y%m%d'))) %>% 
+  group_by(País) %>%
+  arrange(País,Data) %>% 
+  mutate(`Índice de Congestionamento de Tráfego (média móvel, 7 dias)` = as.numeric(rollmean(ratio_20, k = 7, fill = NA, align = "right"))) %>% 
+  rename("Índice de Congestionamento de Tráfego" = "ratio_20") %>% 
+  ungroup()
+  
+
+
+tci_br <- tci %>%
+  filter(country_name=="Brazil" & region_slug!="country_brazil") %>%
+  select(c("region_slug","region_name", "month","day","ratio_20","tcp","region_type"))
+
+#filtering states
+tci_br <- tci_br %>%
+  filter(region_type == "city")
+
+tci_br <- left_join(tci_br,tci_meta, by = "region_slug")
+
+
+tci_br <- tci_br %>%
+  st_as_sf(wkt=8, crs=4326)
+
+
+munbr_shape <- read_sf("C:/Users/Michel/Google Drive/DOUTORADO FGV/IEPS/Agua/shapefiles/Brazil_s.shp")
+munbr_shape <- munbr_shape %>% st_transform(4326)
+
+tci_br <- st_join(tci_br,munbr_shape, join=st_overlaps)
+tci_br <- tci_br %>%
+  rename("ibgeID"="CD_GEOCODM") %>%
+  mutate(ibgeID=as.integer(substr(ibgeID,1,6)),aux=nchar(day)) %>%
+  mutate(Data=ifelse(aux==2, paste0("20200",month,day), paste0("20200",month,"0",day))) %>%
+  select(-c("aux","month","day")) %>%
+  mutate(Data=as.Date(Data, format('%Y%m%d')))
+
+tci_br$ibgeID[tci_br$region_name=="Brasília"] <- 530010
+tci_br$ibgeID[tci_br$region_name=="Manaus"] <- 130260
+
+# merging with municipality data - last day available
+mun_last <- mun %>%
+  filter(Data == today) %>%
+  ungroup() %>% 
+  select(c("ibgeID","Casos confirmados"))
+
+tci_br <- left_join(tci_br,mun_last, by = c("ibgeID"))
+
+tci_br <- tci_br %>% 
+  group_by(region_name,Data) %>% 
+  summarise(ratio_20 = max(ratio_20),
+            `Casos confirmados` = sum(`Casos confirmados`,na.rm = T)) %>% 
+  ungroup() %>% 
+  group_by(region_name) %>% 
+  mutate(`Índice de Congestionamento de Tráfego (média móvel, 7 dias)` = as.numeric(rollmean(ratio_20, k = 7, fill = NA, align = "right"))) %>% 
+  rename("Cidade" = "region_name",
+         "Índice de Congestionamento de Tráfego" = "ratio_20") %>% 
+  ungroup()
+  
+
+tci_br <- tci_br %>% left_join(mun, by = c("Cidade","Data"))
+
+
+
+# #tci_br <- left_join(tci_br,mun,by="ibgeID")
+# 
+# tci_br <- left_join(tci_br,mun,by=c("ibgeID","Data"))
+# tci_br$`Casos confirmados`[is.na(tci_br$`Casos confirmados`)] <- 0
+# tci_br <- tci_br %>%
+#   group_by(region_slug, Data) %>%
+#   summarise(mean(ratio_20),sum(`Casos confirmados`)) %>%
+#   rename("Região metropolitana" = "region_slug")
+# 
+# map <- rbind(c("belem","Belém"),
+#              c("belohorizonte","Belo Horizonte"),
+#              c("brasilia","Bras??lia"),
+#              c("campinas","Campinas"),
+#              c("curitiba","Curitiba"),
+#              c("florianopolis","Florianópolis"),
+#              c("fortaleza","Fortaleza"),
+#              c("goiana","Goiânia"),
+#              c("joaopessoa","João Pessoa"),
+#              c("joinville","Joinville"),
+#              c("maceio","Maceió"),
+#              c("manaus","Manaus"),
+#              c("natal","Natal"),
+#              c("porto_alegre","Porto Alegre"),
+#              c("recife","Recife"),
+#              c("riodejaneiro","Rio de Janeiro"),
+#              c("salvador","Salvador"),
+#              c("santos","Santos"),
+#              c("saojosedoscampos","São José dos Campos"),
+#              c("saoluis","São Lu?às"),
+#              c("saopaulo","São Paulo"),
+#              c("sorocaba","Sorocaba"),
+#              c("teresina","Teresina"),
+#              c("vitoria","Vitória"))
+# 
+# for (i in 1:nrow(map)){
+#   tci_br$`Região metropolitana`[tci_br$`Região metropolitana`==map[i,1]]<-map[i,2]
+# }
+# 
+# tci_br <- tci_br %>%
+#   rename("Indice de Congestionamento de Tr?fego"="mean(ratio_20)","Casos confirmados"="sum(`Casos confirmados`)") %>%
+#   mutate(`Indice de Congestionamento de Tr?fego`= dplyr::lag(`Indice de Congestionamento de Tr?fego`,11),
+#          `Casos confirmados lag`= dplyr::lag(`Casos confirmados`,1)) %>%
+#   mutate(`Var.% diária de casos confirmados (após 11 dias)`= (`Casos confirmados`)/(`Casos confirmados lag`)-1)
+# 
+# tci_br <- tci_br %>%
+#   filter(`Indice de Congestionamento de Tr?fego`<=1.5)
+# 
+# plot2 <-  ggplot(tci_br,
+#                  aes(x = `Indice de Congestionamento de Tr?fego`, y =`Var.% diária de casos confirmados (após 11 dias)`)) +
+#               geom_point(aes(size= `Casos confirmados`),color = "steelblue4") +
+#               geom_smooth(method='loess', color = "sienna2",fill = "sienna2") +
+#               scale_x_reverse(breaks = seq(0,2,0.25),labels = percent) +
+#               scale_y_continuous(trans = 'log10',labels = percent) +
+#               geom_vline(xintercept=0.75, linetype="dashed", color = "red") +
+#               annotation_logticks(alpha=0.7, sides = "l") +
+#               theme_gray() +
+#               theme(legend.position = "none", panel.grid.minor.y = element_blank(),axis.text.x = element_text(angle=90)) +
+#               labs(title="Ações governamentais para promover distanciamento social São eficientes?",
+#                    subtitle="Amostra de 24 regiões metropolitanas no Brasil",
+#                    caption = "Fonte: IDB And IDB Invest Coronavirus Impact Dashboard (2020) and labs.wesleycota.com/sarscov2/br/.")
+# 
+# 
+# 
+# 
+# 
+# 
+# # municipalities shapefile
+# shapefile <- read_sf("C:/Users/Michel/Google Drive/DOUTORADO FGV/IEPS/Agua/shapefiles/Brazil_s.shp")
+# shapefile <- shapefile %>% st_transform(4326)
+# 
+# shapefile <- shapefile %>%
+#   filter(CD_GEOCODM %in% mun_max$ibgeID)
+# 
+# shapefile <- shapefile %>%
+#   filter(NM_MUNICIP=="ARACAJU" | NM_MUNICIP=="CAMPO GRANDE" | NM_MUNICIP=="GUARULHOS" | NM_MUNICIP=="ITAJAÍ" | NM_MUNICIP=="NITERÓI" | NM_MUNICIP=="SANTO ANDRÉ" | NM_MUNICIP=="SÃO BERNARDO DO CAMPO" | NM_MUNICIP=="SÃO CAETANO DO SUL" | NM_MUNICIP=="VILA VELHA")
+# 
+# shapefile <- st_cast(shapefile,"POINT")
+# st_write(shapefile, "C:/Users/Michel/Google Drive/Website/add_request_iadb2.csv", layer_options = "GEOMETRY=AS_XY")
+# 
+
+
+# municipalities shapefile
+shapefile <- read_sf("C:/Users/Michel/Google Drive/DOUTORADO FGV/IEPS/Agua/shapefiles/Brazil_s.shp")
+shapefile <- shapefile %>% st_transform(4326)
+shapefile <- shapefile %>% mutate(ibgeID = as.numeric(substr(CD_GEOCODM,1,6))) %>% select(c("ibgeID","geometry","NM_MUNICIP"))
+
+
+mun <- right_join(mun, shapefile, by = "ibgeID")
+mun <- mun %>% st_as_sf %>% st_transform(4326)
+
+mun_features <- read.csv("mun_features.csv", sep = ";")
+mun_features <- mun_features %>%
+  rename("ibgeID" = "codmun",
+         "% da população com mais de 65 anos" = "pop65py_share",
+         "UTIs (SUS) por 100 mil habitantes" = "itu_sus_per100k",
+         "UTIs (SUS) num raio de 100km por 100 mil habitantes" = "itu_sus_per100k_100km",
+         "Densidade demográfica (Hab/Km2)" = "densidade")
+
+mun <- left_join(mun,mun_features, by = "ibgeID")
+
+
+
+```
+
+Esta página tem o objetivo de apresentar algumas visualizações dos dados de COVID-19. Para construção da página foram utilizadas as seguintes fontes de dados:
+
+* [Center for Systems Science and Engineering (CSSE)](https://github.com/CSSEGISandData/COVID-19) da John Hopkins University, que tem coletado diariamente de diversas fontes dados sobre o COVID-19 a nível de País.
+
+* Dados dos casos de COVID-19 confirmados por municípios brasileiros consolidados e disponibilizados em [labs.wesleycota.com/sarscov2/br/](https://labs.wesleycota.com/sarscov2/br/)
+
+* Índice de Ação Governamental em resposta ao COVID-19 da [Universidade de Oxford](https://www.bsg.ox.ac.uk/research/research-projects/oxford-covid-19-government-response-tracker).
+
+* Índice de Congestão de Tráfego do [Inter-American Development Bank](https://www.iadb.org/en/topics-effectiveness-improving-lives/coronavirus-impact-dashboard)
+
+
+Os dados nessa página são atualizados uma vez ao dia e por isso podem aparecer defasados em relação às notícias. No entanto, a ideia dessas visualizações é apresentar as tendências de crescimento tanto de casos confirmados de COVID-19 quanto de mortes causadas por COVID-19, além de outros dados relacionados.
+
+**Aproveite a interatividade dos gráficos!** Eles possuem um _menu_ no canto superior direito que permite: `dar zoom`, `comparar dados em hover`, `clicar na legenda para filtrar o que será plotado no gráfico`, `fazer download de um snapshot`.
+
+
+Qualquer sugestão, dúvida, questionamento entre em contato: [`mszklo@gmail.com`](mszklo@gmail.com)
+
+
+
+
+# COVID-19 no Brasil
+
+
+## Total de pessoas afetadas
+
+```{r, results='asis', fig.width=8, fig.height=4.2}
+
+
+brazil_aff <- ggplot(covid_brazil_aff,
+                  aes(x=`Data`,
+                      y=Número,
+                      fill=Afetados)) +
+                geom_area() +
+                scale_y_continuous(labels = comma) +
+                scale_x_date(date_minor_breaks = "5 day",
+                               breaks = "5 day",
+                               labels = date_format("%d-%m")) +
+                scale_fill_brewer(palette="Set2",name="") +
+                theme_minimal() +
+                theme(plot.title = element_text(size = 12),
+                      axis.title.y=element_blank(),
+                      axis.text.x = element_text(angle=90)) +
+                theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank())
+
+brazil_aff %>%
+  ggplotly() %>%
+  layout(dragmode = 'pan',hovermode='compare')
+
+
+
+```
+
+<font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+
+
+
+## Novos casos confirmados
+
+Os gráficos abaixo apresentam a média móvel (7 dias) de casos diários confirmados para os 15 estados e 15 cidades brasileiras com os maiores números de casos. Os dados estão organizados de forma que o primeiro dia representa o dia em que foi registrado o 100º caso naquela cidade ou estado.
+
+
+### Estados
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+end <- max(estado_select$`Dias desde o 100º caso`)
+max <- max(estado_select$`Casos confirmados (média móvel, 7 dias)`,na.rm = T)
+
+reg_scale <- ggplot(estado_select,
+                  aes(x=`Dias desde o 100º caso`,
+                      y=`Casos confirmados (média móvel, 7 dias)`,
+                      color=Estado)) +
+                  geom_line(size=0.5, alpha=0.7) +
+                  scale_fill_brewer(palette="Set1") +
+                  scale_y_continuous(labels = comma) +
+                  scale_x_continuous(breaks=seq(0,end,by=5)) +
+                  ggtitle('Novos casos de COVID-19') +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank(),
+                        axis.text.x = element_text(angle=90))
+
+reg_scale %>% ggplotly() %>% layout(dragmode = 'pan')
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+
+### Municípios
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+end <- max(mun_select$`Dias desde o 100º caso`)
+max <- max(mun_select$`Casos confirmados (média móvel, 7 dias)`,na.rm = T)
+
+reg_scale <- ggplot(mun_select,
+                  aes(x=`Dias desde o 100º caso`,
+                      y=`Casos confirmados (média móvel, 7 dias)`,
+                      color=Cidade)) +
+                  geom_line(size=0.5, alpha=0.7) +
+                  scale_fill_brewer(palette="Set1") +
+                  scale_y_continuous(labels = comma) +
+                  scale_x_continuous(breaks=seq(0,end,by=5)) +
+                  ggtitle('Novos casos de COVID-19') +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank(),
+                        axis.text.x = element_text(angle=90))
+
+reg_scale %>% ggplotly() %>% layout(dragmode = 'pan')
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+
+
+
+
+
+
+## Novas mortes confirmadas
+
+Os gráficos abaixo apresentam a média móvel (7 dias) de mortes diárias confirmadas para os 15 estados e 15 cidades brasileiras com os maiores números de casos. Os dados estão organizados de forma que o primeiro dia representa o dia em que foi registrado o 100º caso naquela cidade ou estado.
+
+
+### Estados
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+end <- max(estado_select$`Dias desde o 100º caso`)
+max <- max(estado_select$`Mortes confirmadas (média móvel, 7 dias)`,na.rm = T)
+
+reg_scale <- ggplot(estado_select,
+                  aes(x=`Dias desde o 100º caso`,
+                      y=`Mortes confirmadas (média móvel, 7 dias)`,
+                      color=Estado)) +
+                  geom_line(size=0.5, alpha=0.7) +
+                  scale_fill_brewer(palette="Set1") +
+                  scale_y_continuous(labels = comma) +
+                  scale_x_continuous(breaks=seq(0,end,by=5)) +
+                  ggtitle('Novas mortes por COVID-19') +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank(),
+                        axis.text.x = element_text(angle=90))
+
+reg_scale %>% ggplotly() %>% layout(dragmode = 'pan')
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+
+### Municípios
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+end <- max(mun_select$`Dias desde o 100º caso`)
+max <- max(mun_select$`Mortes confirmadas (média móvel, 7 dias)`,na.rm = T)
+
+reg_scale <- ggplot(mun_select,
+                  aes(x=`Dias desde o 100º caso`,
+                      y=`Mortes confirmadas (média móvel, 7 dias)`,
+                      color=Cidade)) +
+                  geom_line(size=0.5, alpha=0.7) +
+                  scale_fill_brewer(palette="Set1") +
+                  scale_y_continuous(labels = comma) +
+                  scale_x_continuous(breaks=seq(0,end,by=5)) +
+                  ggtitle('Novas mortes por COVID-19') +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank(),
+                        axis.text.x = element_text(angle=90))
+
+reg_scale %>% ggplotly() %>% layout(dragmode = 'pan')
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+
+
+
+
+
+
+## Mapas
+
+#### Casos confirmados
+
+```{r, results='asis', fig.width=8, fig.height=6}
+mun_map <- mun
+mun_map$`Casos confirmados`[is.na(mun_map$`Casos confirmados`)] <- 0
+mun_map$Mortes[is.na(mun_map$Mortes)] <- 0
+mun_map$`Taxa de mortalidade`[is.na(mun_map$`Taxa de mortalidade`)] <- 0
+mun_map$`Dias desde o 100º caso`[is.na(mun_map$`Dias desde o 100º caso`)] <- 0
+mun_map$`Dias desde o 1º caso`[is.na(mun_map$`Dias desde o 1º caso`)] <- 0
+
+mun_map$`Casos confirmados (por 100 mil habitantes)`[is.na(mun_map$`Casos confirmados (por 100 mil habitantes)`)] <- 0
+mun_map$Mortes[is.na(mun_map$Mortes)] <- 0
+mun_map <-  mun_map %>% mutate(`Taxa de mortalidade (%)` = Mortes / `Casos confirmados` * 100)
+mun_map$`Taxa de mortalidade (%)`[is.nan(mun_map$`Taxa de mortalidade (%)`)] <- 0
+
+hoje <- max(mun_map$Data, na.rm = T)
+mun_map$Data[is.na(mun_map$Data)] <- hoje 
+
+mun_map <- mun_map %>% ungroup() %>%  filter(Data==max(Data)) %>% mutate(Cidade = NM_MUNICIP) %>% select(c("Cidade","Estado","Casos confirmados","Mortes", "Taxa de mortalidade","Dias desde o 100º caso","Dias desde o 1º caso","Casos confirmados (por 100 mil habitantes)","% da população com mais de 65 anos","UTIs (SUS) por 100 mil habitantes"),"UTIs (SUS) num raio de 100km por 100 mil habitantes","Densidade demográfica (Hab/Km2)","Taxa de mortalidade (%)")
+
+# teste <- mun_map %>% calculate_grid(grid_type = "hexagonal")
+# 
+# 
+# teste <- mun_map %>% assign_polygons(teste) 
+
+
+mapviewOptions(legend.pos ="bottomleft")
+
+max_casos <- max(mun_map$`Casos confirmados`, na.rm = T)
+color_map <- c('#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026')
+mun_map %>% select(c("Cidade","Estado","Casos confirmados")) %>% mapview(zcol="Casos confirmados",
+                                color = "#000000", legend=T, layer.name = "Casos confirmados ",
+                                alpha.region=0.8, alpha=0.05, at = c(0,round(lseq(1,max_casos,9),0)), col.regions = color_map,
+                               map.types = c("CartoDB.Positron", "OpenStreetMap.DE"))
+
+```
+   
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+#### Casos confirmados (por 100 mil habitantes)
+
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+max_casos100k <- round(max(mun_map$`Casos confirmados (por 100 mil habitantes)`, na.rm = T),0)
+color_map <- c('#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026')
+mun_map %>% select(c("Cidade","Estado","Casos confirmados (por 100 mil habitantes)")) %>% mapview(zcol="Casos confirmados (por 100 mil habitantes)",
+                                color = "#000000", legend=T, layer.name = " ",
+                                alpha.region=0.8, alpha=0.05, col.regions = color_map,
+                               map.types = c("CartoDB.Positron", "OpenStreetMap.DE"),
+                               at = c(0, round(seq(10,50,length.out = 4),0), round(seq(100,500,length.out =  4),0), max_casos100k))
+
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+#### Mortes
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+max_mortes <- round(max(mun_map$Mortes, na.rm = T),0)
+color_map <- c('#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026')
+mun_map %>% select(c("Cidade","Estado","Mortes"))  %>% mapview(zcol="Mortes",
+                    color = "#000000", legend=T, layer.name = "",
+                    alpha.region=0.8, alpha=0.05, col.regions = color_map,
+                    map.types = c("CartoDB.Positron", "OpenStreetMap.DE"),
+                    at = c(0,round(lseq(1,max_mortes,9),0)))
+
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+### Taxa de mortalidade
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+max_taxa <- round(max(mun_map$`Taxa de mortalidade (%)`, na.rm = T),1)
+color_map <- c('#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026')
+mun_map %>% select(c("Cidade","Estado","Taxa de mortalidade (%)"))  %>% mapview(zcol="Taxa de mortalidade (%)",
+                    color = "#000000", legend=T, layer.name = "",
+                    alpha.region=0.8, alpha=0.05, col.regions = color_map,
+                    map.types = c("CartoDB.Positron", "OpenStreetMap.DE"),
+                    at = c(0,round(seq(0.17,3.5,length.out =  4),2),round(seq(4.5,max_taxa,length.out = 4),2)))
+
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+
+#### Dias desde o 1º caso
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+max_dias <- round(max(mun_map$`Dias desde o 1º caso`, na.rm = T),1)
+color_map <- c('#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026')
+mun_map %>% select(c("Cidade","Estado","Dias desde o 1º caso")) %>% mapview(zcol="Dias desde o 1º caso",
+                    color = "#000000", legend=T, layer.name = "",
+                    alpha.region=0.8, alpha=0.05, col.regions = color_map,
+                    map.types = c("CartoDB.Positron", "OpenStreetMap.DE"),
+                    at = round(seq(0,max_dias,length.out = 9),0))
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+
+#### Densidade demográfica
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+max_dens <- round(max(mun_map$`Densidade demográfica (Hab/Km2)`, na.rm = T),0)
+color_map <- c('#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026')
+mun_map %>% select(c("Cidade","Estado","Densidade demográfica (Hab/Km2)")) %>% filter(!is.na(`Densidade demográfica (Hab/Km2)`)) %>% mapview(zcol="Densidade demográfica (Hab/Km2)",
+                    color = "#000000", legend=T, layer.name = " ",
+                    alpha.region=0.8, alpha=0.05, col.regions = color_map,
+                    map.types = c("CartoDB.Positron", "OpenStreetMap.DE"),
+                    at = c(round(seq(0,25,length.out = 5),0),round(seq(31,120,length.out = 3),0),max_dens))
+
+
+```
+
+<font size = '2'>Fonte: IBGE</font>
+<br>
+
+
+
+#### Percentual da população com mais de 65 anos
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+# max_mortes <- round(max(mun_map$Mortes, na.rm = T),0)
+color_map <- c('#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026')
+mun_map %>% select(c("Cidade","Estado","% da população com mais de 65 anos")) %>% filter(!is.na(`% da população com mais de 65 anos`)) %>% mapview(zcol="% da população com mais de 65 anos",
+                    color = "#000000", legend=T, layer.name = " ",
+                    alpha.region=0.8, alpha=0.05, col.regions = color_map,
+                    map.types = c("CartoDB.Positron", "OpenStreetMap.DE"))
+
+
+```
+
+<font size = '2'>Fonte: IBGE e DATASUS</font>
+<br>
+
+
+
+#### Número de UTIs SUS por 100 mil habitantes
+
+```{r, results='asis', fig.width=8, fig.height=6}
+
+
+max_uti <- max(mun_map$`UTIs (SUS) por 100 mil habitantes`, na.rm = T)
+color_map <- c('#f7fcf0','#e0f3db','#ccebc5','#a8ddb5','#7bccc4','#4eb3d3','#2b8cbe','#0868ac','#084081')
+mun_map %>% select(c("Cidade","Estado","UTIs (SUS) por 100 mil habitantes")) %>% filter(!is.na(`UTIs (SUS) por 100 mil habitantes`)) %>% mapview(zcol="UTIs (SUS) por 100 mil habitantes",
+                    color = "#000000", legend=T, layer.name = " ",
+                    alpha.region=0.8, alpha=0.05, col.regions = color_map,
+                    map.types = c("CartoDB.Positron", "OpenStreetMap.DE"),
+                    at = c(0,1,round(seq(2,21,length.out=7),1),max_uti))
+
+
+```
+<font size = '2'>Fonte: DATASUS</font>
+<br>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Total de casos confirmados
+
+
+### Estados
+
+#### Dias desde o 100º caso
+
+Abaixo, as curvas dos 15 estados brasileiros onde foram registrados os maiores números de casos. Os dados estão organizados de forma que o dia 1 de cada estado é o dia em que foi registrado o 100º caso de COVID-19.
+
+
+```{r, results='asis', fig.width=8, fig.height=6}
+end <- max(estado_select$`Dias desde o 100º caso`)
+
+reg_scale <- ggplot(estado_select,
+                  aes(x=`Dias desde o 100º caso`,
+                      y=`Casos confirmados (por 100 mil habitantes)`,
+                      color=Estado)) +
+                  geom_line(size=0.5, alpha=0.7) +
+                  geom_line(data=brazil_select,
+                             aes(x=`Dias desde o 100º caso`,
+                                 y=`Casos confirmados`,
+                                 color=País),
+                             size=0.5,
+                            alpha=0.5,
+                            linetype="dashed") +
+                  scale_fill_brewer(palette="Set1") +
+                  scale_y_continuous(trans = 'log10',labels = comma) +
+                  scale_x_continuous(breaks=seq(0,end,by=5), limits = c(1,end)) +
+                  ggtitle('Casos confirmados de COVID-19 (escala log)') +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank(),
+                        axis.text.x = element_text(angle=90))
+
+reg_scale %>% ggplotly() %>% layout(dragmode = 'pan')
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+
+### Municípios
+
+
+#### Dias desde o 100º caso
+
+Abaixo, as curvas dos 15 municípios brasileiros onde foram registrados os maiores números de casos. Os dados estão organizados de forma que o dia 1 de cada município é o dia em que foi registrado o 100º caso de COVID-19.
+
+```{r, results='asis', fig.width=8, fig.height=6}
+end <- max(mun_select$`Dias desde o 100º caso`)
+
+reg_scale <- ggplot(mun_select,
+                  aes(x=`Dias desde o 100º caso`,
+                      y=`Casos confirmados`,
+                      color=Cidade)) +
+                  geom_line(size=0.5, alpha=0.7) +
+                  scale_fill_brewer(palette="Set1") +
+                  scale_y_continuous(trans = 'log10',labels = comma) +
+                  scale_x_continuous(breaks=seq(0,end,by=5), limits = c(1,end)) +
+                  ggtitle('Casos confirmados de COVID-19 (escala log)') +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank(),
+                        axis.text.x = element_text(angle=90))
+
+reg_scale %>% ggplotly() %>% layout(dragmode = 'pan')
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+
+
+
+## Total de mortes confirmadas
+
+### Estados
+
+#### Dias desde o 100º caso
+
+Abaixo, as curvas dos 15 estados brasileiros onde foram registrados os maiores números de casos. Os dados estão organizados de forma que o dia 1 de cada estado é o dia em que foi registrado o 100º caso de COVID-19.
+
+```{r, results='asis', fig.width=8, fig.height=6}
+end <- max(estado_select$`Dias desde o 100º caso`)
+
+reg_scale <- ggplot(estado_select,
+                  aes(x=`Dias desde o 100º caso`,
+                      y=Mortes,
+                      color=Estado)) +
+                  geom_line(size=0.5, alpha=0.7) +
+                  geom_line(data=brazil_select,
+                             aes(x=`Dias desde o 100º caso`,
+                                 y=Mortes,
+                                 color=País),
+                             size=0.5,
+                            alpha=0.5,
+                            linetype="dashed") +
+                  scale_fill_brewer(palette="Set1") +
+                  scale_y_continuous(trans = 'log10',labels = comma) +
+                  scale_x_continuous(breaks=seq(0,end,by=5)) +
+                  ggtitle('Mortes por COVID-19 (escala log)') +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank(),
+                        axis.text.x = element_text(angle=90))
+
+reg_scale %>% ggplotly() %>% layout(dragmode = 'pan')
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+
+
+### Municípios
+
+
+#### Dias desde o 100º caso
+
+Abaixo, as curvas dos 15 municípios brasileiros onde foram registrados os maiores números de casos. Os dados estão organizados de forma que o dia 1 de cada município é o dia em que foi registrado o 100º caso de COVID-19.
+
+
+```{r, results='asis', fig.width=8, fig.height=6}
+end <- max(mun_select$`Dias desde o 100º caso`)
+
+reg_scale <- ggplot(mun_select,
+                  aes(x=`Dias desde o 100º caso`,
+                      y=Mortes,
+                      color=Cidade)) +
+                  geom_line(size=0.5, alpha=0.7) +
+                  scale_fill_brewer(palette="Set1") +
+                  scale_y_continuous(trans = 'log10',labels = comma) +
+                  scale_x_continuous(breaks=seq(0,end,by=5)) +
+                  ggtitle('Mortes por COVID-19 (escala log)') +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank(),
+                        axis.text.x = element_text(angle=90))
+
+reg_scale %>% ggplotly() %>% layout(dragmode = 'pan')
+
+```
+
+<font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+
+
+# COVID-19 no mundo
+
+
+## Total de pessoas afetadas no mundo
+
+```{r, results='asis', fig.width=8, fig.height=4.2}
+all <- ggplot(covid_all,aes(x=Data)) +
+                  geom_area(aes(y=`Casos confirmados`, fill="Casos confirmados")) +
+                  geom_area(aes(y=`Casos recuperados`, fill="Casos recuperados")) +
+                  geom_area(aes(y=`Mortes`, fill="Mortes")) +
+                  scale_x_date(date_minor_breaks = "1 day",
+                               breaks = "5 day",
+                               labels = date_format("%d-%m")) +
+                  scale_y_continuous(labels = comma) +
+                  scale_fill_brewer(palette="Set2",name="") +
+                  ggtitle('Pessoas afetadas') +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        axis.title.y=element_blank(),
+                        axis.text.x = element_text(angle=90),
+                        panel.grid.major = element_blank())
+
+all %>% ggplotly() %>% layout(dragmode = 'pan',
+                              hovermode='compare')
+
+```
+
+<font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+
+## Novos casos confirmados
+
+Os gráficos abaixo representam a média móvel (7 dias) de casos confirmados por dia a partir do 100º caso para os 12 países onde foram registrados os maiores números de casos. Os dados estão organizados de forma que o primeiro dia representa o dia em que foi registrado o 100º caso. 
+
+
+```{r, results='asis', fig.width=8, fig.height=4.9}
+
+covid_select_brazil <- covid_select %>% filter(País=="Brazil")
+
+
+log_scale <- ggplot(covid_select,
+                  aes(x=`Dias desde o 100º caso`,
+                      y=`Casos confirmados (média móvel, 7 dias)`,
+                      color=País)) +
+                  geom_line(size=0.5, alpha=0.5, linetype="dotted") +
+                    geom_line(data=covid_select_brazil,
+                             aes(x=`Dias desde o 100º caso`,
+                                 y=`Casos confirmados (média móvel, 7 dias)`,
+                                 color=País),
+                             size=1,
+                            alpha=1) +
+                  scale_fill_brewer(palette="Set3") +
+                  #scale_y_continuous(trans = 'log10',labels = comma) +
+                  scale_x_continuous(breaks=seq(0,150,by=5)) +
+                  ggtitle("Casos confirmados de COVID-19") +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank(),
+                        axis.text.x = element_text(angle=90))
+
+log_scale %>% ggplotly() %>% layout(dragmode = 'pan')
+
+
+```
+
+<font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+```{r, results='asis', fig.width=8, fig.height=4.9}
+
+covid_select_brazil <- covid_select %>% filter(País=="Brazil")
+
+
+log_scale <- ggplot(covid_select,
+                  aes(x=`Dias desde o 100º caso`,
+                      y=`Casos confirmados (média móvel, 7 dias - por 100 mil habitantes)`,
+                      color=País)) +
+                  geom_line(size=0.5, alpha=0.5, linetype="dotted") +
+                    geom_line(data=covid_select_brazil,
+                             aes(x=`Dias desde o 100º caso`,
+                                 y=`Casos confirmados (média móvel, 7 dias - por 100 mil habitantes)`,
+                                 color=País),
+                             size=1,
+                            alpha=1) +
+                  scale_fill_brewer(palette="Set3") +
+                  #scale_y_continuous(trans = 'log10',labels = comma) +
+                  scale_x_continuous(breaks=seq(0,150,by=5)) +
+                  ggtitle("Casos confirmados de COVID-19") +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank(),
+                        axis.text.x = element_text(angle=90),
+                        axis.title.y = element_text(size = 8))
+
+log_scale %>% ggplotly() %>% layout(dragmode = 'pan')
+
+
+```
+
+<font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+## Total de casos confirmados
+
+#### Dias desde o 100º caso
+
+Abaixo, as curvas dos Países estão organizadas de forma que o dia 1 de cada País é o dia em que foi registrado o 100º caso de COVID-19.
+
+             
+```{r, results='asis', fig.width=8, fig.height=4.9}
+
+covid_select_brazil <- covid_select %>% filter(País=="Brazil")
+
+
+log_scale <- ggplot(covid_select,
+                  aes(x=`Dias desde o 100º caso`,
+                      y=`Casos confirmados (por 100 mil habitantes)`,
+                      color=País)) +
+                  geom_line(size=0.5, alpha=0.5, linetype="dotted") +
+                    geom_line(data=covid_select_brazil,
+                             aes(x=`Dias desde o 100º caso`,
+                                 y=`Casos confirmados (por 100 mil habitantes)`,
+                                 color=País),
+                             size=1,
+                            alpha=1) +
+                  scale_fill_brewer(palette="Set3") +
+                  scale_y_continuous(trans = 'log10',labels = comma) +
+                  scale_x_continuous(breaks=seq(0,150,by=5), limits = c(1,150)) +
+                  ggtitle("Casos confirmados de COVID-19 (escala log)") +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank(),
+                        axis.text.x = element_text(angle=90))
+
+log_scale %>% ggplotly() %>% layout(dragmode = 'pan')
+
+
+```
+
+<font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+
+## Total de mortes confirmadas
+
+#### Dias desde o 100º caso
+
+Abaixo, as curvas dos Países estão organizadas de forma que o dia 1 de cada País é o dia em que foi registrado o 100º caso de COVID-19.
+
+
+```{r, results='asis', fig.width=8, fig.height=4.9}
+covid_select_brazil <- covid_select %>% filter(País=="Brazil")
+
+reg_scale <- ggplot(covid_select,
+                  aes(x=`Dias desde o 100º caso`,
+                      y=`Mortes`,
+                      color=País)) +
+                  geom_line(size=0.5, alpha=0.5, linetype="dotted") +
+                  geom_line(data=covid_select_brazil,
+                             aes(x=`Dias desde o 100º caso`,
+                                 y=Mortes,
+                                 color=País),
+                             size=1,
+                            alpha=1) +
+                  scale_fill_brewer(palette="Set3") +
+                  scale_y_continuous(trans = 'log10',labels = comma) +
+                  scale_x_continuous(breaks=seq(0,150,by=5)) +
+                  ggtitle('Mortes por COVID-19 (escala log)') +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank(),
+                        axis.text.x = element_text(angle=90))
+
+
+reg_scale %>% ggplotly() %>% layout(dragmode = 'pan')
+
+```
+
+<font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font>
+
+
+
+# Isolamento Social e Políticas
+
+## Índice de Congestionamento de Tráfico
+
+### Brasil
+
+As curvas abaixo apresentam a evolução da média móvel (7 dias) do Índice de Congestionamento de Tráfego (ICT) para algumas regiões metropolitanas brasileiras. O ICT igual a 1 representa um trânsito igual a média da região, menor que 1 trânsito abaixo da média e maior que 1 trânsito acima da média.  O índice calculado pelo [Inter-American Development Bank and IDB Invest](https://www.iadb.org/en/topics-effectiveness-improving-lives/coronavirus-impact-dashboard) com base nos dados do aplicativo Waze.
+
+#### Ordem cronológica
+
+```{r, results='asis', fig.width=8, fig.height=7}
+tci_br <- tci_br %>% rename("Região metropolitana" = "Cidade")
+
+tci_plot <- ggplot(tci_br,
+                  aes(x=Data,
+                      y=`Índice de Congestionamento de Tráfego (média móvel, 7 dias)`,
+                      color=`Região metropolitana`)) +
+                  geom_line(size=0.5, alpha=0.5) +
+                  scale_fill_brewer(palette="Set3") +
+                  scale_x_date(date_minor_breaks = "5 day",
+                               breaks = "5 day",
+                               labels = date_format("%d-%m")) +
+                  ggtitle("Índice de Congestionamento de Tráfego (média móvel, 7 dias") +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        axis.title.y=element_blank(),
+                        axis.text.x = element_text(angle=90),
+                        panel.grid.major = element_blank())
+
+tci_plot %>% ggplotly() %>% layout(dragmode = 'pan')
+
+```
+
+<font size = '2'><a href="www.iadb.org/coronavirus-impact-dashboard"> Fonte: Inter-American Development Bank and IDB Invest. "IDB And IDB Invest Coronavirus Impact Dashboard". 2020. Inter-American Development Bank.</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font> 
+
+
+#### Dias desde o 1º caso
+
+```{r, results='asis', fig.width=8, fig.height=7}
+
+tci_br$`Índice de Congestionamento de Tráfego (média móvel, 7 dias)`[is.na(tci_br$`Dias desde o 1º caso`)] <- NA
+tci_br <- tci_br %>% filter(!(`Região metropolitana`=="Belém" & Estado!="PA"))
+
+tci_plot <- ggplot(tci_br,
+                  aes(x=`Dias desde o 1º caso`,
+                      y=`Índice de Congestionamento de Tráfego (média móvel, 7 dias)`,
+                      color=`Região metropolitana`)) +
+                  geom_line(size=0.5, alpha=0.5) +
+                  scale_fill_brewer(palette="Set3") +
+                  scale_x_continuous(breaks=seq(0,150,by=5)) +
+                  ggtitle("Índice de Congestionamento de Tráfego (média móvel, 7 dias") +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        axis.title.y=element_blank(),
+                        axis.text.x = element_text(angle=90),
+                        panel.grid.major = element_blank())
+
+tci_plot %>% ggplotly() %>% layout(dragmode = 'pan')
+
+```
+
+<font size = '2'><a href="www.iadb.org/coronavirus-impact-dashboard"> Fonte: Inter-American Development Bank and IDB Invest. "IDB And IDB Invest Coronavirus Impact Dashboard". 2020. Inter-American Development Bank.</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font> 
+
+
+### América Latina
+
+As curvas abaixo apresentam a evolução da média móvel (7 dias) do Índice de Congestionamento de Tráfego (ICT) para países latino americanos.
+
+#### Ordem cronológica
+
+```{r, results='asis', fig.width=8, fig.height=7}
+
+tci_latam_br <- tci_latam %>% filter(País=="Brasil")
+tci_plot <- ggplot(tci_latam,
+                  aes(x=Data,
+                      y=`Índice de Congestionamento de Tráfego (média móvel, 7 dias)`,
+                      color=País)) +
+                  geom_line(size=0.5, alpha=0.5, linetype="dotted") +
+                  geom_line(data=tci_latam_br,
+                            aes(x=Data,
+                                y=`Índice de Congestionamento de Tráfego (média móvel, 7 dias)`,
+                                color=País),
+                             size=1,
+                            alpha=1) +
+                  scale_fill_brewer(palette="Set3") +
+                  scale_x_date(date_minor_breaks = "5 day",
+                               breaks = "5 day",
+                               labels = date_format("%d-%m")) +
+                  ggtitle("Índice de Congestionamento de Tráfego (média móvel, 7 dias") +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        axis.title.y=element_blank(),
+                        axis.text.x = element_text(angle=90),
+                        panel.grid.major = element_blank())
+
+tci_plot %>% ggplotly() %>% layout(dragmode = 'pan')
+
+```
+
+<font size = '2'><a href="www.iadb.org/coronavirus-impact-dashboard"> Fonte: Inter-American Development Bank and IDB Invest. "IDB And IDB Invest Coronavirus Impact Dashboard". 2020. Inter-American Development Bank.</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font> 
+
+
+
+
+
+
+
+
+
+
+## Ação Governamental em resposta ao COVID-19
+
+Os gráficos abaixo apresentam o Índice de Ação Governamental (_Stringency Index_) calculado pela iniciativa [The Oxford COVID-19 Government Response Tracker](https://www.bsg.ox.ac.uk/research/research-projects/oxford-covid-19-government-response-tracker), que tem como objetivo monitorar e comparar de forma rigorosa e consistente como os governos nacionais tem respondido ao coronavirus. Quanto maior o índice, mais rigorosa São as ações dos governos em resposta ao coronavirus.
+
+OBS: este site baixa os dados do _The Oxford COVID-19 Government Response Tracker_ diariamente, mas nem sempre os dados para todos os Países estão atualizados para o dia mais recente.
+
+
+#### Dias desde o 100º caso
+
+Abaixo, as curvas dos Países estão organizadas de forma que o dia 1 de cada País é o dia em que foi registrado o 100º caso de COVID-19.
+
+
+```{r, results='asis', fig.width=8, fig.height=4.9}
+covid_select_brazil <- covid_select %>% filter(País=="Brazil")
+
+reg_scale <- ggplot(covid_select,
+                  aes(x=`Dias desde o 100º caso`,
+                      y=`Índice de Ação Governamental`,
+                      color=País)) +
+                  geom_line(size=0.5, alpha=0.5, linetype="dotted") +
+                      geom_line(data=covid_select_brazil,
+                             aes(x=`Dias desde o 100º caso`,
+                                 y=`Índice de Ação Governamental`,
+                                 color=País),
+                             size=1,
+                            alpha=1) +
+                  scale_fill_brewer(palette="Set3") +
+                  scale_x_continuous(breaks=seq(0,150,by=5)) +
+                  ggtitle('Casos confirmados de COVID-19') +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        panel.grid.major = element_blank(),
+                        axis.text.x = element_text(angle=90))
+
+reg_scale %>% ggplotly() %>% layout(dragmode = 'pan')
+
+```
+
+
+<font size = '2'><a href="https://www.bsg.ox.ac.uk/research/research-projects/oxford-covid-19-government-response-tracker"> Fonte: Hale, Thomas and Samuel Webster (2020). Oxford COVID-19 Government Response Tracker.</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font> 
+
+
+#### Ordem cronológica
+Abaixo, as curvas estão organizadas por ordem cronológica.
+
+```{r, results='asis', fig.width=8, fig.height=4.9}
+
+covid_select_brazil <- covid_select %>% filter(País=="Brazil")
+
+
+log_scale <- ggplot(covid_select,
+                  aes(x=Data,
+                      y=`Índice de Ação Governamental`,
+                      color=País)) +
+                  geom_line(size=0.5, alpha=0.5, linetype="dotted") +
+                  geom_line(data=covid_select_brazil,
+                             aes(x=`Data`,
+                                 y=`Índice de Ação Governamental`,
+                                 color=País),
+                             size=1,
+                            alpha=1) +
+                  scale_fill_brewer(palette="Set3") +
+                  scale_x_date(date_minor_breaks = "5 day",
+                               breaks = "5 day",
+                               labels = date_format("%d-%m")) +
+                  ggtitle("Casos confirmados de COVID-19 (escala log)") +
+                  theme_minimal() +
+                  theme(plot.title = element_text(size = 12),
+                        axis.title.y=element_blank(),
+                        axis.text.x = element_text(angle=90),
+                        panel.grid.major = element_blank())
+
+log_scale %>% ggplotly() %>% layout(dragmode = 'pan')
+
+```
+
+<font size = '2'><a href="https://www.bsg.ox.ac.uk/research/research-projects/oxford-covid-19-government-response-tracker"> Fonte: Hale, Thomas and Samuel Webster (2020). Oxford COVID-19 Government Response Tracker.</a></font>
+<br>
+<font size = '2'> Atualizado em: 25 de Novembro, 2020</font> 
+
+
+
+
+
+
