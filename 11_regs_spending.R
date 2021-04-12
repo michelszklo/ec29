@@ -65,11 +65,13 @@ df <- df %>%
   mutate(health_revenue = siops_rimpostosetransfconst/pop) %>% 
   mutate(health_revenue_tm1 = lag(health_revenue,1)) %>% 
   # ec29 spending target
-  mutate(ec29_target_spending = health_revenue*0.15) %>% 
-  # lag of own resource spending
-  mutate(own_resource_spending_tm1 = lag(siops_desprecpropriosaude_pcapita),1) %>%
-  # difference between per capita own resource spending in t-1 and the constitutional minimum in t
-  mutate(delta_ec29 = ec29_target_spending - own_resource_spending_tm1) %>%
+  mutate(ec29_target_spending = health_revenue*0.15) %>%
+  # lag of target spending
+  mutate(ec29_target_spending_tm1 = lag(ec29_target_spending,1)) %>% 
+  # difference between per capita own resource spending in t and the constitutional minimum in t
+  mutate(delta_ec29 = ec29_target_spending - siops_desprecpropriosaude_pcapita) %>%
+  # lag of the distance
+  mutate(delta_ec29_tm1 = lag(delta_ec29,1)) %>% 
   # lag of total spending per capita - finbra
   mutate(finbra_health_spending_tm2 = lag(finbra_desp_saude_san_pcapita,2),
          finbra_health_spending_tm1 = lag(finbra_desp_saude_san_pcapita,1)) %>% 
@@ -92,25 +94,29 @@ df <- df %>%
 # sample 1: municipalities below target (positive distance to the target)
 
 df_pos <- df %>% 
-  filter(delta_ec29>0)
+  filter(delta_ec29_tm1>0)
 
 df_neg <- df %>% 
-  filter(delta_ec29<0)
+  filter(delta_ec29_tm1<0)
 
   
 # 4. Regression SPENDING Finbra
 # =================================================================
 
 df_reg <- df_pos %>% 
-  mutate(ln_delta_ec29 = log(delta_ec29),
-         ln_finbra_health_spending_tm2 = log(finbra_health_spending_tm2),
-         ln_health_revenue_tm1 = log(health_revenue_tm1))
+  mutate(ln_delta_ec29_tm1 = log(delta_ec29_tm1),
+         ln_finbra_health_spending_tm1 = log(finbra_health_spending_tm1),
+         ln_health_revenue_tm1 = log(health_revenue_tm1)) %>% 
+  select(cod_mun, ano, uf_y_fe, health_revenue, health_revenue_tm1, siops_pct_recproprios_ec29, ec29_target_spending,ec29_target_spending_tm1, delta_ec29, delta_ec29_tm1,ln_delta_ec29_tm1,ln_finbra_health_spending_tm1,ln_health_revenue_tm1,finbra_desp_saude_san_pcapita)
 
 
-df_reg <- df_neg %>% 
-  mutate(ln_delta_ec29 = log(-delta_ec29),
-         ln_finbra_health_spending_tm2 = log(finbra_health_spending_tm2),
-         ln_health_revenue_tm1 = log(health_revenue_tm1))
+df_reg <- df_neg %>%
+  mutate(ln_delta_ec29_tm1 = log(-delta_ec29_tm1),
+         ln_finbra_health_spending_tm1 = log(finbra_health_spending_tm1),
+         ln_health_revenue_tm1 = log(health_revenue_tm1)) %>% 
+  select(cod_mun, ano, uf_y_fe, health_revenue, health_revenue_tm1, siops_pct_recproprios_ec29, ec29_target_spending,ec29_target_spending_tm1, delta_ec29, delta_ec29_tm1,ln_delta_ec29_tm1,ln_finbra_health_spending_tm1,ln_health_revenue_tm1,finbra_desp_saude_san_pcapita)
+
+
 
 y <- "finbra_desp_saude_san_pcapita"
 ln_y <- paste0("ln_",y)
@@ -121,7 +127,7 @@ df_reg <- df_reg %>%
 
 model_formula <- as.formula(paste(ln_y,
                                   " ~ ",
-                                  "ln_delta_ec29 + ln_finbra_health_spending_tm2 ",
+                                  "ln_delta_ec29_tm1 + ln_finbra_health_spending_tm1 + ln_health_revenue_tm1",
                                   " | cod_mun + uf_y_fe | 0 | cod_mun")
 )
 
