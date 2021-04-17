@@ -9,8 +9,8 @@ output:
     toc_depth: 3
     toc: true
     toc_float: true
-    # include:
-    #   after_body: footer.html
+    include:
+      after_body: footer.html
     # css: styles.css
 ---
 
@@ -46,7 +46,7 @@ if(length(to_install)>0) install.packages(to_install)
 
 lapply(packages,require,character.only=TRUE)
 
-today <- "2021-04-10"
+today <- "2021-04-16"
 
 
 
@@ -897,7 +897,7 @@ g_countries_nc %>%
 
 <font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19" target="_blank"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 ```{r, results='asis', fig.width=8, fig.height=6}
@@ -913,7 +913,7 @@ g_countries_nd %>%
 
 <font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19" target="_blank"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 ## Distribuição de novos casos e mortes
@@ -934,7 +934,7 @@ g_countries_pc %>%
 
 <font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19" target="_blank"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 ```{r, results='asis', fig.width=8, fig.height=6}
@@ -950,7 +950,7 @@ g_countries_pd %>%
 
 <font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19" target="_blank"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -974,7 +974,7 @@ g_countries_nc100 %>%
 
 <font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19" target="_blank"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 ```{r, results='asis', fig.width=8, fig.height=6}
@@ -990,7 +990,7 @@ g_countries_nd100 %>%
 
 <font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19" target="_blank"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1009,7 +1009,7 @@ m_countries_nc
 
 <font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19" target="_blank"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1021,7 +1021,7 @@ m_countries_nd
 
 <font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19" target="_blank"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 Já os mapas abaixo representam a incidência de casos e mortes por Covid
@@ -1036,7 +1036,7 @@ m_countries_tc
 
 <font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19" target="_blank"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1048,7 +1048,7 @@ m_countries_td
 
 <font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19" target="_blank"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1079,7 +1079,7 @@ g_vac_dv %>%
 
 <font size = '2'><a href="https://ourworldindata.org/covid-vaccinations" target="_blank"> Fonte: Our World in Data</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 Já o gráfico abaixo apresenta o número total de vacinas administradas para o mesmo grupo de países
@@ -1097,7 +1097,7 @@ g_vac_tv %>%
 
 <font size = '2'><a href="https://ourworldindata.org/covid-vaccinations" target="_blank"> Fonte: Our World in Data</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1113,7 +1113,7 @@ m_countries_v
 
 <font size = '2'><a href="https://ourworldindata.org/covid-vaccinations" target="_blank"> Fonte: Our World in Data</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1132,7 +1132,7 @@ m_countries_i
 
 <font size = '2'><a href="https://ourworldindata.org/covid-vaccinations" target="_blank"> Fonte: Our World in Data</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 

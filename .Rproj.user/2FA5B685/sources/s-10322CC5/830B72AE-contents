@@ -88,7 +88,49 @@ siops <- readRDS(paste0(raw,"SIOPS/SIOPS.rds")) %>%
 names(siops)[8:33] <- paste("siops",names(siops)[8:33], sep = "_")
 
 
-# 5. Merging Datasus Data
+# 5. Transferências Fundo a Fundo
+# =================================================================
+
+fns <- data.frame(read.dta13(paste0(raw,"FNS/faf_2000_2015.dta"))) %>% 
+  filter(tp_repasse == "MUNICIPAL") %>% 
+  rename(cod_mun = co_municipio_ibge)
+
+
+fns[20] <- lapply(fns[20], function(x) as.numeric(gsub(",",".",x)))
+
+fns_ab <- fns %>% 
+  filter(bloco == "ATENÇÃO BÁSICA") %>% 
+  group_by(cod_mun,ano) %>% 
+  summarize(transf_faf_ab = sum(vl_liquido, na.rm = T)) %>% 
+  ungroup()
+
+fns_pabfixo <- fns %>% 
+  filter(bloco == "ATENÇÃO BÁSICA" & componente=="PISO DA ATENÇÃO BÁSICA FIXO - PAB FIXO") %>% 
+  group_by(cod_mun,ano) %>% 
+  summarize(transf_faf_pabfixo = sum(vl_liquido, na.rm = T)) %>% 
+  ungroup() 
+
+fns_pabvar <- fns %>% 
+  filter(bloco == "ATENÇÃO BÁSICA" & componente=="PISO DA ATENÇÃO BÁSICA VARIÁVEL") %>% 
+  group_by(cod_mun,ano) %>% 
+  summarize(transf_faf_pabvar = sum(vl_liquido, na.rm = T)) %>% 
+  ungroup() 
+
+fns <- fns %>% 
+  group_by(cod_mun,ano) %>% 
+  summarize(transf_faf = sum(vl_liquido, na.rm = T)) %>% 
+  ungroup()
+
+fns <- fns %>% 
+  left_join(fns_ab, by = c("cod_mun","ano")) %>% 
+  left_join(fns_pabfixo, by = c("cod_mun","ano")) %>% 
+  left_join(fns_pabvar, by = c("cod_mun","ano")) 
+
+rm(fns_ab)
+rm(fns_pabfixo)
+rm(fns_pabvar)
+
+# 6. Merging Datasus Data
 # =================================================================
 
 # infra
@@ -115,14 +157,14 @@ ams <- data.frame(read.dta13(paste0(raw,"AMS/ams.dta")))
 
 
 
-# 6. Infrastructure data (PSF Romero's files)
+# 7. Infrastructure data (PSF Romero's files)
 # =================================================================
 
 leitos <- data.frame(read.dta13(paste0(raw,"Infra/Leitos.dta"))) %>%
   filter(ano>=1998) 
 
 
-# 7. Atlas 2013 data (Baseline controls)
+# 8. Atlas 2013 data (Baseline controls)
 # ==============================================================
 
 atlas <- read.csv(paste0(raw,"Atlas2013/atlas_data.csv"), encoding = "UTF-8", sep = ";") %>%
@@ -136,7 +178,7 @@ atlas <- atlas %>%
          pmpob = pmpob/100)
 
 
-# 8. Censo 2000-2010
+# 9. Censo 2000-2010
 # ==============================================================
 censo <- data.frame(read.dta13(paste0(raw,"censo/censo.dta"))) %>% 
   mutate(drop = cod_mun) %>% 
@@ -146,7 +188,7 @@ censo <- data.frame(read.dta13(paste0(raw,"censo/censo.dta"))) %>%
   filter(!is.na(cod_mun))
 
 
-# 9. Electoral Data
+# 10. Electoral Data
 # ==============================================================
 elect <- read.csv(paste0(raw,"TSE/run_reelection.csv"), encoding = "UTF-8") %>% 
   distinct(cod_mun, .keep_all = T) %>% 
@@ -155,9 +197,7 @@ elect <- read.csv(paste0(raw,"TSE/run_reelection.csv"), encoding = "UTF-8") %>%
   
 
 
-
-
-# 10. Merging all
+# 11. Merging all
 # ==============================================================
 
 df <- mun_list %>% 
@@ -167,6 +207,8 @@ df <- mun_list %>%
   left_join(finbra %>% select(-c(uf,nome_mun,pop2000,pop,cod_uf))) %>% 
   # merging SIOPS data
   left_join(siops %>% select(-pop), by = c("ano","cod_mun")) %>%
+  # merging Trasnferencias Fundo a Fundo
+  left_join(fns, by = c("ano","cod_mun")) %>%
   # datasus - infra
   left_join(infra, by = c("ano","cod_mun")) %>% 
   # datasus - sinasc
@@ -221,17 +263,22 @@ df <- mun_list %>%
       
   
       
-# 11. Deflating variables
+# 12. Deflating variables
 # ==============================================================
 
 exclude_vars <- grep("siops_pct",names(df), invert = T,value = T)
 siops_vars <- grep("siops",names(df), value = T)
 siops_vars <- siops_vars[siops_vars %in% exclude_vars]
 
+
 finbra_vars <- grep("finbra",names(df),value = T)
 finbra_vars_new <- sapply(finbra_vars, function(x) paste0(x,"_pcapita"), simplify = "array", USE.NAMES = F)
-
 df[finbra_vars_new] <- df[finbra_vars]
+
+
+fns_vars <- grep("^transf_faf",names(df),value = T)
+fns_vars_new <- sapply(fns_vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
+df[fns_vars_new] <- df[fns_vars]
 
 
 
@@ -239,11 +286,15 @@ df <- df %>%
   mutate_at(siops_vars, `/`, quote(deflator_saude)) %>%
   mutate_at(finbra_vars_new, `/`, quote(pop)) %>% 
   mutate_at(finbra_vars_new, `/`, quote(deflator_saude)) %>% 
-  select(-all_of(finbra_vars))
+  select(-all_of(finbra_vars)) %>% 
+  mutate_at(fns_vars_new, `/`, quote(pop)) %>% 
+  mutate_at(fns_vars_new, `/`, quote(deflator_saude)) %>% 
+  select(-all_of(fns_vars))
+  
   
 
 
-# 12. Creating mortality rates
+# 13. Creating mortality rates
 # ==============================================================
 
 
@@ -273,7 +324,7 @@ df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x
 
 
 
-# 13. Creating per capita figurues for specific variables
+# 14. Creating per capita figurues for specific variables
 # ==============================================================
 
 infra_vars <- c("ACS_I", "eSF_I")
@@ -294,7 +345,7 @@ df <- df %>%
 
 
 
-# 14. Creating per capita figurues for specific variables
+# 15. Creating per capita figurues for specific variables
 # ==============================================================
 saveRDS(df, paste0(raw,"CONSOL_DATA.rds"))
 

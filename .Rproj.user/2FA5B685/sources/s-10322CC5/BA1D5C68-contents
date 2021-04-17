@@ -9,8 +9,8 @@ output:
     toc_depth: 3
     toc: true
     toc_float: true
-    # include:
-    #   after_body: footer.html
+    include:
+      after_body: footer.html
     # css: styles.css
 ---
 
@@ -46,7 +46,7 @@ if(length(to_install)>0) install.packages(to_install)
 
 lapply(packages,require,character.only=TRUE)
 
-today <- "2021-04-10"
+today <- "2021-04-16"
 
 
 
@@ -998,7 +998,7 @@ g_brazil %>%
 
 <font size = '2'><a href="https://github.com/CSSEGISandData/COVID-19" target="_blank"> Fonte: Center for Systems Science and Engineering (CSSE) at Johns Hopkins University (JHU)</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1030,7 +1030,7 @@ g_estado_nc %>%
 
 <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 ```{r, results='asis', fig.width=8, fig.height=6}
@@ -1046,7 +1046,7 @@ g_estado_nd %>%
 
 <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1068,7 +1068,7 @@ g_estado_nc100 %>%
 
 <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 ```{r, results='asis', fig.width=8, fig.height=6}
@@ -1084,7 +1084,7 @@ g_estado_nd100 %>%
 
 <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1108,7 +1108,7 @@ m_estado_nc
 
 <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1120,7 +1120,7 @@ m_estado_nd
 
 <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 Já os mapas abaixo representam a incidência de casos e mortes por Covid
@@ -1135,7 +1135,7 @@ m_estado_tc
 
 <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1147,7 +1147,7 @@ m_estado_td
 
 <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1183,7 +1183,7 @@ g_mun_nc %>%
 
 <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 ```{r, results='asis', fig.width=8, fig.height=6}
@@ -1199,7 +1199,7 @@ g_mun_nd %>%
 
 <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1221,7 +1221,7 @@ g_mun_nc100 %>%
 
 <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 ```{r, results='asis', fig.width=8, fig.height=6}
@@ -1237,7 +1237,7 @@ g_mun_nd100 %>%
 
 <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1256,7 +1256,7 @@ m_mun_nc
 
 <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 
@@ -1268,7 +1268,7 @@ m_mun_nd
 
 <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/" target="_blank"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font>
 <br>
-<font size = '2'> Atualizado em: 10 de Abril, 2021</font>
+<font size = '2'> Atualizado em: 16 de Abril, 2021</font>
 
 
 <!-- Já os mapas abaixo representam a incidência de casos e mortes por Covid -->
@@ -1283,7 +1283,7 @@ m_mun_nd
 
 <!-- <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font> -->
 <!-- <br> -->
-<!-- <font size = '2'> Atualizado em: 10 de Abril, 2021</font> -->
+<!-- <font size = '2'> Atualizado em: 16 de Abril, 2021</font> -->
 
 
 
@@ -1295,7 +1295,7 @@ m_mun_nd
 
 <!-- <font size = '2'><a href="https://labs.wesleycota.com/sarscov2/br/"> Fonte: labs.wesleycota.com/sarscov2/br/</a></font> -->
 <!-- <br> -->
-<!-- <font size = '2'> Atualizado em: 10 de Abril, 2021</font> -->
+<!-- <font size = '2'> Atualizado em: 16 de Abril, 2021</font> -->
 
 
 
