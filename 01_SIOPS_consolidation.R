@@ -192,8 +192,12 @@ SIOPS <- SIOPS %>%
          despinvest_pcapita = despsaude_pcapita * pct_despinvest_desptotal / 100,
          despmedicamentos_pcapita = despsaude_pcapita * pct_despmedicamentos / 100,
          despservicoster_pcapita = despsaude_pcapita * pct_servicoster_desptotal / 100,
-         despexrecproprio_pcapita = despsaude_pcapita - desprecpropriosaude_pcapita)
-
+         despexrecproprio_pcapita = despsaude_pcapita - desprecpropriosaude_pcapita) %>% 
+  mutate(despsaude_pcapita = ifelse(despsaude_pcapita<desprecpropriosaude_pcapita,NA,despsaude_pcapita),
+         despexrecproprio_pcapita = ifelse(despsaude_pcapita<desprecpropriosaude_pcapita,NA,despexrecproprio_pcapita),
+         despinvest_pcapita = ifelse(despsaude_pcapita<desprecpropriosaude_pcapita,NA,despinvest_pcapita),
+         despmedicamentos_pcapita = ifelse(despsaude_pcapita<desprecpropriosaude_pcapita,NA,despmedicamentos_pcapita),
+         despservicoster_pcapita = ifelse(despsaude_pcapita<desprecpropriosaude_pcapita,NA,despservicoster_pcapita))
 
 
 
