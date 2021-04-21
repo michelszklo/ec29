@@ -86,6 +86,21 @@ siops <- readRDS(paste0(raw,"SIOPS/SIOPS.rds")) %>%
   filter(!is.na(cod_mun))
 
 names(siops)[8:33] <- paste("siops",names(siops)[8:33], sep = "_")
+siops <- siops %>%
+  group_by(cod_mun,ano) %>% 
+  mutate(siops_despoutros_pcapita = sum(siops_desppessoal_pcapita,
+                                        siops_despinvest_pcapita,
+                                        siops_despservicoster_pcapita,
+                                        siops_despmedicamentos_pcapita, 
+                                        na.rm = T)) %>% 
+  ungroup() %>% 
+  mutate(check =ifelse(siops_despoutros_pcapita>siops_despsaude_pcapita*1.01,1,0)) %>%
+  mutate(siops_despoutros_pcapita = ifelse(check==1,NA,siops_despoutros_pcapita),
+         siops_desppessoal_pcapita = ifelse(check==1,NA,siops_desppessoal_pcapita),
+         siops_despinvest_pcapita = ifelse(check==1,NA,siops_despinvest_pcapita),
+         siops_despservicoster_pcapita = ifelse(check==1,NA,siops_despservicoster_pcapita),
+         siops_despmedicamentos_pcapita = ifelse(check==1,NA,siops_despmedicamentos_pcapita)) %>% 
+  select(-check)
 
 
 # 5. Transferências Fundo a Fundo
