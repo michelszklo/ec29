@@ -42,7 +42,7 @@ setwd("C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000")
 # USE FOR FULL SAMPLE
 # --------------------------------------------------------------------------------------------------
 #output <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/Plots/scatter_strategy/"
-output <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/Plots/scatter_strategy_original/"
+output <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/ec29/outputs/scatter_plots/"
 #output <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/Plots/scatter_strategy_alt/"
 
 

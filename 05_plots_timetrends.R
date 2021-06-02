@@ -37,7 +37,7 @@ if(length(to_install)>0) install.packages(to_install)
 
 lapply(packages,require,character.only=TRUE)
 
-output <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/Plots/3_timetrends/"
+output <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/ec29/outputs/time_trends/"
 
 
 SIOPS <- readRDS("C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/data/SIOPS/SIOPS.rds")
@@ -208,111 +208,111 @@ ggsave(filepdf,
        units = "in")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-plot1 <- SIOPS_temp %>%
-  filter(ano<=2010) %>%
-  filter(quantile == "Bottom quartile" | quantile == "Top quartile") %>% 
-  ggplot(aes(x = ano, y = `Health spending per capita index (2000 = 100)`)) +
-  geom_line(aes(color = quantile), size = 0.8, alpha = 0.6) +
-  scale_color_manual(values = color_graph) +
-  scale_x_continuous(breaks = seq(2000,2010,1), limits = c(2000,2010)) +
-  scale_y_continuous(breaks = seq(100,500,25), limits = c(100,500)) +
-  labs(title = "Total health spending",
-       subtitle = "by quantiles of the baseline % of own resource spending off total health spending") +
-  theme_light() +
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        axis.title = element_text(size=8),
-        legend.position=c(0.1,0.7),
-        legend.title = element_blank(),
-        legend.text = element_text(size = 8),
-        legend.key.size = unit(0.8, "cm"),
-        legend.key.width = unit(0.2, "cm"),
-        plot.title = element_text(size = 12, face = "bold"),
-        plot.subtitle = element_text(size = 7))
-
-
-
-# own resources per capita
-
-plot2 <- SIOPS_temp %>%
-  filter(ano<=2010) %>% 
-  filter(quantile == "20%" | quantile == "80%") %>% 
-  ggplot(aes(x = ano, y = `Own resources health spending per capita index (2000 = 100)`)) +
-  geom_line(aes(color = quantile), size = 0.8, alpha = 0.6) +
-  scale_color_manual(values = color_graph) +
-  scale_x_continuous(breaks = seq(2000,2010,1), limits = c(2000,2010)) +
-  scale_y_continuous(breaks = seq(100,500,25), limits = c(100,500)) +
-  labs(title = "Own resources health spending",
-       subtitle = "by quantiles of the baseline % of own resource spending off total health spending") +
-  theme_light() +
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        axis.title = element_text(size=8),
-        legend.position=c(0.1,0.7),
-        legend.title = element_blank(),
-        legend.text = element_text(size = 8),
-        legend.key.size = unit(0.8, "cm"),
-        legend.key.width = unit(0.2, "cm"),
-        plot.title = element_text(size = 12, face = "bold"),
-        plot.subtitle = element_text(size = 7))
-
-
-# besides own resources per capita
-
-plot3 <- SIOPS_temp %>%
-  filter(ano<=2010) %>% 
-  filter(quantile == "20%" | quantile == "80%") %>% 
-  ggplot(aes(x = ano, y = `Health spending - own resources per capita index (2000 = 100)`)) +
-  geom_line(aes(color = quantile), size = 0.8, alpha = 0.6) +
-  scale_color_manual(values = color_graph) +
-  scale_x_continuous(breaks = seq(2000,2010,1), limits = c(2000,2010)) +
-  scale_y_continuous(breaks = seq(100,500,25), limits = c(100,500)) +
-  labs(title = "Health spending from other sources",
-       subtitle = "by quantiles of the baseline % of own resource spending off total health spending") +
-  theme_light() +
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        axis.title = element_text(size=8),
-        legend.position=c(0.1,0.7),
-        legend.title = element_blank(),
-        legend.text = element_text(size = 8),
-        legend.key.size = unit(0.8, "cm"),
-        legend.key.width = unit(0.2, "cm"),
-        plot.title = element_text(size = 12, face = "bold"),
-        plot.subtitle = element_text(size = 7))
-
-
-
-grid <- grid.arrange(plot1,plot2,plot3,ncol = 3)
-
-
-filePNG <- paste0(output,"plot.png")
-filepdf <- paste0(output,"plot.pdf")
-ggsave(filePNG,
-       plot = grid,
-       device = "png",
-       width = 12, height = 5,
-       units = "in")
-ggsave(filepdf,
-       plot = grid,
-       device = "pdf",
-       width = 12, height = 5,
-       units = "in")
-
-
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# plot1 <- SIOPS_temp %>%
+#   filter(ano<=2010) %>%
+#   filter(quantile == "Bottom quartile" | quantile == "Top quartile") %>% 
+#   ggplot(aes(x = ano, y = `Health spending per capita index (2000 = 100)`)) +
+#   geom_line(aes(color = quantile), size = 0.8, alpha = 0.6) +
+#   scale_color_manual(values = color_graph) +
+#   scale_x_continuous(breaks = seq(2000,2010,1), limits = c(2000,2010)) +
+#   scale_y_continuous(breaks = seq(100,500,25), limits = c(100,500)) +
+#   labs(title = "Total health spending",
+#        subtitle = "by quantiles of the baseline % of own resource spending off total health spending") +
+#   theme_light() +
+#   theme(panel.grid.major = element_blank(), 
+#         panel.grid.minor = element_blank(),
+#         axis.title = element_text(size=8),
+#         legend.position=c(0.1,0.7),
+#         legend.title = element_blank(),
+#         legend.text = element_text(size = 8),
+#         legend.key.size = unit(0.8, "cm"),
+#         legend.key.width = unit(0.2, "cm"),
+#         plot.title = element_text(size = 12, face = "bold"),
+#         plot.subtitle = element_text(size = 7))
+# 
+# 
+# 
+# # own resources per capita
+# 
+# plot2 <- SIOPS_temp %>%
+#   filter(ano<=2010) %>% 
+#   filter(quantile == "20%" | quantile == "80%") %>% 
+#   ggplot(aes(x = ano, y = `Own resources health spending per capita index (2000 = 100)`)) +
+#   geom_line(aes(color = quantile), size = 0.8, alpha = 0.6) +
+#   scale_color_manual(values = color_graph) +
+#   scale_x_continuous(breaks = seq(2000,2010,1), limits = c(2000,2010)) +
+#   scale_y_continuous(breaks = seq(100,500,25), limits = c(100,500)) +
+#   labs(title = "Own resources health spending",
+#        subtitle = "by quantiles of the baseline % of own resource spending off total health spending") +
+#   theme_light() +
+#   theme(panel.grid.major = element_blank(), 
+#         panel.grid.minor = element_blank(),
+#         axis.title = element_text(size=8),
+#         legend.position=c(0.1,0.7),
+#         legend.title = element_blank(),
+#         legend.text = element_text(size = 8),
+#         legend.key.size = unit(0.8, "cm"),
+#         legend.key.width = unit(0.2, "cm"),
+#         plot.title = element_text(size = 12, face = "bold"),
+#         plot.subtitle = element_text(size = 7))
+# 
+# 
+# # besides own resources per capita
+# 
+# plot3 <- SIOPS_temp %>%
+#   filter(ano<=2010) %>% 
+#   filter(quantile == "20%" | quantile == "80%") %>% 
+#   ggplot(aes(x = ano, y = `Health spending - own resources per capita index (2000 = 100)`)) +
+#   geom_line(aes(color = quantile), size = 0.8, alpha = 0.6) +
+#   scale_color_manual(values = color_graph) +
+#   scale_x_continuous(breaks = seq(2000,2010,1), limits = c(2000,2010)) +
+#   scale_y_continuous(breaks = seq(100,500,25), limits = c(100,500)) +
+#   labs(title = "Health spending from other sources",
+#        subtitle = "by quantiles of the baseline % of own resource spending off total health spending") +
+#   theme_light() +
+#   theme(panel.grid.major = element_blank(), 
+#         panel.grid.minor = element_blank(),
+#         axis.title = element_text(size=8),
+#         legend.position=c(0.1,0.7),
+#         legend.title = element_blank(),
+#         legend.text = element_text(size = 8),
+#         legend.key.size = unit(0.8, "cm"),
+#         legend.key.width = unit(0.2, "cm"),
+#         plot.title = element_text(size = 12, face = "bold"),
+#         plot.subtitle = element_text(size = 7))
+# 
+# 
+# 
+# grid <- grid.arrange(plot1,plot2,plot3,ncol = 3)
+# 
+# 
+# filePNG <- paste0(output,"plot.png")
+# filepdf <- paste0(output,"plot.pdf")
+# ggsave(filePNG,
+#        plot = grid,
+#        device = "png",
+#        width = 12, height = 5,
+#        units = "in")
+# ggsave(filepdf,
+#        plot = grid,
+#        device = "pdf",
+#        width = 12, height = 5,
+#        units = "in")
+# 
+# 
 
 
 
