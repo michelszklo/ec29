@@ -294,7 +294,7 @@ iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_dist_spending_pc_baseline,all_of(controls)) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls)) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -459,7 +459,7 @@ ols <- function(outcome,treat,df,regression_output,transform,year_filter){
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_dist_spending_pc_baseline,all_of(controls)) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls)) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
