@@ -79,6 +79,7 @@ df <- df %>%
   mutate(dist_ec29_baseline = ifelse(ano==2000,dist_ec29,NA)) %>% 
   group_by(cod_mun) %>% 
   mutate(dist_ec29_baseline = mean(dist_ec29_baseline, na.rm = T)) %>%
+  mutate(ec29_baseline = dist_ec29_baseline + 0.15) %>% 
   ungroup() %>% 
   # distance to the EC29 target as per capita spending
   mutate(dist_spending_pc = -((siops_pct_recproprios_ec29 - 0.15)*(siops_rimpostosetransfconst/pop))) %>% 
@@ -168,7 +169,8 @@ df_below <- df_below %>%
   mutate_at(yeartreat_dummies, `*`,quote(dist_spending_pc_baseline)) %>%
   unnest(all_of(yeartreat_dummies)) %>%
   mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline,
-         post_dist_spending_baseline = post * dist_spending_baseline)
+         post_dist_spending_baseline = post * dist_spending_baseline,
+         post_ec29_baseline = post * ec29_baseline)
 
 # sample 2: municipalities above target
 # ------------------------------------------------------------------------
@@ -188,14 +190,16 @@ df_above <- df_above %>%
   mutate_at(yeartreat_dummies, `*`,quote(dist_spending_pc_baseline)) %>%
   unnest(all_of(yeartreat_dummies)) %>%
   mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline,
-         post_dist_spending_baseline = post * dist_spending_baseline)
+         post_dist_spending_baseline = post * dist_spending_baseline,
+         post_ec29_baseline = post * ec29_baseline)
 
 
 # Full sample
 # ------------------------------------------------------------------------
 df <- df %>% 
   mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline,
-         post_dist_spending_baseline = post * dist_spending_baseline)
+         post_dist_spending_baseline = post * dist_spending_baseline,
+         post_ec29_baseline = post * ec29_baseline)
 
 
 
@@ -232,14 +236,19 @@ controls <- c(grep("^ano_1998_", names(df), value = T),
 # ------------------------------------------------
 
 # spending in per capita figures
-# spec1_post <- paste(" ~ ","post_dist_spending_pc_baseline"," | cod_mun + ano | 0 | cod_mun")
-# spec2_post <- paste(" ~ ","post_dist_spending_pc_baseline"," | cod_mun + uf_y_fe | 0 | cod_mun")
-# spec3_post <- paste(" ~ ","post_dist_spending_pc_baseline"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec1_post <- paste(" ~ ","post_dist_spending_pc_baseline"," | cod_mun + ano | 0 | cod_mun")
+spec2_post <- paste(" ~ ","post_dist_spending_pc_baseline"," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post <- paste(" ~ ","post_dist_spending_pc_baseline"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 # spending in total figures
-spec1_post <- paste(" ~ ","post_dist_spending_baseline"," | cod_mun + ano | 0 | cod_mun")
-spec2_post <- paste(" ~ ","post_dist_spending_baseline"," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3_post <- paste(" ~ ","post_dist_spending_baseline"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+# spec1_post <- paste(" ~ ","post_dist_spending_baseline"," | cod_mun + ano | 0 | cod_mun")
+# spec2_post <- paste(" ~ ","post_dist_spending_baseline"," | cod_mun + uf_y_fe | 0 | cod_mun")
+# spec3_post <- paste(" ~ ","post_dist_spending_baseline"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+
+# Share of own resources spent in health
+# spec1_post <- paste(" ~ ","post_ec29_baseline"," | cod_mun + ano | 0 | cod_mun")
+# spec2_post <- paste(" ~ ","post_ec29_baseline"," | cod_mun + uf_y_fe | 0 | cod_mun")
+# spec3_post <- paste(" ~ ","post_ec29_baseline"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 
@@ -294,7 +303,7 @@ iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls)) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls)) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -459,7 +468,7 @@ ols <- function(outcome,treat,df,regression_output,transform,year_filter){
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls)) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls)) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
