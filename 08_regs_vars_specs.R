@@ -58,7 +58,11 @@ df <- raw %>%
   select(ano, cod_mun, mun_name, cod_uf,uf, region, pop, everything()) %>% 
   # replace 0 spending values into NAs
   mutate(finbra_desp_saude_san_pcapita = ifelse(finbra_desp_saude_san_pcapita==0,NA,finbra_desp_saude_san_pcapita),
-         siops_rimpostosetransfconst = ifelse(siops_rimpostosetransfconst==0,NA,siops_rimpostosetransfconst))
+         siops_rimpostosetransfconst = ifelse(siops_rimpostosetransfconst==0,NA,siops_rimpostosetransfconst)) %>% 
+  mutate(siops_despinvest = siops_despinvest_pcapita * pop,
+         siops_desppessoal = siops_desppessoal_pcapita * pop,
+         siops_despservicoster = siops_despservicoster_pcapita * pop,
+         siops_despoutros = siops_despoutros_pcapita * pop)
  
 
 
@@ -81,6 +85,12 @@ df <- df %>%
   mutate(dist_spending_pc_baseline = ifelse(ano==2000,dist_spending_pc,NA)) %>% 
   group_by(cod_mun) %>% 
   mutate(dist_spending_pc_baseline = mean(dist_spending_pc_baseline, na.rm = T)) %>% 
+  ungroup() %>% 
+  # distance to the EC29 target as total spending
+  mutate(dist_spending = -((siops_pct_recproprios_ec29 - 0.15)*(siops_rimpostosetransfconst))) %>% 
+  mutate(dist_spending_baseline = ifelse(ano==2000,dist_spending,NA)) %>% 
+  group_by(cod_mun) %>% 
+  mutate(dist_spending_baseline = mean(dist_spending_baseline, na.rm = T)) %>% 
   ungroup() %>% 
   # baseline year
   mutate(baseline = 2000) %>% 
@@ -157,7 +167,8 @@ df_below <- df_below %>%
   # mutate(post_ln_dist_spending_pc_baseline = post * ln_dist_spending_pc_baseline)
   mutate_at(yeartreat_dummies, `*`,quote(dist_spending_pc_baseline)) %>%
   unnest(all_of(yeartreat_dummies)) %>%
-  mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline)
+  mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline,
+         post_dist_spending_baseline = post * dist_spending_baseline)
 
 # sample 2: municipalities above target
 # ------------------------------------------------------------------------
@@ -176,13 +187,15 @@ df_above <- df_above %>%
   # mutate(post_ln_dist_spending_pc_baseline = post * ln_dist_spending_pc_baseline)
   mutate_at(yeartreat_dummies, `*`,quote(dist_spending_pc_baseline)) %>%
   unnest(all_of(yeartreat_dummies)) %>%
-  mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline)
+  mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline,
+         post_dist_spending_baseline = post * dist_spending_baseline)
 
 
 # Full sample
 # ------------------------------------------------------------------------
 df <- df %>% 
-  mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline)
+  mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline,
+         post_dist_spending_baseline = post * dist_spending_baseline)
 
 
 
@@ -217,9 +230,16 @@ controls <- c(grep("^ano_1998_", names(df), value = T),
 
 # first stage specifications
 # ------------------------------------------------
-spec1_post <- paste(" ~ ","post_dist_spending_pc_baseline"," | cod_mun + ano | 0 | cod_mun")
-spec2_post <- paste(" ~ ","post_dist_spending_pc_baseline"," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3_post <- paste(" ~ ","post_dist_spending_pc_baseline"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+
+# spending in per capita figures
+# spec1_post <- paste(" ~ ","post_dist_spending_pc_baseline"," | cod_mun + ano | 0 | cod_mun")
+# spec2_post <- paste(" ~ ","post_dist_spending_pc_baseline"," | cod_mun + uf_y_fe | 0 | cod_mun")
+# spec3_post <- paste(" ~ ","post_dist_spending_pc_baseline"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+
+# spending in total figures
+spec1_post <- paste(" ~ ","post_dist_spending_baseline"," | cod_mun + ano | 0 | cod_mun")
+spec2_post <- paste(" ~ ","post_dist_spending_baseline"," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post <- paste(" ~ ","post_dist_spending_baseline"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 
