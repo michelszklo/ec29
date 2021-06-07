@@ -121,7 +121,11 @@ table_formatting <- function(df){
                     df1 %>% 
                       select(term,f_statistic) %>%
                       mutate(f_statistic = as.character(f_statistic)) %>% 
-                      rename(estimate=f_statistic)) %>% 
+                      rename(estimate=f_statistic),
+                    df1 %>% 
+                      select(term,nobs) %>% 
+                      mutate(nobs = as.character(nobs)) %>% 
+                      rename(estimate=nobs)) %>% 
     mutate(spec = 1)
   df2 <- df %>% filter(spec==2)
   df2 <-  bind_rows(df2 %>%
@@ -132,7 +136,11 @@ table_formatting <- function(df){
                     df2 %>% 
                       select(term,f_statistic)%>%
                       mutate(f_statistic = as.character(f_statistic)) %>%
-                      rename(estimate=f_statistic)) %>% 
+                      rename(estimate=f_statistic),
+                    df2 %>% 
+                      select(term,nobs) %>% 
+                      mutate(nobs = as.character(nobs)) %>%
+                      rename(estimate=nobs)) %>% 
     mutate(spec = 2)
   
   
@@ -145,7 +153,11 @@ table_formatting <- function(df){
                     df3 %>% 
                       select(term,f_statistic)%>%
                       mutate(f_statistic = as.character(f_statistic)) %>%
-                      rename(estimate=f_statistic)) %>% 
+                      rename(estimate=f_statistic),
+                    df3 %>% 
+                      select(term,nobs) %>% 
+                      mutate(nobs = as.character(nobs)) %>%
+                      rename(estimate=nobs)) %>% 
     mutate(spec = 3)
   
   df <- bind_rows(df1,df2,df3)
