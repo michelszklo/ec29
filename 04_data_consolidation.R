@@ -360,7 +360,35 @@ df <- df %>%
 
 
 
-# 15. Creating per capita figurues for specific variables
+# 15. Health spending in the neighboring municipalities
+# ==============================================================
+
+mun_neighbors <- readRDS(paste0(raw,"mun_neighbors.RDS"))
+
+df_neighbor <- df %>%
+  select(ano,cod_mun) %>%
+  full_join(mun_neighbors, by = "cod_mun") %>% 
+  left_join(df %>% 
+              select(ano,cod_mun,siops_desptotalsaude,siops_despsaude_pcapita,finbra_desp_saude_san_pcapita) %>% 
+              rename(cod_mun_neighbor = cod_mun),
+            by = c("cod_mun_neighbor","ano")) %>% 
+  filter(cod_mun!=cod_mun_neighbor) %>% 
+  group_by(ano,cod_mun) %>% 
+  summarise(siops_desptotalsaude_neighbor = mean(siops_desptotalsaude, na.rm = T),
+            siops_despsaude_pcapita_neighbor = mean(siops_despsaude_pcapita, na.rm = T),
+            finbra_desp_saude_san_pcapita_neighbor = mean(finbra_desp_saude_san_pcapita, na.rm = T))
+
+df <- df %>% 
+  left_join(df_neighbor, by = c("ano","cod_mun"))
+
+# 16. FISCAL RESPONSABILITY LAW: municipalities must not spend more than 60% of its current net revenue in personnel
+# ==============================================================
+
+df <- df %>% 
+  mutate(lrf = ifelse(finbra_desp_pessoal_pcapita/finbra_desp_c_pcapita>0.6,1,0))
+
+
+# 16. saving
 # ==============================================================
 saveRDS(df, paste0(raw,"CONSOL_DATA.rds"))
 
