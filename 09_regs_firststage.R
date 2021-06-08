@@ -72,34 +72,6 @@ transform_select <- function(df,treat){
 } 
 
 
-# IV regression first stage
-iv_first <- function(df,treat,year_filter,obj_name){
-  
-  df_reg <- df %>% filter(ano>=year_filter)
-  ln_treat <- paste0("ln_",treat)
-  
-  for (spec in c(1,2,3)){
-    
-    spec_first <-get( paste0("spec",spec,"_post"))
-    
-    regformula1 <- as.formula(paste(ln_treat,spec_first))
-    
-    fit <- felm(regformula1, data = df_reg, exactDOF = T)
-    
-    out <- cbind(fit %>% broom::tidy() %>% slice(1), fit %>% broom::glance() %>% select(statistic,nobs) %>% rename(f_statistic = statistic))
-    out <- out %>% mutate(spec=spec)
-    
-    if(spec==1){
-      table <- out
-    } else{
-      table <- rbind(table,out)
-    }
-  
-    assign(obj_name,table,envir = .GlobalEnv)
-    
-  }
-  
-}
 
 # formats output table for IV regression
 table_formatting <- function(df){

@@ -59,7 +59,13 @@ var_map <-  rbind(cbind('tx_mi','Infant Mortality Rate (log)'),
                   cbind('tx_mi_perinat','Infant Mortality Rate - Perinatal (log)'),
                   cbind('tx_mi_cong','Infant Mortality Rate - Congenital (log)'),
                   cbind('tx_mi_ext','Infant Mortality Rate - External (log)'),
-                  cbind('tx_mi_nut','Infant Mortality Rate - Nutritional (log)'))
+                  cbind('tx_mi_nut','Infant Mortality Rate - Nutritional (log)'),
+                  cbind('tx_mi_out','Infant Mortality Rate - Other (log)'),
+                  cbind('tx_mi_illdef','Infant Mortality Rate - Ill-Defined (log)'),
+                  cbind('tx_mi_fet','Infant Mortality Rate - Fetal (log)'),
+                  cbind('tx_mi_24h','Infant Mortality Rate - Within 24h (log)'),
+                  cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days (log)'),
+                  cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year (log)'))
 
 
 
@@ -138,13 +144,36 @@ regress_output <- function(var,var_name,transform,year_filter){
   table_ols <- bind_cols(table_all,table_below,table_above)
   
   
-  # IV + OLS table
+  # REDUCED FORM REGRESSION
+  # ----------------------------------------
+  
+  for (data in c("df","df_above","df_below")){
+    
+    d <- get(data)
+    obj <- paste0("reg_",data) # name of the output object
+    reduced(var,var_name,d,obj,transform,year_filter) # function for OLS regression
+    
+  }
+  
+  # Reduced form final tables
+  table_all <- reg_df %>% mutate(sample = "full") %>% table_formating() %>% rename("RF_full" = "2SLS")
+  table_below <- reg_df_below %>% mutate(sample = "below") %>% table_formating() %>% rename("RF_below" = "2SLS") %>% select(-term)
+  table_above <- reg_df_above %>% mutate(sample = "above") %>% table_formating() %>% rename("RF_above" = "2SLS") %>% select(-term)
+  
+  table_rf <- bind_cols(table_all,table_below,table_above)
+  
+  
+  # IV + OLS + reduced form table
+  # ----------------------------------------
   table_all <- cbind.data.frame(table_ols %>% select(term,OLS_full),
                                 table_2sls %>% select(`2SLS_full`),
+                                table_rf %>% select(`RF_full`),
                                 table_ols %>% select(OLS_below),
                                 table_2sls %>% select(`2SLS_below`),
+                                table_rf %>% select(`RF_below`),
                                 table_ols %>% select(OLS_above),
-                                table_2sls %>% select(`2SLS_above`))
+                                table_2sls %>% select(`2SLS_above`),
+                                table_rf %>% select(`RF_above`))
   
   # assigning objects to the global envir
   assign("table_all",table_all, envir = .GlobalEnv) 
@@ -158,7 +187,7 @@ regress_output <- function(var,var_name,transform,year_filter){
 # =================================================================
 
 
-for (i in seq(1,9,1)){
+for (i in seq(1,15,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -179,6 +208,18 @@ for (i in seq(1,9,1)){
   }
   
 }
+
+
+for (i in seq(1,15,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  
+  reduced_yearly(var,var_name,df,1,2000,-0.01,0.015,0.005)
+  
+
+}
+
 
 # 4. Exports XLSX with results
 # =================================================================
@@ -203,6 +244,12 @@ graph <- df_graph_all %>%
          spec = ifelse(spec=="3", "3. municipality + state-time FE, with controls",spec)) %>% 
   mutate(term = as.factor(term)) %>% 
   mutate(term = fct_relevel(term,
+                            var_map[15,2],
+                            var_map[14,2],
+                            var_map[13,2],
+                            var_map[12,2],
+                            var_map[11,2],
+                            var_map[10,2],
                             var_map[9,2],
                             var_map[8,2],
                             var_map[7,2],
@@ -242,12 +289,12 @@ graph <- df_graph_all %>%
 ggsave("regs/imr_all.png",
        plot = graph,
        device = "png",
-       width = 10, height = 9,
+       width = 10, height = 12,
        units = "in")
 ggsave("regs/imr_all.pdf",
        plot = graph,
        device = "pdf",
-       width = 10, height = 9,
+       width = 10, height = 12,
        units = "in")
 
 
@@ -259,6 +306,12 @@ graph <- df_graph_below %>%
          spec = ifelse(spec=="3", "3. municipality + state-time FE, with controls",spec)) %>% 
   mutate(term = as.factor(term)) %>% 
   mutate(term = fct_relevel(term,
+                            var_map[15,2],
+                            var_map[14,2],
+                            var_map[13,2],
+                            var_map[12,2],
+                            var_map[11,2],
+                            var_map[10,2],
                             var_map[9,2],
                             var_map[8,2],
                             var_map[7,2],
@@ -267,7 +320,7 @@ graph <- df_graph_below %>%
                             var_map[4,2],
                             var_map[3,2],
                             var_map[2,2],
-                            var_map[1,2])) %>% 
+                            var_map[1,2])) %>%  
   ggplot(aes(color = spec)) +
   geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
   geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
@@ -298,12 +351,12 @@ graph <- df_graph_below %>%
 ggsave("regs/imr_below.png",
        plot = graph,
        device = "png",
-       width = 10, height = 9,
+       width = 10, height = 12,
        units = "in")
 ggsave("regs/imr_below.pdf",
        plot = graph,
        device = "pdf",
-       width = 10, height = 9,
+       width = 10, height = 12,
        units = "in")
 
 
@@ -314,6 +367,12 @@ graph <- df_graph_above %>%
          spec = ifelse(spec=="3", "3. municipality + state-time FE, with controls",spec)) %>% 
   mutate(term = as.factor(term)) %>% 
   mutate(term = fct_relevel(term,
+                            var_map[15,2],
+                            var_map[14,2],
+                            var_map[13,2],
+                            var_map[12,2],
+                            var_map[11,2],
+                            var_map[10,2],
                             var_map[9,2],
                             var_map[8,2],
                             var_map[7,2],
@@ -322,7 +381,7 @@ graph <- df_graph_above %>%
                             var_map[4,2],
                             var_map[3,2],
                             var_map[2,2],
-                            var_map[1,2])) %>% 
+                            var_map[1,2])) %>%  
   ggplot(aes(color = spec)) +
   geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
   geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
@@ -353,12 +412,12 @@ graph <- df_graph_above %>%
 ggsave("regs/imr_above.png",
        plot = graph,
        device = "png",
-       width = 10, height = 9,
+       width = 10, height = 12,
        units = "in")
 ggsave("regs/imr_above.pdf",
        plot = graph,
        device = "pdf",
-       width = 10, height = 9,
+       width = 10, height = 12,
        units = "in")
 
 
