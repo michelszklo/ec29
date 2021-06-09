@@ -41,7 +41,7 @@ raw <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/data/"
 # =================================================================
 mun_list <- read.csv(paste0(raw,"lista_mun/lista_mun_2000.csv"), encoding = "UTF-8") %>% 
   rowwise() %>% 
-  mutate(ano = list(seq.int(1998,2010))) %>% 
+  mutate(ano = list(seq.int(1998,2015))) %>% 
   ungroup() %>% 
   unnest(ano) %>% 
   rename("cod_mun" = 1)
@@ -324,6 +324,29 @@ df <- df %>%
 
 df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x),0))
 
+# leads
+sim_vars_l1 <- sapply(sim_vars_new, function(x) paste0(x,"_l1"), simplify = "array", USE.NAMES = F)
+df[sim_vars_l1] <- df[sim_vars_new]
+sim_vars_l2 <- sapply(sim_vars_new, function(x) paste0(x,"_l2"), simplify = "array", USE.NAMES = F)
+df[sim_vars_l2] <- df[sim_vars_new]
+sim_vars_l3 <- sapply(sim_vars_new, function(x) paste0(x,"_l3"), simplify = "array", USE.NAMES = F)
+df[sim_vars_l3] <- df[sim_vars_new]
+sim_vars_l4 <- sapply(sim_vars_new, function(x) paste0(x,"_l4"), simplify = "array", USE.NAMES = F)
+df[sim_vars_l4] <- df[sim_vars_new]
+sim_vars_l5 <- sapply(sim_vars_new, function(x) paste0(x,"_l5"), simplify = "array", USE.NAMES = F)
+df[sim_vars_l5] <- df[sim_vars_new]
+
+df <- df %>% 
+  group_by(cod_mun) %>% 
+  mutate_at(sim_vars_l1, function(x) dplyr::lead(x,1)) %>% 
+  mutate_at(sim_vars_l2, function(x) dplyr::lead(x,2)) %>% 
+  mutate_at(sim_vars_l3, function(x) dplyr::lead(x,3)) %>% 
+  mutate_at(sim_vars_l4, function(x) dplyr::lead(x,4)) %>% 
+  mutate_at(sim_vars_l5, function(x) dplyr::lead(x,5)) %>% 
+  ungroup()
+
+
+
 # adult mortality
 
 sim_vars <- grep("^ma",names(df), value = T)
@@ -337,6 +360,26 @@ df <- df %>%
 df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x),0))
 
 
+# leads
+sim_vars_l1 <- sapply(sim_vars_new, function(x) paste0(x,"_l1"), simplify = "array", USE.NAMES = F)
+df[sim_vars_l1] <- df[sim_vars_new]
+sim_vars_l2 <- sapply(sim_vars_new, function(x) paste0(x,"_l2"), simplify = "array", USE.NAMES = F)
+df[sim_vars_l2] <- df[sim_vars_new]
+sim_vars_l3 <- sapply(sim_vars_new, function(x) paste0(x,"_l3"), simplify = "array", USE.NAMES = F)
+df[sim_vars_l3] <- df[sim_vars_new]
+sim_vars_l4 <- sapply(sim_vars_new, function(x) paste0(x,"_l4"), simplify = "array", USE.NAMES = F)
+df[sim_vars_l4] <- df[sim_vars_new]
+sim_vars_l5 <- sapply(sim_vars_new, function(x) paste0(x,"_l5"), simplify = "array", USE.NAMES = F)
+df[sim_vars_l5] <- df[sim_vars_new]
+
+df <- df %>% 
+  group_by(cod_mun) %>% 
+  mutate_at(sim_vars_l1, function(x) dplyr::lead(x,1)) %>% 
+  mutate_at(sim_vars_l2, function(x) dplyr::lead(x,2)) %>% 
+  mutate_at(sim_vars_l3, function(x) dplyr::lead(x,3)) %>% 
+  mutate_at(sim_vars_l4, function(x) dplyr::lead(x,4)) %>% 
+  mutate_at(sim_vars_l5, function(x) dplyr::lead(x,5)) %>% 
+  ungroup()
 
 
 # 14. Creating per capita figurues for specific variables
@@ -390,6 +433,8 @@ df <- df %>%
 
 # 16. saving
 # ==============================================================
+df <- df %>% filter(ano<=2010)
+
 saveRDS(df, paste0(raw,"CONSOL_DATA.rds"))
 
 
