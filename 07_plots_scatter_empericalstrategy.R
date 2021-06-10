@@ -169,13 +169,13 @@ filePDF <- paste0(output,"scatter_desp_distspend.pdf")
 ggsave(filePNG,
        plot = scatter,
        device = "png",
-       width = 7, height = 5,
+       width = 7, height = 7,
        units = "in")
 
 ggsave(filePDF,
        plot = scatter,
        device = "pdf",
-       width = 7, height = 5,
+       width = 7, height = 7,
        units = "in")
 
 
