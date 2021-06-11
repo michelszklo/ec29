@@ -88,6 +88,7 @@ import_tabnet_year <- function(csv,object,year_start,year_end,varname,skip){
 # =================================================================
 
 temp <- list.files(path = paste0(path,"SINASC/"), pattern = "*.csv")
+temp <- temp[!temp %in% "nasc_vivos_11_15.csv"]
 
 for (i in seq.int(1,length(temp))){
   name <- strsplit(temp[i],"[.]") %>% unlist()
@@ -115,6 +116,11 @@ sinasc <- sinasc %>%
          birth_prenat_1_6 = birth_prenat_1_6 / birth_nasc_vivos,
          birth_prenat_7_plus = birth_prenat_7_plus / birth_nasc_vivos) %>% 
   select(-c("birth_apgar1_0_2","birth_apgar1_3_5","birth_apgar1_6_7","birth_apgar1_8_10","birth_apgar5_0_2","birth_apgar5_3_5","birth_apgar5_6_7","birth_apgar5_8_10"))
+
+
+import_tabnet_year(paste0(path,"SINASC/nasc_vivos_11_15.csv"),"birth_nasc_vivos2",2011,2015,"birth_nasc_vivos",3)
+
+sinasc <- sinasc %>% bind_rows(birth_nasc_vivos2)
 
 # =================================================================
 # 3. IMPORT SIA
