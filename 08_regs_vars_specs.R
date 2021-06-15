@@ -54,11 +54,11 @@ main_folder <- "regs_outputs/"
 
 # 2SLS specification robustness figures folder
 # ------------------------------------
-robust_folder <- "post_robust/"
+robust_folder <- "post_robust_popw/"
 
 # Reduced form yearly estimates figures folder
 # ------------------------------------
-yearly_folder <- "yearly_reduced/"
+yearly_folder <- "yearly_reduced_popw/"
 
 
 # don't forget to add "/" in the end of the folder name
@@ -66,7 +66,7 @@ yearly_folder <- "yearly_reduced/"
 
 # Regression output excel file
 # ------------------------------------
-output_file <- "results.xlsx"
+output_file <- "results_popw.xlsx"
 
 
 
@@ -335,7 +335,7 @@ iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls)) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls),pop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -364,7 +364,7 @@ iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
     regformula1 <- as.formula(paste(ln_treat,spec_first))
     fitted_var <- paste0("fitted_",ln_treat)
     
-    fit <- felm(regformula1, data = df_reg, exactDOF = T)
+    fit <- felm(regformula1, data = df_reg, weights = df_reg$pop ,exactDOF = T)
     # extracting matrix of fitted values
     fitted <- fit$fitted.values %>% as.data.frame()
     names(fitted) <- fitted_var
@@ -376,7 +376,7 @@ iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
     # ------------------------------
     
     regformula2 <- as.formula(paste(ln_outcome," ~ ",fitted_var,spec_second))
-    fit2 <- felm(regformula2, data = df_reg_fit, exactDOF = T)
+    fit2 <- felm(regformula2, data = df_reg_fit, weights = df_reg_fit$pop,exactDOF = T)
     
     out <- cbind(fit2 %>% broom::tidy() %>% slice(1),fit2 %>% broom::glance() %>% select(nobs))
     
@@ -396,7 +396,7 @@ iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
       regformula1 <- as.formula(paste(ln_treat,spec_first))
       fitted_var <- paste0("fitted_",ln_treat)
       
-      fit <- felm(regformula1, data = sample.data, exactDOF = T)
+      fit <- felm(regformula1, data = sample.data, weights = sample.data$pop,exactDOF = T)
       # extracting matrix of fitted values
       fitted <- fit$fitted.values %>% as.data.frame()
       names(fitted) <- fitted_var
@@ -408,7 +408,7 @@ iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
       # ------------------------------
       
       regformula2 <- as.formula(paste(ln_outcome," ~ ",fitted_var,spec_second))
-      fit2 <- felm(regformula2, data = sample.data, exactDOF = T)
+      fit2 <- felm(regformula2, data = sample.data, weights = sample.data$pop, exactDOF = T)
       
       # collecting coefficients
       beta <- fit2$coefficients[1] %>% as.numeric()
@@ -500,7 +500,7 @@ ols <- function(outcome,treat,df,regression_output,transform,year_filter){
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls)) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls),pop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -520,7 +520,7 @@ ols <- function(outcome,treat,df,regression_output,transform,year_filter){
     # ------------------------------
     
     regformula <- as.formula(paste(ln_outcome," ~ ",ln_treat,spec_ols))
-    fit <- felm(regformula, data = df_reg, exactDOF = T)
+    fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
     
     out <- cbind(fit %>% broom::tidy() %>% slice(1),fit %>% broom::glance() %>% select(nobs))
     
@@ -562,7 +562,7 @@ iv_first <- function(df,treat,year_filter,obj_name){
     
     regformula1 <- as.formula(paste(ln_treat,spec_first))
     
-    fit <- felm(regformula1, data = df_reg, exactDOF = T)
+    fit <- felm(regformula1, data = df_reg, weights = df_reg$pop,exactDOF = T)
     
     out <- cbind(fit %>% broom::tidy() %>% slice(1), fit %>% broom::glance() %>% select(statistic,nobs) %>% rename(f_statistic = statistic))
     out <- out %>% mutate(spec=spec)
@@ -612,7 +612,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls)) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls),pop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -631,7 +631,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
     # ------------------------------
     
     regformula <- as.formula(paste(ln_outcome,spec_reduced))
-    fit <- felm(regformula, data = df_reg, exactDOF = T)
+    fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
     
     out <- cbind(fit %>% broom::tidy() %>% slice(1),fit %>% broom::glance() %>% select(nobs))
     
@@ -685,7 +685,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys){
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls)) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls),pop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -701,7 +701,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys){
   # ------------------------------
   
   regformula <- as.formula(paste(ln_outcome,spec_reduced))
-  fit <- felm(regformula, data = df_reg, exactDOF = T)
+  fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
   
   table <- fit %>% 
     broom::tidy() %>%
