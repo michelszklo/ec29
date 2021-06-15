@@ -35,9 +35,18 @@ if(length(to_install)>0) install.packages(to_install)
 lapply(packages,require,character.only=TRUE)
 
 
+# SET PATH FOR EC 29-2000 ON YOUR COMPUTER
+# ------------------------------------
+
+dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+
+# ------------------------------------
+
 # working directories
-raw <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/data/Finbra/finbra_excel/"
-output <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/data/Finbra/"
+raw <- paste0(dir,"data/Finbra/finbra_excel/")
+output <- paste0(dir,"data/Finbra/")
+
+
 
 # data set with municipalities IDs
 id_mun <- read.csv(file =paste0(raw,"municipios.csv"), encoding = "UTF-8")

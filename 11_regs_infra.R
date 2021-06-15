@@ -40,12 +40,17 @@ lapply(packages,require,character.only=TRUE)
 
 options(digits = 15)
 
-path <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+# SET PATH FOR EC 29-2000 ON YOUR COMPUTER
+# ------------------------------------
+
+dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+
+# ------------------------------------
 
 
 # 1. Load data
 # =================================================================
-load("regs.RData")
+load(paste0(dir,"regs.RData"))
 
 
 # 2. Define outcomes output name and output functions
@@ -262,7 +267,7 @@ for (i in c(3)){
 # 4. Exports XLSX with results
 # =================================================================
 
-write.xlsx2(df_table_all, file = "regs/results.xlsx" ,sheetName = "infra",row.names = F, append = T)
+write.xlsx2(df_table_all, file = paste0(dir,"regs_outputs/results.xlsx"),sheetName = "infra",row.names = F, append = T)
 
 
 
@@ -314,12 +319,12 @@ graph <- df_graph_all %>%
 
 
 
-ggsave("regs/infra_all.png",
+ggsave(paste0(dir,"regs_outputs/post_robust/","infra_all.png"),
        plot = graph,
        device = "png",
        width = 10, height = 6,
        units = "in")
-ggsave("regs/infra_all.pdf",
+ggsave(paste0(dir,"regs_outputs/post_robust/","infra_all.pdf"),
        plot = graph,
        device = "pdf",
        width = 10, height = 6,
@@ -366,12 +371,12 @@ graph <- df_graph_below %>%
 
 
 
-ggsave("regs/infra_below.png",
+ggsave(paste0(dir,"regs_outputs/post_robust/","infra_below.png"),
        plot = graph,
        device = "png",
        width = 10, height = 6,
        units = "in")
-ggsave("regs/infra_below.pdf",
+ggsave(paste0(dir,"regs_outputs/post_robust/","infra_below.pdf"),
        plot = graph,
        device = "pdf",
        width = 10, height = 6,
@@ -417,12 +422,12 @@ graph <- df_graph_above %>%
 
 
 
-ggsave("regs/infra_above.png",
+ggsave(paste0(dir,"regs_outputs/post_robust/","infra_above.png"),
        plot = graph,
        device = "png",
        width = 10, height = 6,
        units = "in")
-ggsave("regs/infra_above.pdf",
+ggsave(paste0(dir,"regs_outputs/post_robust/","infra_above.pdf"),
        plot = graph,
        device = "pdf",
        width = 10, height = 6,

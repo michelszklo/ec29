@@ -40,12 +40,20 @@ lapply(packages,require,character.only=TRUE)
 
 options(digits = 15)
 
-path <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+
+# SET PATH FOR EC 29-2000 ON YOUR COMPUTER
+# ------------------------------------
+
+dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+
+# ------------------------------------
+
+
 
 
 # 1. Load data
 # =================================================================
-load("regs.RData")
+load(paste0(dir,"regs.RData"))
 
 
 
@@ -173,7 +181,7 @@ tables <- bind_rows(table_all,table_below,table_above)
 # =================================================================
 
 
-write.xlsx2(tables, file = "regs/results.xlsx" ,sheetName = "first_stage",row.names = F,append = T)
+write.xlsx2(tables, file = paste0(dir,"regs_outputs/results.xlsx") ,sheetName = "first_stage",row.names = F,append = T)
 
 
 

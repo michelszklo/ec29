@@ -40,12 +40,17 @@ lapply(packages,require,character.only=TRUE)
 
 options(digits = 15)
 
-path <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+# SET PATH FOR EC 29-2000 ON YOUR COMPUTER
+# ------------------------------------
+
+dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+
+# ------------------------------------
 
 
 # 1. Load data
 # =================================================================
-load("regs.RData")
+load(paste0(dir,"regs.RData"))
 
 
 # 2. Define outcomes output name and output functions
@@ -222,7 +227,7 @@ for (i in seq(1,13,1)){
 # 4. Exports XLSX with results
 # =================================================================
 
-write.xlsx2(df_table_all, file = "regs/results.xlsx" ,sheetName = "amr",row.names = F,append = T)
+write.xlsx2(df_table_all, file = paste0(dir,"regs_outputs/results.xlsx"),sheetName = "amr",row.names = F,append = T)
 
 
 
@@ -282,12 +287,12 @@ graph <- df_graph_all %>%
 
 
 
-ggsave("regs/amr_all.png",
+ggsave(paste0(dir,"regs_outputs/post_robust/","amr_all.png"),
        plot = graph,
        device = "png",
        width = 10, height = 12,
        units = "in")
-ggsave("regs/amr_all.pdf",
+ggsave(paste0(dir,"regs_outputs/post_robust/","amr_all.pdf"),
        plot = graph,
        device = "pdf",
        width = 10, height = 12,
@@ -342,12 +347,12 @@ graph <- df_graph_below %>%
 
 
 
-ggsave("regs/amr_below.png",
+ggsave(paste0(dir,"regs_outputs/post_robust/","amr_below.png"),
        plot = graph,
        device = "png",
        width = 10, height = 12,
        units = "in")
-ggsave("regs/amr_below.pdf",
+ggsave(paste0(dir,"regs_outputs/post_robust/","amr_below.pdf"),
        plot = graph,
        device = "pdf",
        width = 10, height = 12,
@@ -401,12 +406,12 @@ graph <- df_graph_above %>%
 
 
 
-ggsave("regs/amr_above.png",
+ggsave(paste0(dir,"regs_outputs/post_robust/","amr_above.png"),
        plot = graph,
        device = "png",
        width = 10, height = 12,
        units = "in")
-ggsave("regs/amr_above.pdf",
+ggsave(paste0(dir,"regs_outputs/post_robust/","amr_above.pdf"),
        plot = graph,
        device = "pdf",
        width = 10, height = 12,

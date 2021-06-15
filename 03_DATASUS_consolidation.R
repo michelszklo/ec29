@@ -23,8 +23,19 @@ if(length(to_install)>0) install.packages(to_install)
 lapply(packages,require,character.only=TRUE)
 
 
+
+# SET PATH FOR EC 29-2000 ON YOUR COMPUTER
+# ------------------------------------
+
+dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+
+# ------------------------------------
+
+
 # working directories
-path <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/data/"
+path <- paste0(dir,"data/")
+
+
 
 id_mun <- read.csv(file =paste0(path,"lista_mun/lista_mun_2000_2010.csv"), encoding = "UTF-8")
 
@@ -142,20 +153,20 @@ import_tabnet_year(paste0(path,"SIA/","SIA2_ab.csv"),"sia_ab_15",2008,2015,"sia_
 # ----------------------
 # SIA extension for health spendin inequality analysis
 
-import_tabnet_year(paste0(path,"SIA/","SIA3.csv"),"sia_19",2008,2019,"sia",3)
-import_tabnet_year(paste0(path,"SIA/","SIA3_ab.csv"),"sia_ab_19",2008,2019,"sia_ab",4)
-
-sia <- rbind(sia_07,sia_19) 
-sia_ab <- rbind(sia_ab_07,sia_ab_19)
-
-sia <- sia %>% 
-  left_join(sia_ab, by = c("cod_mun","ano"))
-
-write.table(sia,
-            file = paste0("C:/Users/Michel/Google Drive/DOUTORADO FGV/IEPS/Health spending inequality/","SIA.csv"),
-            sep = ",",
-            fileEncoding = "UTF-8",
-            row.names = F)
+# import_tabnet_year(paste0(path,"SIA/","SIA3.csv"),"sia_19",2008,2019,"sia",3)
+# import_tabnet_year(paste0(path,"SIA/","SIA3_ab.csv"),"sia_ab_19",2008,2019,"sia_ab",4)
+# 
+# sia <- rbind(sia_07,sia_19) 
+# sia_ab <- rbind(sia_ab_07,sia_ab_19)
+# 
+# sia <- sia %>% 
+#   left_join(sia_ab, by = c("cod_mun","ano"))
+# 
+# write.table(sia,
+#             file = paste0("C:/Users/Michel/Google Drive/DOUTORADO FGV/IEPS/Health spending inequality/","SIA.csv"),
+#             sep = ",",
+#             fileEncoding = "UTF-8",
+#             row.names = F)
 
 # ----------------------
 

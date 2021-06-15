@@ -40,9 +40,18 @@ if(length(to_install)>0) install.packages(to_install)
 
 lapply(packages,require,character.only=TRUE)
 
-raw <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/data/SIOPS/"
-raw_uf <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/data/SIOPS_UF/"
-output <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/data/"
+
+# SET PATH FOR EC 29-2000 ON YOUR COMPUTER
+# ------------------------------------
+
+dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+
+# ------------------------------------
+
+raw <- paste0(dir,"data/SIOPS/")
+raw_uf <- paste0(dir,"data/SIOPS_UF/")
+output <- paste0(dir,"data/")
+
 
 
 # =================================================================
