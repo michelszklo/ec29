@@ -181,7 +181,7 @@ tables <- bind_rows(table_all,table_below,table_above)
 # =================================================================
 
 
-write.xlsx2(tables, file = paste0(dir,"regs_outputs/results.xlsx") ,sheetName = "first_stage",row.names = F,append = T)
+write.xlsx2(tables, file = paste0(dir,main_folder,output_file) ,sheetName = "first_stage",row.names = F,append = T)
 
 
 

@@ -267,7 +267,7 @@ for (i in c(3)){
 # 4. Exports XLSX with results
 # =================================================================
 
-write.xlsx2(df_table_all, file = paste0(dir,"regs_outputs/results.xlsx"),sheetName = "infra",row.names = F, append = T)
+write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName = "infra",row.names = F, append = T)
 
 
 
@@ -319,12 +319,12 @@ graph <- df_graph_all %>%
 
 
 
-ggsave(paste0(dir,"regs_outputs/post_robust/","infra_all.png"),
+ggsave(paste0(dir,main_folder,robust_folder,"infra_all.png"),
        plot = graph,
        device = "png",
        width = 10, height = 6,
        units = "in")
-ggsave(paste0(dir,"regs_outputs/post_robust/","infra_all.pdf"),
+ggsave(paste0(dir,main_folder,robust_folder,"infra_all.pdf"),
        plot = graph,
        device = "pdf",
        width = 10, height = 6,
@@ -371,12 +371,12 @@ graph <- df_graph_below %>%
 
 
 
-ggsave(paste0(dir,"regs_outputs/post_robust/","infra_below.png"),
+ggsave(paste0(dir,main_folder,robust_folder,"infra_below.png"),
        plot = graph,
        device = "png",
        width = 10, height = 6,
        units = "in")
-ggsave(paste0(dir,"regs_outputs/post_robust/","infra_below.pdf"),
+ggsave(paste0(dir,main_folder,robust_folder,"infra_below.pdf"),
        plot = graph,
        device = "pdf",
        width = 10, height = 6,
@@ -422,12 +422,12 @@ graph <- df_graph_above %>%
 
 
 
-ggsave(paste0(dir,"regs_outputs/post_robust/","infra_above.png"),
+ggsave(paste0(dir,main_folder,robust_folder,"infra_above.png"),
        plot = graph,
        device = "png",
        width = 10, height = 6,
        units = "in")
-ggsave(paste0(dir,"regs_outputs/post_robust/","infra_above.pdf"),
+ggsave(paste0(dir,main_folder,robust_folder,"infra_above.pdf"),
        plot = graph,
        device = "pdf",
        width = 10, height = 6,

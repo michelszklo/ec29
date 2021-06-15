@@ -230,7 +230,7 @@ for (i in seq(1,15,1)){
 # 4. Exports XLSX with results
 # =================================================================
 
-write.xlsx2(df_table_all, file = paste0(dir,"regs_outputs/results.xlsx"),sheetName = "amr_lag",row.names = F,append = T)
+write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName = "amr_lag",row.names = F,append = T)
 
 
 
@@ -292,12 +292,12 @@ graph <- df_graph_all %>%
 
 
 
-ggsave(paste0(dir,"regs_outputs/post_robust/","amr_lag_all.png"),
+ggsave(paste0(dir,main_folder,robust_folder,"amr_lag_all.png"),
        plot = graph,
        device = "png",
        width = 10, height = 12,
        units = "in")
-ggsave(paste0(dir,"regs_outputs/post_robust/","amr_lag_all.pdf"),
+ggsave(paste0(dir,main_folder,robust_folder,"amr_lag_all.pdf"),
        plot = graph,
        device = "pdf",
        width = 10, height = 12,
@@ -354,12 +354,12 @@ graph <- df_graph_below %>%
 
 
 
-ggsave(paste0(dir,"regs_outputs/post_robust/","amr_lag_below.png"),
+ggsave(paste0(dir,main_folder,robust_folder,"amr_lag_below.png"),
        plot = graph,
        device = "png",
        width = 10, height = 12,
        units = "in")
-ggsave(paste0(dir,"regs_outputs/post_robust/","amr_lag_below.pdf"),
+ggsave(paste0(dir,main_folder,robust_folder,"amr_lag_below.pdf"),
        plot = graph,
        device = "pdf",
        width = 10, height = 12,
@@ -415,12 +415,12 @@ graph <- df_graph_above %>%
 
 
 
-ggsave(paste0(dir,"regs_outputs/post_robust/","amr_lag_above.png"),
+ggsave(paste0(dir,main_folder,robust_folder,"amr_lag_above.png"),
        plot = graph,
        device = "png",
        width = 10, height = 12,
        units = "in")
-ggsave(paste0(dir,"regs_outputs/post_robust/","amr_lag_above.pdf"),
+ggsave(paste0(dir,main_folder,robust_folder,"amr_lag_above.pdf"),
        plot = graph,
        device = "pdf",
        width = 10, height = 12,

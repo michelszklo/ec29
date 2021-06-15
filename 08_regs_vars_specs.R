@@ -48,6 +48,27 @@ dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 # ------------------------------------
 
 
+# Regressions' outputs main folder
+# ------------------------------------
+main_folder <- "regs_outputs/"
+
+# 2SLS specification robustness figures folder
+# ------------------------------------
+robust_folder <- "post_robust/"
+
+# Reduced form yearly estimates figures folder
+# ------------------------------------
+yearly_folder <- "yearly_reduced/"
+
+
+# don't forget to add "/" in the end of the folder name
+
+
+# Regression output excel file
+# ------------------------------------
+output_file <- "results.xlsx"
+
+
 
 # 1. Load data frame
 # =================================================================
@@ -706,12 +727,12 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys){
           axis.title = element_text(size=10),
           legend.position="bottom")
   
-  ggsave(paste0(dir,"regs_outputs/yearly_reduced/",ln_outcome,".png"),
+  ggsave(paste0(dir,main_folder,yearly_folder,ln_outcome,".png"),
          plot = graph,
          device = "png",
          width = 7, height = 5,
          units = "in")
-  ggsave(paste0(dir,"regs_outputs/yearly_reduced/",ln_outcome,".pdf"),
+  ggsave(paste0(dir,main_folder,yearly_folder,ln_outcome,".pdf"),
          plot = graph,
          device = "pdf",
          width = 7, height = 5,
