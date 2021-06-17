@@ -114,6 +114,7 @@ regress_output <- function(var,var_name,transform,year_filter){
     
     iv(var,"siops_despsaude_pcapita",d,1,obj,transform,year_filter) # function for IV regression and bootstrap estimating of SE
     
+    print(paste0("IV regs for sample ",data))
   } 
   
   # 2sls final tables
@@ -139,6 +140,7 @@ regress_output <- function(var,var_name,transform,year_filter){
     obj <- paste0("reg_",data) # name of the output object
     ols(var,"siops_despsaude_pcapita",d,obj,transform,year_filter) # function for OLS regression
     
+    print(paste0("OLS regs for sample ",data))
   }
   
   # OLS final tables
@@ -158,6 +160,8 @@ regress_output <- function(var,var_name,transform,year_filter){
     obj <- paste0("reg_",data) # name of the output object
     reduced(var,var_name,d,obj,transform,year_filter) # function for OLS regression
     
+    
+    print(paste0("Reduced form regs for sample ",data))
   }
   
   # Reduced form final tables

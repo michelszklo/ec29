@@ -66,7 +66,7 @@ yearly_folder <- "yearly_reduced_popw/"
 
 # Regression output excel file
 # ------------------------------------
-output_file <- "results_test.xlsx"
+output_file <- "results_popw.xlsx"
 
 
 
