@@ -254,6 +254,22 @@ controls <- c(grep("^ano_1998_", names(df), value = T),
               "siops_despsaude_pcapita_neighbor","lrf")
 
 
+
+
+
+# IV specifications
+# ------------------------------------------------
+
+spec1_iv <- paste(" ~ 0","| cod_mun + ano | (")
+spec2_iv <- paste(" ~ 0","| cod_mun + uf_y_fe | (")
+spec3_iv <- paste(" ~ ", " + ",paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | (")
+
+spec_instrument <- paste(" ~ post_dist_spending_pc_baseline)"," | cod_mun")
+
+
+# Reduce form specification and first stage - yearly
+# ------------------------------------------------
+
 spec1_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
 spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
@@ -264,7 +280,7 @@ spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", pa
 
 
 
-# first stage specifications
+# Reduced form specifications and first stage
 # ------------------------------------------------
 
 # spending in per capita figures
@@ -284,7 +300,7 @@ spec3_post <- paste(" ~ ","post_dist_spending_pc_baseline"," + ", paste(controls
 
 
 
-# second stage specifications
+# OLS specifications
 # ------------------------------------------------
 
 spec1 <- paste(" | cod_mun + ano | 0 | cod_mun")
@@ -295,6 +311,7 @@ spec3 <- paste(" + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 
 
 # 5. 2 stages least squares function with bootstraps to estimate second stage SE
 # =================================================================
+
 
 iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
   
@@ -343,12 +360,7 @@ iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
   df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
   
   
-  
-  
-  # municipalities list
-  munlist <- df_reg %>% select(cod_mun) %>% unique()
-  
-  
+
   # Regressions
   # ------------------------------------
   
@@ -356,83 +368,16 @@ iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
   for (spec in c(1,2,3)){
     
     # regression specs
-    spec_first <-get( paste0("spec",spec,"_post"))
-    spec_second <- get(paste0("spec",spec))
+    spec_reg <-get(paste0("spec",spec,"_iv"))
+    regformula <- as.formula(paste(ln_outcome,spec_reg,ln_treat,spec_instrument))
+
+    # regression model
+    fit <- felm(regformula, data = df_reg, weights = df_reg$pop ,exactDOF = T)
+
+    # output
+    out <- cbind(fit %>% broom::tidy() %>% slice_tail(),fit %>% broom::glance() %>% select(nobs))
     
-    # first stage regression
-    # ------------------------------
-    regformula1 <- as.formula(paste(ln_treat,spec_first))
-    fitted_var <- paste0("fitted_",ln_treat)
-    
-    fit <- felm(regformula1, data = df_reg, weights = df_reg$pop ,exactDOF = T)
-    # extracting matrix of fitted values
-    fitted <- fit$fitted.values %>% as.data.frame()
-    names(fitted) <- fitted_var
-    # merging with regression dataframe
-    df_reg_fit <- bind_cols(df_reg,fitted)
-    
-    
-    # second stage regression
-    # ------------------------------
-    
-    regformula2 <- as.formula(paste(ln_outcome," ~ ",fitted_var,spec_second))
-    fit2 <- felm(regformula2, data = df_reg_fit, weights = df_reg_fit$pop,exactDOF = T)
-    
-    out <- cbind(fit2 %>% broom::tidy() %>% slice(1),fit2 %>% broom::glance() %>% select(nobs))
-    
-    # BOOTSTRAP
-    bs_coeffs <- vector(mode = "numeric", length = boots)
-    
-    for (i in 1:boots){
-      
-      
-      sample.mun <- munlist[sample(nrow(munlist),replace = T),] # drawing sample of municipalities
-      sample.data <- df_reg %>% right_join(sample.mun, by = "cod_mun")
-      
-      
-      
-      # first stage regression
-      # ------------------------------
-      regformula1 <- as.formula(paste(ln_treat,spec_first))
-      fitted_var <- paste0("fitted_",ln_treat)
-      
-      fit <- felm(regformula1, data = sample.data, weights = sample.data$pop,exactDOF = T)
-      # extracting matrix of fitted values
-      fitted <- fit$fitted.values %>% as.data.frame()
-      names(fitted) <- fitted_var
-      # merging with regression dataframe
-      sample.data <- bind_cols(sample.data,fitted)
-      
-      
-      # second stage regression
-      # ------------------------------
-      
-      regformula2 <- as.formula(paste(ln_outcome," ~ ",fitted_var,spec_second))
-      fit2 <- felm(regformula2, data = sample.data, weights = sample.data$pop, exactDOF = T)
-      
-      # collecting coefficients
-      beta <- fit2$coefficients[1] %>% as.numeric()
-      
-      bs_coeffs[i] <- beta
-      
-      # if (i==1){
-      #   bs_coeffs <- beta
-      # }
-      # else{
-      #   bs_coeffs <- rbind(bs_coeffs,beta)
-      # }
-      
-      
-      print(paste("Bootstrap ",i," spec ",spec))
-      
-    }
-    
-    
-    
-    bs_std.error <- sd(bs_coeffs)
-    bs_mean <- mean(bs_coeffs)
-    
-    out <- cbind(out,bs_mean,bs_std.error,spec)
+    out <- cbind(out,spec)
     
     if(spec==1){
       table <- out
