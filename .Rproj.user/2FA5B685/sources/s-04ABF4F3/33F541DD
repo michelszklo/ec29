@@ -1,0 +1,26 @@
+{
+    "id": "33F541DD",
+    "path": "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/ec29/14_regs_imr.R",
+    "project_path": "14_regs_imr.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": true,
+    "created": 1623894116206.0,
+    "source_on_save": false,
+    "relative_order": 6,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "226,0",
+        "scrollLine": "196"
+    },
+    "folds": "76|32|93|0|\n95|33|101|0|\n103|63|187|0|\n",
+    "lastKnownWriteTime": 1623727532,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1623895047762,
+    "read_only": false,
+    "read_only_alternatives": []
+}

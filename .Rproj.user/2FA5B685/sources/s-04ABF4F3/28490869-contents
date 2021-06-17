@@ -1,0 +1,98 @@
+#######################################################################################################
+# Author: Michel Szklo
+# June 2020
+# 
+# This script consolidates DATASUS data on mortality caused by diabetes (E10-14) and hypertension (I10-15).
+# 
+#
+#######################################################################################################
+
+# 0. Set-up
+# =================================================================
+
+rm(list=ls())
+
+# packages
+packages<-c('readr','tidyverse','dplyr','RCurl','tidyr',
+            'scales','RColorBrewer','ggplot2','xlsx',
+            'stringdist','textclean')
+to_install<-packages[!(packages %in% installed.packages()[,"Package"])]
+if(length(to_install)>0) install.packages(to_install)
+
+lapply(packages,require,character.only=TRUE)
+
+
+
+# SET PATH FOR EC 29-2000 ON YOUR COMPUTER
+# ------------------------------------
+
+dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/IEPS/York Database/"
+
+# ------------------------------------
+
+
+# working directories
+path <- paste0(dir,"population/")
+
+
+
+
+# 1. IMPORT FUNCTION
+# =================================================================
+
+import_tabnet_year <- function(csv,object,year_start,year_end,varname,skip){
+  
+  
+  # data set with municipalities IDs
+  # id_mun <- read.csv(file =paste0(path,"lista_mun/lista_mun_2000_2010.csv"), encoding = "UTF-8")
+  # id_mun <- id_mun %>% filter(ano>=year_start & ano<=year_end)
+  # 
+  #
+  df_cols_n <-year_end - year_start + 1 
+  
+  df <- read.csv(file = csv, encoding = "Latim-1", sep = ";", skip = skip)
+  df <- df %>% 
+    mutate(cod_mun = substr(Município,1,6)) %>% 
+    select(-c("Município")) %>% 
+    mutate(cod_mun = as.numeric(cod_mun)) %>%
+    filter(!is.na(cod_mun) & substr(cod_mun,3,6)!="0000")
+  
+  df[,1:df_cols_n] <- lapply(df[,1:df_cols_n], function(x) as.numeric(gsub("-","0",x)))
+  
+  df <- df %>% 
+    pivot_longer(cols = colnames(df[1:df_cols_n]),
+                 names_to = "ano",
+                 values_to = varname) %>% 
+    mutate(ano = as.numeric(substr(ano,2,5))) # %>% 
+  #right_join(id_mun, by = c("cod_mun","ano"))
+  
+  df[is.na(df)] <- 0
+  
+  assign(paste0(object),df,envir = .GlobalEnv)
+  
+}
+
+
+import_tabnet_year(paste0(path,"pop_1997_2018.csv"),"pop",1997,2018,"pop",3)
+import_tabnet_year(paste0(path,"pop_1997_2018_m.csv"),"pop_m",2000,2018,"pop_m",4)
+import_tabnet_year(paste0(path,"pop_1997_2018_f_fert.csv"),"pop_f",2000,2018,"pop_f",5)
+
+
+pop <- pop %>% 
+  left_join(pop_m, by = c("cod_mun","ano")) %>% 
+  left_join(pop_f, by = c("cod_mun","ano")) %>% 
+  mutate(share_female = (pop_f)/(pop_f + pop_m)) %>% 
+  mutate(pop_female_1049 = floor(pop*share_female)) %>% 
+  select(-pop_f,-pop_m)
+
+pop$share_female[pop$ano==1999] <- pop$share_female[pop$ano==2000]
+pop$share_female[pop$ano==1998] <- pop$share_female[pop$ano==2000]
+pop$share_female[pop$ano==1997] <- pop$share_female[pop$ano==2000]
+
+pop <- pop %>%
+  mutate(pop_female_1049 = ifelse(ano<2000,floor(share_female*pop),pop_female_1049)) %>% 
+  select(-share_female)
+
+
+write.table(pop,file = paste0(dir,"pop.csv"),sep = ",", row.names = F)
+
