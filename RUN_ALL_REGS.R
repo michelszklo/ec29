@@ -47,7 +47,6 @@ options(digits = 15)
 # ------------------------------------
 
 dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
-
 scripts <- "ec29/"
 
 
@@ -58,13 +57,21 @@ scripts <- "ec29/"
 # =================================================================
 
 source(paste0(dir,scripts,"09_regs_firststage.R"))
+scripts <- "ec29/"
 source(paste0(dir,scripts,"10_regs_spending.R"))
+scripts <- "ec29/"
 source(paste0(dir,scripts,"11_regs_infra.R"))
+scripts <- "ec29/"
 source(paste0(dir,scripts,"12_regs_sia.R"))
+scripts <- "ec29/"
 source(paste0(dir,scripts,"13_regs_hr.R"))
+scripts <- "ec29/"
 source(paste0(dir,scripts,"14_regs_imr.R"))
+scripts <- "ec29/"
 source(paste0(dir,scripts,"15_regs_amr.R"))
+scripts <- "ec29/"
 source(paste0(dir,scripts,"16_regs_imr_lag.R"))
+scripts <- "ec29/"
 source(paste0(dir,scripts,"17_regs_amr_lag.R"))
 
 
