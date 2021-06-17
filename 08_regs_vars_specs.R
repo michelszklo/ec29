@@ -312,12 +312,6 @@ spec3 <- paste(" + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 
 # 5. 2 stages least squares function with bootstraps to estimate second stage SE
 # =================================================================
 
-outcome <- "siops_despinvest_pcapita"
-transform <- 1
-treat <- "siops_despsaude_pcapita"
-year_filter <- 2000
-spec <- 1
-
 
 iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
   
