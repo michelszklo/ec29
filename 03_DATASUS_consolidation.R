@@ -224,8 +224,8 @@ import_tabnet_year2 <- function(csv,object,year_start,year_end,varname,skip){
   
   
   # data set with municipalities IDs
-  id_mun <- read.csv(file =paste0(path,"lista_mun/lista_mun_2000_2010.csv"), encoding = "UTF-8")
-  id_mun <- id_mun %>% filter(ano>=year_start & ano<=year_end)
+  # id_mun <- read.csv(file =paste0(path,"lista_mun/lista_mun_2000_2010.csv"), encoding = "UTF-8")
+  # id_mun <- id_mun %>% filter(ano>=year_start & ano<=year_end)
   
   #
   df_cols_n <-year_end - year_start + 1 
@@ -243,8 +243,7 @@ import_tabnet_year2 <- function(csv,object,year_start,year_end,varname,skip){
     pivot_longer(cols = colnames(df[1:df_cols_n]),
                  names_to = "ano",
                  values_to = varname) %>% 
-    mutate(ano = as.numeric(substr(ano,2,5))) %>% 
-    right_join(id_mun, by = c("cod_mun","ano"))
+    mutate(ano = as.numeric(substr(ano,2,5)))
   
   df[is.na(df)] <- 0
   
