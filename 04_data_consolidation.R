@@ -242,6 +242,11 @@ df <- mun_list %>%
   left_join(sim, by = c("ano","cod_mun")) %>% 
   left_join(sim_adt, by = c("ano","cod_mun")) %>% 
   left_join(pop_40, by = c("ano","cod_mun")) %>%
+  mutate(share40 = pop40/pop) %>% 
+  mutate(share40 = ifelse(ano==1999,dplyr::lead(share40,1),share40),
+         share40 = ifelse(ano==1998,dplyr::lead(share40,2),share40)) %>% 
+  mutate(pop40 = ifelse(ano<2000,pop*share40,pop)) %>% 
+  select(-share40) %>% 
   # datasus - sia
   left_join(sia, by = c("ano","cod_mun")) %>%
   # leitos
