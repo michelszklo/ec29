@@ -216,7 +216,7 @@ for (i in seq(1,6,1)){
   print(var_name)
   
   reduced_yearly(var,var_name,df,1,2000,-0.01,0.01,0.005)
-  
+
 }
 
 

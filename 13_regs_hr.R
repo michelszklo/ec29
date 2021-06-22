@@ -247,6 +247,7 @@ for (i in seq(1,5,1)){
   
   reduced_yearly(var,var_name,df,1,2000,-0.01,0.01,0.005)
 
+
   
 }
 

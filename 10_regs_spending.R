@@ -236,9 +236,10 @@ write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName =
 # 5. Specifications graph
 # =================================================================
 
-scale_f <- -1
-scale_l <- 8
+scale_f <- -4
+scale_l <- 9
 scale_s <- 1
+
 
 color_graph <- pal_lancet("lanonc")(9)
 

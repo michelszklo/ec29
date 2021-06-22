@@ -224,8 +224,7 @@ for (i in seq(1,15,1)){
   var_name <- var_map[i,2]
   print(var_name)
   
-  reduced_yearly(var,var_name,df,1,2000,-0.01,0.015,0.005)
-  
+reduced_yearly(var,var_name,df,1,2000,-0.02,0.02,0.005)  
 
 }
 
@@ -241,7 +240,7 @@ write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName =
 # =================================================================
 
 scale_f <- -7
-scale_l <- 7
+scale_l <- 11
 scale_s <- 1
 
 color_graph <- pal_lancet("lanonc")(9)

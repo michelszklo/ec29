@@ -222,7 +222,7 @@ for (i in seq(1,13,1)){
   var_name <- var_map[i,2]
   print(var_name)
   
-  reduced_yearly(var,var_name,df,1,2000,-0.01,0.015,0.005)
+reduced_yearly(var,var_name,df,1,2000,-0.01,0.015,0.005)
   
 
 }
