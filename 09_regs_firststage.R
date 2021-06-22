@@ -71,10 +71,10 @@ transform_select <- function(df,treat){
   
   # selecting main variables
   df <- df %>% 
-    select(ano, cod_mun, mun_name, cod_uf, uf_y_fe, all_of(treat),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls))
+    select(ano, cod_mun, mun_name, cod_uf, uf_y_fe, all_of(treat),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls),pop)
   
   # balanced panel
-  df <- df[complete.cases(df),]
+  # df <- df[complete.cases(df),]
   df <- df[complete.cases(df[,ln_treat]),]
 
 } 
@@ -146,13 +146,13 @@ table_formatting <- function(df){
 
 # 3. Running regs
 # =================================================================
-df <- df %>% transform_select("siops_despsaude_pcapita")
-df_below <- df_below %>% transform_select("siops_despsaude_pcapita")
-df_above <- df_above %>% transform_select("siops_despsaude_pcapita")
+df <- df %>% transform_select("finbra_desp_saude_san_pcapita")
+df_below <- df_below %>% transform_select("finbra_desp_saude_san_pcapita")
+df_above <- df_above %>% transform_select("finbra_desp_saude_san_pcapita")
 
-iv_first(df,"siops_despsaude_pcapita",2000,"table_all")
-iv_first(df_below,"siops_despsaude_pcapita",2000,"table_below")
-iv_first(df_above,"siops_despsaude_pcapita",2000,"table_above")
+iv_first(df,"finbra_desp_saude_san_pcapita",1998,"table_all")
+iv_first(df_below,"finbra_desp_saude_san_pcapita",1998,"table_below")
+iv_first(df_above,"finbra_desp_saude_san_pcapita",1998,"table_above")
 
 
 # df <- df %>% transform_select("siops_desptotalsaude")
