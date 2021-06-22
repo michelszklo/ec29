@@ -240,7 +240,7 @@ df <- df %>%
 
 controls <- c(grep("^ano_1998_", names(df), value = T),
               grep("^ano_1999_", names(df), value = T),
-              grep("^ano_2000_", names(df), value = T),
+              # grep("^ano_2000_", names(df), value = T),
               grep("^ano_2001_", names(df), value = T),
               grep("^ano_2002_", names(df), value = T),
               grep("^ano_2003_", names(df), value = T),
