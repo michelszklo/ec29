@@ -138,7 +138,7 @@ regress_output <- function(var,var_name,transform,year_filter){
     
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
-    ols(var,"siops_despsaude_pcapita",d,obj,transform,year_filter) # function for OLS regression
+    ols(var,"siops_despsaude_pcapita",d,1,obj,transform,year_filter) # function for OLS regression
     
     print(paste0("OLS regs for sample ",data))
   }
