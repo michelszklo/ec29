@@ -102,7 +102,7 @@ regress_output <- function(var,var_name,transform,year_filter){
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
     
-    iv(var,"finbra_desp_saude_san_pcapita",d,1,obj,transform,year_filter) # function for IV regression and bootstrap estimating of SE
+    iv(var,"finbra_desp_saude_san_pcapita",d,obj,transform,year_filter) # function for IV regression and bootstrap estimating of SE
     
     print(paste0("IV regs for sample ",data))
   } 
