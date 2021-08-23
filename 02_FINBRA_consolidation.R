@@ -75,7 +75,7 @@ for (ano in c(1998,1999)) {
   
   temp <- read.csv(file = paste0(raw,"finbra",ano,"_despesa.csv"), encoding = "UTF-8",sep = ";")
   temp <- temp %>% select(c('X.U.FEFF.UF','MUNICIPIO','Populacao.2000','Despesas.Orçamentárias','Desp.Correntes','Desp.de.Pessoal','Despesas.de.Capital','Investimentos','Legislativa','Judiciária','Planejamento','Agricultura','Educação.e.Cultura','Habitação.e.Urbanismo','Indústria.e.Comércio','Saúde.e.Saneamento','Assistência.e.Previdência','Transporte','Segurança.Pública','Desenvolvimento.Regional','Energia.e.Recursos.Minerais','Comunicações'))
-  colnames(temp) <- c('uf','nome_mun','pop2000','desp_o','desp_c','desp_pessoal','desp_capital','desp_investimento','desp_legislativa','desp_judiciaria','desp_planejamento','desp_agricultura','desp_educ_cultura','desp_hab_urb','desp_ind_com','desp_saude_san','desp_assist_prev','desp_transporte','desp_seguranca','desp_devregional','desp_energia','desp_comunicacoes')
+  colnames(temp) <- c('uf','nome_mun','pop2000','desp_o','desp_c','desp_pessoal','desp_capital','desp_investimento','desp_legislativa','desp_judiciaria','desp_adm','desp_agricultura','desp_educ_cultura','desp_hab_urb','desp_ind_com','desp_saude_san','desp_assist_prev','desp_transporte','desp_seguranca','desp_devregional','desp_energia','desp_comunicacoes')
   temp <- temp %>% mutate(nome_mun = as.character(nome_mun), uf = as.character(uf))
   
   names_map <- rbind(
@@ -147,7 +147,7 @@ for (ano in c(2000,2001)){
   # temp <- read.xlsx(file = paste0(raw,"finbra",ano,"_despesa.xlsx"),sheetIndex = 1, encoding = "UTF-8")
   temp <- read.csv(file = paste0(raw,"finbra",ano,"_despesa.csv"), encoding = "UTF-8",sep = ";")
   temp <- temp %>% select(c('X.U.FEFF.CD_UF','CD_MUN','UF','MUNICIPIO','Populacao.2000','Despesas.Orçamentárias','Desp.Correntes','Desp.de.Pessoal','Despesas.de.Capital','Investimentos','Legislativa','Judiciária','Planejamento','Agricultura','Educação.e.Cultura','Habitação.e.Urbanismo','Indústria.e.Comércio','Saúde.e.Saneamento','Assistência.e.Previdência','Transporte','Segurança.Pública','Desenvolvimento.Regional','Energia.e.Recursos.Minerais','Comunicações'))
-  colnames(temp) <- c('cod_uf','cod_mun','uf','nome_mun','pop2000','desp_o','desp_c','desp_pessoal','desp_capital','desp_investimento','desp_legislativa','desp_judiciaria','desp_planejamento','desp_agricultura','desp_educ_cultura','desp_hab_urb','desp_ind_com','desp_saude_san','desp_assist_prev','desp_transporte','desp_seguranca','desp_devregional','desp_energia','desp_comunicacoes')
+  colnames(temp) <- c('cod_uf','cod_mun','uf','nome_mun','pop2000','desp_o','desp_c','desp_pessoal','desp_capital','desp_investimento','desp_legislativa','desp_judiciaria','desp_adm','desp_agricultura','desp_educ_cultura','desp_hab_urb','desp_ind_com','desp_saude_san','desp_assist_prev','desp_transporte','desp_seguranca','desp_devregional','desp_energia','desp_comunicacoes')
   temp <- temp %>%
     mutate(nome_mun = as.character(nome_mun), uf = as.character(uf),
            n = nchar(cod_mun),
@@ -223,6 +223,7 @@ finbra <- bind_rows(finbra,temp)
 # =================================================================
 # 4. FINBRA 2004 - 2012
 # =================================================================
+
 
 for (ano in seq(2004,2012,1)){
   
