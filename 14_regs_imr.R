@@ -114,7 +114,6 @@ regress_output <- function(var,var_name,transform,year_filter){
     
     iv(var,"siops_despsaude_pcapita",d,1,obj,transform,year_filter) # function for IV regression and bootstrap estimating of SE
     
-    print(paste0("IV regs for sample ",data))
   } 
   
   # 2sls final tables
@@ -138,9 +137,8 @@ regress_output <- function(var,var_name,transform,year_filter){
     
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
-    ols(var,"siops_despsaude_pcapita",d,1,obj,transform,year_filter) # function for OLS regression
+    ols(var,"siops_despsaude_pcapita",d,obj,transform,year_filter) # function for OLS regression
     
-    print(paste0("OLS regs for sample ",data))
   }
   
   # OLS final tables
@@ -160,8 +158,6 @@ regress_output <- function(var,var_name,transform,year_filter){
     obj <- paste0("reg_",data) # name of the output object
     reduced(var,var_name,d,obj,transform,year_filter) # function for OLS regression
     
-    
-    print(paste0("Reduced form regs for sample ",data))
   }
   
   # Reduced form final tables
@@ -224,7 +220,8 @@ for (i in seq(1,15,1)){
   var_name <- var_map[i,2]
   print(var_name)
   
-reduced_yearly(var,var_name,df,1,2000,-0.02,0.02,0.005)  
+  reduced_yearly(var,var_name,df,1,2000,-0.01,0.015,0.005)
+  
 
 }
 
@@ -240,7 +237,7 @@ write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName =
 # =================================================================
 
 scale_f <- -7
-scale_l <- 11
+scale_l <- 7
 scale_s <- 1
 
 color_graph <- pal_lancet("lanonc")(9)
