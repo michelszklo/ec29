@@ -118,7 +118,7 @@ for (ano in c(1998,1999)) {
     old <- names_map[i,1]
     new <- names_map[i,2]
     s <- names_map[i,3]
-
+    
     temp <- temp %>% mutate(nome_mun = ifelse(nome_mun==old,ifelse(uf==s,new,nome_mun),nome_mun))
   }
   
@@ -221,10 +221,10 @@ finbra <- bind_rows(finbra,temp)
 
 
 # =================================================================
-# 4. FINBRA 2004 - 2010
+# 4. FINBRA 2004 - 2012
 # =================================================================
 
-for (ano in seq(2004,2010,1)){
+for (ano in seq(2004,2012,1)){
   
   temp1 <- read.csv(file = paste0(raw,"finbra",ano,"_despesa.csv"), encoding = "UTF-8",sep = ";")
   temp1 <- temp1 %>% select(c('X.U.FEFF.CD_UF','CD_MUN','UF','MUNICIPIO','Populacao','Pessoal.e.Encarg.Soc_PES','Despesas.Orçamentárias','Desp.Correntes','Despesas.de.Capital','Investimentos'))
@@ -245,7 +245,10 @@ for (ano in seq(2004,2010,1)){
   
   temp2 <- read.csv(file = paste0(raw,"finbra",ano,"_despesa_funcao.csv"), encoding = "UTF-8",sep = ";")
   temp2 <- temp2 %>% select(c('X.U.FEFF.CdUF','CdMun','Legislativa','Judiciária','Agricultura','Transporte','Segurança.Pública','Comunicações','Essencial.à.Justiça','Administração','Defesa.Nacional','Relações.Exteriores','Assistência.Social','Previdência.Social','Saúde','Trabalho','Educação','Cultura','Direitos.da.Cidadania','Urbanismo','Habitação','Saneamento','Gestão.Ambiental','Ciência.e.Tecnologia','Organização.Agrária','Indústria','Comércio.e.Serviços','Energia','Desporto.e.Lazer','Encargos.Especiais'))
-  colnames(temp2) <- c('cod_uf','cod_mun','desp_legislativa','desp_judiciaria','desp_agricultura','desp_transporte','desp_seguranca','desp_comunicacoes','desp_justica','desp_adm','desp_defesa','desp_rext','desp_assist','desp_prev','desp_saude','desp_trabalho','desp_educ','desp_cultura','desp_cidadania','desp_urb','desp_hab','desp_san','desp_gambiental','desp_ct','desp_orgagraria','desp_ind','desp_com','desp_energia','desp_esporte','desp_encargos')
+  colnames(temp2) <- c('cod_uf','cod_mun','desp_legislativa','desp_judiciaria','desp_agricultura','desp_transporte','desp_seguranca',
+                       'desp_comunicacoes','desp_justica','desp_adm','desp_defesa','desp_rext','desp_assist','desp_prev','desp_saude',
+                       'desp_trabalho','desp_educ','desp_cultura','desp_cidadania','desp_urb','desp_hab','desp_san','desp_gambiental',
+                       'desp_ct','desp_orgagraria','desp_ind','desp_com','desp_energia','desp_esporte','desp_encargos')
   
   temp2[,6:ncol(temp2)] <- sapply(temp2[,6:ncol(temp2)], function(x) gsub(",","",x))
   temp2[,6:ncol(temp2)] <- sapply(temp2[,6:ncol(temp2)], as.character)
@@ -278,6 +281,185 @@ for (ano in seq(2004,2010,1)){
 
 
 # =================================================================
+# 5. FINBRA 2013 - 2019
+# =================================================================
+
+desp <- c("3.0.00.00.00.00 - Despesas Correntes",
+          "3.1.00.00.00.00 - Pessoal e Encargos Sociais",
+          "4.0.00.00.00.00 - Despesas de Capital",
+          "4.4.00.00.00.00 - Investimentos")
+
+desp2 <- c("3.0.00.00.00 - Despesas Correntes",
+          "3.1.00.00.00 - Pessoal e Encargos Sociais",
+          "4.0.00.00.00 - Despesas de Capital",
+          "4.4.00.00.00 - Investimentos")
+
+desp_func <- c("01 - Legislativa",
+               "02 - Judiciária",
+               "20 - Agricultura",
+               "26 - Transporte",
+               "06 - Segurança Pública",
+               "24 - Comunicações",
+               "03 - Essencial à Justiça",
+               "04 - Administração",
+               "05 - Defesa Nacional",
+               "07 - Relações Exteriores",
+               "08 - Assistência Social",
+               "09 - Previdência Social",
+               "10 - Saúde",
+               "11 - Trabalho",
+               "12 - Educação",
+               "13 - Cultura",
+               "14 - Direitos da Cidadania",
+               "15 - Urbanismo",
+               "16 - Habitação",
+               "17 - Saneamento",
+               "18 - Gestão Ambiental",
+               "19 - Ciência e Tecnologia",
+               "21 - Organização Agrária",
+               "22 - Indústria",
+               "23 - Comércio e Serviços",
+               "25 - Energia",
+               "27 - Desporto e Lazer",
+               "28 - Encargos Especiais")
+
+
+
+
+for(ano in seq.int(2013,2017)){
+  
+  temp1 <- read.csv(file = paste0(raw,"finbra",ano,"_despesa.csv"), encoding = "Latin1",sep = ";", skip = 3) %>%
+    filter(Coluna == "Despesas Liquidadas") %>% 
+    select(Cod.IBGE,Conta,Valor) %>% 
+    filter(Conta %in% desp) %>% 
+    mutate(Conta = substr(Conta,19,nchar(Conta)))
+  
+  temp1[,3] <- sapply(temp1[,3], function(x) gsub(",",".",x))
+  temp1[,3] <- sapply(temp1[,3], as.numeric)
+  
+  temp1 <- temp1 %>% 
+    pivot_wider(id_cols = "Cod.IBGE",
+                names_from = "Conta",
+                values_from = "Valor") 
+  
+  colnames(temp1) <- c("cod_mun","desp_c","desp_pessoal","desp_capital","desp_investimentos")
+  
+  
+  
+  temp2 <- read.csv(file = paste0(raw,"finbra",ano,"_despesa_funcao.csv"), encoding = "Latin1",sep = ";", skip = 3) %>%
+    filter(Coluna == "Despesas Liquidadas") %>% 
+    select(Cod.IBGE,Conta,Valor) %>% 
+    filter(Conta %in% desp_func) %>% 
+    mutate(Conta = substr(Conta,6,nchar(Conta)))
+  
+  temp2[,3] <- sapply(temp2[,3], function(x) gsub(",",".",x))
+  temp2[,3] <- sapply(temp2[,3], as.numeric)
+  
+  temp2 <- temp2 %>% 
+    pivot_wider(id_cols = "Cod.IBGE",
+                names_from = "Conta",
+                values_from = "Valor") 
+  
+  colnames(temp2) <- c('cod_mun','desp_adm','desp_assist','desp_saude','desp_educ','desp_cultura','desp_urb','desp_san','desp_gambiental',
+                       'desp_agricultura','desp_com','desp_transporte','desp_esporte','desp_legislativa','desp_seguranca','desp_encargos',
+                       'desp_prev','desp_hab','desp_ind','desp_cidadania','desp_energia','desp_judiciaria','desp_defesa','desp_trabalho',
+                       'desp_ct','desp_comunicacoes','desp_justica','desp_orgagraria','desp_rext')
+  
+  
+  temp <- full_join(temp1, temp2, by = c("cod_mun")) %>% 
+    mutate(ano = ano)
+  
+  temp <- temp %>%
+    mutate(desp_educ_cultura = desp_educ + desp_cultura,
+           desp_hab_urb = desp_hab + desp_urb,
+           desp_ind_com = desp_ind + desp_com,
+           desp_saude_san = desp_saude + desp_san,
+           desp_assist_prev = desp_assist + desp_prev) %>% 
+    mutate(cod_mun = as.numeric(substr(as.character(cod_mun),1,6))) %>% 
+    select(cod_mun,ano,everything())
+  
+  
+  
+  
+  temp[is.na(temp)] <- 0
+  
+  temp[,3:ncol(temp)] <- sapply(temp[,3:ncol(temp)], as.character)
+  
+  finbra <- bind_rows(finbra,temp)
+  
+  print(ano)
+  
+}
+
+
+for(ano in seq.int(2018,2019)){
+  
+  temp1 <- read.csv(file = paste0(raw,"finbra",ano,"_despesa.csv"), encoding = "Latin1",sep = ";", skip = 3) %>%
+    filter(Coluna == "Despesas Liquidadas") %>% 
+    select(Cod.IBGE,Conta,Valor) %>% 
+    filter(Conta %in% desp2) %>% 
+    mutate(Conta = substr(Conta,19,nchar(Conta)))
+  
+  temp1[,3] <- sapply(temp1[,3], function(x) gsub(",",".",x))
+  temp1[,3] <- sapply(temp1[,3], as.numeric)
+  
+  temp1 <- temp1 %>% 
+    pivot_wider(id_cols = "Cod.IBGE",
+                names_from = "Conta",
+                values_from = "Valor") 
+  
+  colnames(temp1) <- c("cod_mun","desp_c","desp_pessoal","desp_capital","desp_investimentos")
+  
+  
+  
+  temp2 <- read.csv(file = paste0(raw,"finbra",ano,"_despesa_funcao.csv"), encoding = "Latin1",sep = ";", skip = 3) %>%
+    filter(Coluna == "Despesas Liquidadas") %>% 
+    select(Cod.IBGE,Conta,Valor) %>% 
+    filter(Conta %in% desp_func) %>% 
+    mutate(Conta = substr(Conta,6,nchar(Conta)))
+  
+  temp2[,3] <- sapply(temp2[,3], function(x) gsub(",",".",x))
+  temp2[,3] <- sapply(temp2[,3], as.numeric)
+  
+  temp2 <- temp2 %>% 
+    pivot_wider(id_cols = "Cod.IBGE",
+                names_from = "Conta",
+                values_from = "Valor") 
+  
+  colnames(temp2) <- c('cod_mun','desp_adm','desp_assist','desp_saude','desp_educ','desp_cultura','desp_urb','desp_san','desp_gambiental',
+                       'desp_agricultura','desp_com','desp_transporte','desp_esporte','desp_legislativa','desp_seguranca','desp_encargos',
+                       'desp_prev','desp_hab','desp_ind','desp_cidadania','desp_energia','desp_judiciaria','desp_defesa','desp_trabalho',
+                       'desp_ct','desp_comunicacoes','desp_justica','desp_orgagraria','desp_rext')
+  
+  
+  temp <- full_join(temp1, temp2, by = c("cod_mun")) %>% 
+    mutate(ano = ano)
+  
+  temp <- temp %>%
+    mutate(desp_educ_cultura = desp_educ + desp_cultura,
+           desp_hab_urb = desp_hab + desp_urb,
+           desp_ind_com = desp_ind + desp_com,
+           desp_saude_san = desp_saude + desp_san,
+           desp_assist_prev = desp_assist + desp_prev) %>% 
+    mutate(cod_mun = as.numeric(substr(as.character(cod_mun),1,6))) %>% 
+    select(cod_mun,ano,everything())
+  
+  
+  
+  
+  temp[is.na(temp)] <- 0
+  
+  temp[,3:ncol(temp)] <- sapply(temp[,3:ncol(temp)], as.character)
+  
+  finbra <- bind_rows(finbra,temp)
+  
+  print(ano)
+  
+}
+
+
+
+# =================================================================
 # 5. SAVING
 # =================================================================
 
@@ -289,7 +471,7 @@ saveRDS(finbra, paste0(output,"FINBRA.rds"))
 # =================================================================
 
 finbra_select <- finbra %>%
-  select(c("cod_mun","uf","nome_mun","pop","pop2000","desp_o","desp_c","desp_pessoal","desp_capital","desp_investimento","desp_legislativa","desp_judiciaria","desp_agricultura","desp_educ_cultura","desp_hab_urb","desp_ind_com","desp_saude_san","desp_transporte","desp_seguranca","desp_energia","desp_comunicacoes"))
+  select(c("cod_mun","ano","uf","nome_mun","pop","pop2000","desp_o","desp_c","desp_pessoal","desp_capital","desp_investimento","desp_legislativa","desp_judiciaria","desp_agricultura","desp_educ_cultura","desp_hab_urb","desp_ind_com","desp_saude_san","desp_transporte","desp_seguranca","desp_energia","desp_comunicacoes", "desp_adm"))
 
 finbra_select[,4:ncol(finbra_select)] <- sapply(finbra_select[,4:ncol(finbra_select)], function(x) gsub(",","",x))
 finbra_select[,4:ncol(finbra_select)] <- sapply(finbra_select[,4:ncol(finbra_select)], as.numeric)
