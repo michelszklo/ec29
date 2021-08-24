@@ -169,6 +169,8 @@ sim <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse.dta")))
 
 pop_40 <- read.csv(paste0(raw,"SIM/pop40.csv")) %>% rename(pop40=pop)
 
+pop_40_96 <- read.csv(paste0(raw,"pop/pop40_1996.csv")) %>% rename(pop40_96 = pop40)
+
 sim_adt <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_adult.dta")))
 
 # sia
@@ -240,13 +242,16 @@ df <- mun_list %>%
   left_join(sinasc, by = c("ano","cod_mun")) %>% 
   # datasus - sim
   left_join(sim, by = c("ano","cod_mun")) %>% 
-  left_join(sim_adt, by = c("ano","cod_mun")) %>% 
+  left_join(sim_adt, by = c("ano","cod_mun")) %>%
   left_join(pop_40, by = c("ano","cod_mun")) %>%
-  mutate(share40 = pop40/pop) %>% 
-  mutate(share40 = ifelse(ano==1999,dplyr::lead(share40,1),share40),
-         share40 = ifelse(ano==1998,dplyr::lead(share40,2),share40)) %>% 
-  mutate(pop40 = ifelse(ano<2000,pop*share40,pop)) %>% 
-  select(-share40) %>% 
+  left_join(pop_40_96 %>% select(-ano), by = c("cod_mun")) %>%
+  mutate(pop40 = ifelse(ano==1999,dplyr::lead(pop40,1),pop40),
+         pop40 = ifelse(ano==1998,dplyr::lead(pop40,2),pop40))
+  # mutate(share40 = pop40/pop) %>% 
+  # mutate(share40 = ifelse(ano==1999,dplyr::lead(share40,1),share40),
+  #        share40 = ifelse(ano==1998,dplyr::lead(share40,2),share40)) %>% 
+  # mutate(pop40 = ifelse(ano<2000,pop*share40,pop)) %>% 
+  # select(-share40) %>% 
   # datasus - sia
   left_join(sia, by = c("ano","cod_mun")) %>%
   # leitos
