@@ -231,7 +231,7 @@ df <- mun_list %>%
   # mergin deflator
   left_join(deflator, by = "ano") %>% 
   # merging FINBRA data
-  left_join(finbra %>% select(-c(uf,nome_mun,pop2000,pop,cod_uf))) %>% 
+  left_join(finbra %>% select(-c(uf,nome_mun,pop2000,pop,cod_uf)), by = c("ano","cod_mun")) %>% 
   # merging SIOPS data
   left_join(siops %>% select(-pop), by = c("ano","cod_mun")) %>%
   # merging Trasnferencias Fundo a Fundo
@@ -246,7 +246,7 @@ df <- mun_list %>%
   left_join(pop_40, by = c("ano","cod_mun")) %>%
   left_join(pop_40_96 %>% select(-ano), by = c("cod_mun")) %>%
   mutate(pop40 = ifelse(ano==1999,dplyr::lead(pop40,1),pop40),
-         pop40 = ifelse(ano==1998,dplyr::lead(pop40,2),pop40))
+         pop40 = ifelse(ano==1998,dplyr::lead(pop40,2),pop40)) %>% 
   # mutate(share40 = pop40/pop) %>% 
   # mutate(share40 = ifelse(ano==1999,dplyr::lead(share40,1),share40),
   #        share40 = ifelse(ano==1998,dplyr::lead(share40,2),share40)) %>% 
@@ -453,7 +453,7 @@ df <- df %>%
 
 # 16. saving
 # ==============================================================
-df <- df %>% filter(ano<=2010)
+df <- df %>% filter(ano<=2015)
 
 saveRDS(df, paste0(raw,"CONSOL_DATA.rds"))
 
