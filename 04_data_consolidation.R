@@ -167,6 +167,8 @@ sinasc <- read.csv(paste0(raw,"SINASC/SINASC_final.csv"), encoding = "UTF-8")
 # sim
 sim <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse.dta")))
 
+sim_mm <- read.csv(paste0(raw,"SIM/maternal_mortality.csv"))
+
 pop_40 <- read.csv(paste0(raw,"SIM/pop40.csv")) %>% rename(pop40=pop)
 
 pop_40_96 <- read.csv(paste0(raw,"pop/pop40_1996.csv")) %>% rename(pop40_96 = pop40)
@@ -243,6 +245,8 @@ df <- mun_list %>%
   # datasus - sim
   left_join(sim, by = c("ano","cod_mun")) %>% 
   left_join(sim_adt, by = c("ano","cod_mun")) %>%
+  left_join(sim_mm, by = c("ano","cod_mun")) %>% 
+  mutate(mm = ifelse(is.na(mm),0,mm)) %>% 
   left_join(pop_40, by = c("ano","cod_mun")) %>%
   left_join(pop_40_96 %>% select(-ano), by = c("cod_mun")) %>%
   mutate(pop40 = ifelse(ano==1999,dplyr::lead(pop40,1),pop40),
@@ -364,6 +368,11 @@ df <- df %>%
   mutate_at(sim_vars_l4, function(x) dplyr::lead(x,4)) %>% 
   mutate_at(sim_vars_l5, function(x) dplyr::lead(x,5)) %>% 
   ungroup()
+
+
+# Maternal Mortality
+df <- df %>% 
+  mutate(tx_mm = mm/birth_nasc_vivos*1000)
 
 
 
