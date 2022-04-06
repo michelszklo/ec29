@@ -114,7 +114,7 @@ regress_output <- function(var,var_name,transform,year_filter){
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
     
-    iv(var,"siops_despsaude_pcapita",d,1,obj,transform,year_filter) # function for IV regression and bootstrap estimating of SE
+    iv(var,"finbra_desp_saude_san_pcapita",d,obj,transform,year_filter) # function for IV regression and bootstrap estimating of SE
     
     print(paste0("IV regs for sample ",data))
   } 
@@ -140,7 +140,7 @@ regress_output <- function(var,var_name,transform,year_filter){
     
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
-    ols(var,"siops_despsaude_pcapita",d,obj,transform,year_filter) # function for OLS regression
+    ols(var,"finbra_desp_saude_san_pcapita",d,obj,transform,year_filter) # function for OLS regression
     
     print(paste0("OLS regs for sample ",data))
   }
@@ -203,7 +203,7 @@ for (i in c(1,2,4,5)){
   var_name <- var_map[i,2]
   print(var_name)
   
-  regress_output(var,var_name,1,2000)
+  regress_output(var,var_name,1,1998)
   
   if(exists("df_table_all")){
     df_table_all <- rbind(df_table_all,table_all)
@@ -225,7 +225,7 @@ for (i in c(3)){
   var_name <- var_map[i,2]
   print(var_name)
   
-  regress_output(var,var_name,3,2000)
+  regress_output(var,var_name,3,1998)
   
   if(exists("df_table_all")){
     df_table_all <- rbind(df_table_all,table_all)
@@ -253,7 +253,7 @@ for (i in c(1,2,4,5)){
   var_name <- var_map[i,2]
   print(var_name)
   
-  reduced_yearly(var,var_name,df,1,2000,-0.05,0.05,0.01)
+  reduced_yearly(var,var_name,df,1,1998,-0.05,0.05,0.01)
   
 }
 
@@ -262,7 +262,7 @@ for (i in c(3)){
   var_name <- var_map[i,2]
   print(var_name)
   
-  reduced_yearly(var,var_name,df,3,2000,-0.05,0.05,0.01)
+  reduced_yearly(var,var_name,df,3,1998,-0.05,0.05,0.01)
   
 }
 

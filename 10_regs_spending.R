@@ -57,7 +57,11 @@ load(paste0(dir,"regs.RData"))
 # 2. Define outcomes output name and output functions
 # =================================================================
 
-var_map <- rbind(cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)'),
+var_map <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita (log)'),
+                 cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita (log)'),
+                 cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (log)'),
+                 cbind('finbra_desp_adm_pcapita','Administrative Spending per capita (log)'),
+                 cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)'),
                      cbind('finbra_desp_transporte_pcapita','Trasnport Spending per capita - Total (log)'),
                      cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (log)'),
                      cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (log)'),
@@ -110,7 +114,7 @@ regress_output <- function(var,var_name,transform,year_filter){
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
     
-    iv(var,"siops_despsaude_pcapita",d,1,obj,transform,year_filter) # function for IV regression and bootstrap estimating of SE
+    iv(var,"finbra_desp_saude_san_pcapita",d,obj,transform,year_filter) # function for IV regression and bootstrap estimating of SE
     
     print(paste0("IV regs for sample ",data))
   } 
@@ -136,7 +140,7 @@ regress_output <- function(var,var_name,transform,year_filter){
     
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
-    ols(var,"siops_despsaude_pcapita",d,obj,transform,year_filter) # function for OLS regression
+    ols(var,"finbra_desp_saude_san_pcapita",d,obj,transform,year_filter) # function for OLS regression
     
     print(paste0("OLS regs for sample ",data))
   }
@@ -194,12 +198,12 @@ regress_output <- function(var,var_name,transform,year_filter){
 # =================================================================
 
 
-for (i in seq(9,12,1)){
+for (i in seq(1,16,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   
-  regress_output(var,var_name,1,2000)
+  regress_output(var,var_name,1,1998)
   
 
   if(exists("df_table_all")){
@@ -219,11 +223,11 @@ for (i in seq(9,12,1)){
 
 # reduced form yearly graphs
 
-for (i in seq(6,12,1)){
+for (i in seq(1,16,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,1,2000,-0.002,0.02,0.002)
+  reduced_yearly(var,var_name,df,1,1998,-0.025,0.035,0.005)
 }
 
 # 4. Exports XLSX with results

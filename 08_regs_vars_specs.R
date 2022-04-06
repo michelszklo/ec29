@@ -54,11 +54,11 @@ main_folder <- "regs_outputs/"
 
 # 2SLS specification robustness figures folder
 # ------------------------------------
-robust_folder <- "post_robust_popw/"
+robust_folder <- "post_robust_finbra_popw/"
 
 # Reduced form yearly estimates figures folder
 # ------------------------------------
-yearly_folder <- "yearly_reduced_popw/"
+yearly_folder <- "yearly_reduced_finbra_popw/"
 
 
 # don't forget to add "/" in the end of the folder name
@@ -66,7 +66,7 @@ yearly_folder <- "yearly_reduced_popw/"
 
 # Regression output excel file
 # ------------------------------------
-output_file <- "results_popw.xlsx"
+output_file <- "results_finbra_popw.xlsx"
 
 
 
@@ -91,7 +91,7 @@ df <- raw %>%
          siops_desppessoal = siops_desppessoal_pcapita * pop,
          siops_despservicoster = siops_despservicoster_pcapita * pop,
          siops_despoutros = siops_despoutros_pcapita * pop)
- 
+
 
 
 
@@ -138,9 +138,14 @@ df <- df %>%
   mutate(post_07 = ifelse(ano==2007,1,0)) %>% 
   mutate(post_08 = ifelse(ano==2008,1,0)) %>% 
   mutate(post_09 = ifelse(ano==2009,1,0)) %>% 
-  mutate(post_10 = ifelse(ano==2010,1,0)) 
+  mutate(post_10 = ifelse(ano==2010,1,0)) %>% 
+  mutate(post_11 = ifelse(ano==2011,1,0)) %>% 
+  mutate(post_12 = ifelse(ano==2012,1,0)) %>% 
+  mutate(post_13 = ifelse(ano==2013,1,0)) %>% 
+  mutate(post_14 = ifelse(ano==2014,1,0)) %>% 
+  mutate(post_15 = ifelse(ano==2015,1,0)) 
 
-  
+
 
 
 # baseline controls
@@ -181,7 +186,7 @@ for(i in seq.int(1,length(controlsvar_baseline))){
 # ------------------------------------------------------------------------
 df_below <- df %>%
   filter(dist_ec29_baseline<0) #  %>%
-  # mutate(ln_dist_spending_pc_baseline = log(dist_spending_pc_baseline))
+# mutate(ln_dist_spending_pc_baseline = log(dist_spending_pc_baseline))
 
 # interacting dummies with treatment (dist_ec29_baseline)
 
@@ -204,8 +209,8 @@ df_below <- df_below %>%
 # ------------------------------------------------------------------------
 df_above <- df %>%
   filter(dist_ec29_baseline>0) # %>% 
-  # mutate(dist_spending_pc_baseline = - dist_spending_pc_baseline) %>% 
-  # mutate(ln_dist_spending_pc_baseline = log(dist_spending_pc_baseline))
+# mutate(dist_spending_pc_baseline = - dist_spending_pc_baseline) %>% 
+# mutate(ln_dist_spending_pc_baseline = log(dist_spending_pc_baseline))
 
 # interacting dummies with treatment (dist_ec29_baseline)
 
@@ -251,7 +256,12 @@ controls <- c(grep("^ano_1998_", names(df), value = T),
               grep("^ano_2008_", names(df), value = T),
               grep("^ano_2009_", names(df), value = T),
               grep("^ano_2010_", names(df), value = T),
-              "siops_despsaude_pcapita_neighbor","lrf")
+              grep("^ano_2011_", names(df), value = T),
+              grep("^ano_2012_", names(df), value = T),
+              grep("^ano_2013_", names(df), value = T),
+              grep("^ano_2014_", names(df), value = T),
+              grep("^ano_2015_", names(df), value = T),
+              "finbra_desp_saude_san_pcapita_neighbor","lrf")
 
 
 
@@ -313,7 +323,7 @@ spec3 <- paste(" + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 
 # =================================================================
 
 
-iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
+iv <- function(outcome,treat,df,regression_output,transform,year_filter){
   
   
   
@@ -336,7 +346,7 @@ iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
     df_reg <- df_reg %>% 
       mutate_at(ln_outcome,log)
     
-   
+    
     
   } else if(transform==2){
     # inverse hyperbolic sign
@@ -360,7 +370,7 @@ iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
   df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
   
   
-
+  
   # Regressions
   # ------------------------------------
   
@@ -370,10 +380,10 @@ iv <- function(outcome,treat,df,boots,regression_output,transform,year_filter){
     # regression specs
     spec_reg <-get(paste0("spec",spec,"_iv"))
     regformula <- as.formula(paste(ln_outcome,spec_reg,ln_treat,spec_instrument))
-
+    
     # regression model
     fit <- felm(regformula, data = df_reg, weights = df_reg$pop ,exactDOF = T)
-
+    
     # output
     out <- cbind(fit %>% broom::tidy() %>% slice_tail(),fit %>% broom::glance() %>% select(nobs))
     
@@ -459,7 +469,7 @@ ols <- function(outcome,treat,df,regression_output,transform,year_filter){
   # for (spec in c(1)){
   for (spec in c(1,2,3)){
     
-  spec_ols<- get(paste0("spec",spec))
+    spec_ols<- get(paste0("spec",spec))
     
     # second stage regression
     # ------------------------------
@@ -650,19 +660,19 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys){
   
   table <- fit %>% 
     broom::tidy() %>%
-    slice(3:13) %>%
+    slice(1:18) %>%
     select(term,estimate,std.error) %>% 
     mutate(estimate = ifelse(term=="post_00_dist_spending_pc_baseline",0,estimate)) %>% 
     mutate(lb = estimate - 1.96 * std.error,
            ub = estimate + 1.96 * std.error,
-           year = seq.int(year_filter,2010))
+           year = seq.int(year_filter,2015))
   
   graph <- table %>%
     ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub))+
     geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
     geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
     geom_pointrange(size = 0.5, alpha = 0.8) +
-    scale_x_continuous(breaks = seq(2000,2010,1), limits = c(1999.5,2010.5)) +
+    scale_x_continuous(breaks = seq(1998,2015,1), limits = c(1997.5,2015.5)) +
     scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
     theme_light() +
     labs(y = var_name) +
@@ -691,7 +701,11 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys){
 # 10. Variables labels dictionary
 # =================================================================
 
-dict <- rbind(cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita'),
+dict <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita'),
+              cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita'),
+              cbind('finbra_desp_investimento_pcapita','Investment Spending per capita'),
+              cbind('finbra_desp_adm_pcapita','Administrative Spending per capita'),
+              cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita'),
               cbind('finbra_desp_transporte_pcapita','Trasnport Spending per capita - Total'),
               cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita'),
               cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita'),
