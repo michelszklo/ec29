@@ -74,7 +74,7 @@ transform_select <- function(df,treat){
     select(ano, cod_mun, mun_name, cod_uf, uf_y_fe, all_of(treat),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls),pop)
   
   # balanced panel
-  df <- df[complete.cases(df),]
+  # df <- df[complete.cases(df),]
   df <- df[complete.cases(df[,ln_treat]),]
 
 } 
