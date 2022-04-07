@@ -71,7 +71,7 @@ transform_select <- function(df,treat){
   
   # selecting main variables
   df <- df %>% 
-    select(ano, cod_mun, mun_name, cod_uf, uf_y_fe, all_of(treat),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls),pop)
+    select(ano, cod_mun, mun_name, cod_uf, uf_y_fe, all_of(treat),all_of(yeartreat_dummies),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,dist_spending_pc_baseline,all_of(controls),pop)
   
   # balanced panel
   # df <- df[complete.cases(df),]
@@ -146,13 +146,27 @@ table_formatting <- function(df){
 
 # 3. Running regs
 # =================================================================
-df <- df %>% transform_select("finbra_desp_saude_san_pcapita")
-df_below <- df_below %>% transform_select("finbra_desp_saude_san_pcapita")
-df_above <- df_above %>% transform_select("finbra_desp_saude_san_pcapita")
+df <- df %>%
+  filter(ano<=2010) %>%
+  mutate(dist_spending_pc_baseline=ifelse(ano==2000,0,dist_spending_pc_baseline)) %>%
+  transform_select("finbra_desp_saude_san_pcapita") 
+df_below <- df_below %>%
+  filter(ano<=2010) %>%
+  mutate(dist_spending_pc_baseline=ifelse(ano==2000,0,dist_spending_pc_baseline)) %>%
+  transform_select("finbra_desp_saude_san_pcapita")
+df_above <- df_above %>%
+  filter(ano<=2010) %>%
+  mutate(dist_spending_pc_baseline=ifelse(ano==2000,0,dist_spending_pc_baseline)) %>% 
+  transform_select("finbra_desp_saude_san_pcapita")
 
 iv_first(df,"finbra_desp_saude_san_pcapita",1998,"table_all")
 iv_first(df_below,"finbra_desp_saude_san_pcapita",1998,"table_below")
 iv_first(df_above,"finbra_desp_saude_san_pcapita",1998,"table_above")
+
+
+iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-0.002,0.007,0.001,"full")
+iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-0.005,0.005,0.001,"below")
+iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-0.005,0.008,0.001,"above")
 
 
 # df <- df %>% transform_select("siops_desptotalsaude")
@@ -182,7 +196,6 @@ tables <- bind_rows(table_all,table_below,table_above)
 
 
 write.xlsx2(tables, file = paste0(dir,main_folder,output_file) ,sheetName = "first_stage",row.names = F,append = T)
-
 
 
 

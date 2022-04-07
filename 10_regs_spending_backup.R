@@ -2,7 +2,7 @@
 # Author: Michel Szklo
 # April 2021
 # 
-# This scripts runs regressions for public Infant Mortality rates
+# This scripts runs regressions for public spending
 #
 #
 #######################################################################################################
@@ -40,6 +40,7 @@ lapply(packages,require,character.only=TRUE)
 
 options(digits = 15)
 
+
 # SET PATH FOR EC 29-2000 ON YOUR COMPUTER
 # ------------------------------------
 
@@ -56,21 +57,22 @@ load(paste0(dir,"regs.RData"))
 # 2. Define outcomes output name and output functions
 # =================================================================
 
-var_map <-  rbind(cbind('tx_mi','Infant Mortality Rate (log)'),
-                  cbind('tx_mi_icsap','Infant Mortality Rate - APC (log)'),
-                  cbind('tx_mi_nicsap','Infant Mortality Rate - non-APC (log)'),
-                  cbind('tx_mi_infec','Infant Mortality Rate - Infectious (log)'),
-                  cbind('tx_mi_resp','Infant Mortality Rate - Respiratory (log)'),
-                  cbind('tx_mi_perinat','Infant Mortality Rate - Perinatal (log)'),
-                  cbind('tx_mi_cong','Infant Mortality Rate - Congenital (log)'),
-                  cbind('tx_mi_ext','Infant Mortality Rate - External (log)'),
-                  cbind('tx_mi_nut','Infant Mortality Rate - Nutritional (log)'),
-                  cbind('tx_mi_out','Infant Mortality Rate - Other (log)'),
-                  cbind('tx_mi_illdef','Infant Mortality Rate - Ill-Defined (log)'),
-                  cbind('tx_mi_fet','Infant Mortality Rate - Fetal (log)'),
-                  cbind('tx_mi_24h','Infant Mortality Rate - Within 24h (log)'),
-                  cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days (log)'),
-                  cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year (log)'))
+var_map <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita (log)'),
+                 cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita (log)'),
+                 cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (log)'),
+                 cbind('finbra_desp_adm_pcapita','Administrative Spending per capita (log)'),
+                 cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)'),
+                 cbind('finbra_desp_transporte_pcapita','Trasnport Spending per capita - Total (log)'),
+                 cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (log)'),
+                 cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (log)'),
+                 cbind('finbra_desp_assist_prev_pcapita','Social Security Spending per capita (log)'),
+                 cbind('siops_despsaude_pcapita','Health Spending per capita - Total (log)'),
+                 cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (log)'),
+                 cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Transfers (log)'),
+                 cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources (log)'),
+                 cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (log)'),
+                 cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (log)'),
+                 cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (log)'))
 
 
 
@@ -114,6 +116,7 @@ regress_output <- function(var,var_name,transform,year_filter){
     
     iv(var,"finbra_desp_saude_san_pcapita",d,obj,transform,year_filter) # function for IV regression and bootstrap estimating of SE
     
+    print(paste0("IV regs for sample ",data))
   } 
   
   # 2sls final tables
@@ -139,6 +142,7 @@ regress_output <- function(var,var_name,transform,year_filter){
     obj <- paste0("reg_",data) # name of the output object
     ols(var,"finbra_desp_saude_san_pcapita",d,obj,transform,year_filter) # function for OLS regression
     
+    print(paste0("OLS regs for sample ",data))
   }
   
   # OLS final tables
@@ -158,6 +162,8 @@ regress_output <- function(var,var_name,transform,year_filter){
     obj <- paste0("reg_",data) # name of the output object
     reduced(var,var_name,d,obj,transform,year_filter) # function for OLS regression
     
+    
+    print(paste0("Reduced form regs for sample ",data))
   }
   
   # Reduced form final tables
@@ -190,7 +196,6 @@ regress_output <- function(var,var_name,transform,year_filter){
 
 # 3. Run and ouput
 # =================================================================
-
 df <- df %>%
   filter(ano<=2010) %>%
   mutate(dist_spending_pc_baseline=ifelse(ano==2000,0,dist_spending_pc_baseline)) 
@@ -201,14 +206,13 @@ df_above <- df_above %>%
   filter(ano<=2010) %>%
   mutate(dist_spending_pc_baseline=ifelse(ano==2000,0,dist_spending_pc_baseline)) 
 
-
-
-for (i in seq(1,15,1)){
+for (i in seq(1,16,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   
   regress_output(var,var_name,1,1998)
+  
   
   if(exists("df_table_all")){
     df_table_all <- rbind(df_table_all,table_all)
@@ -225,31 +229,40 @@ for (i in seq(1,15,1)){
   
 }
 
+# IV yearly graphs (does it make sense to aggregate cross section regressions?)
 
-for (i in seq(1,15,1)){
+for (i in seq(1,16,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  
-  reduced_yearly(var,var_name,df,1,1998,-0.02,0.02,0.005)
-  
-
+  iv_yearly(var,var_name,"finbra_desp_saude_san_pcapita",df,1,1998,-3,3,1)
 }
 
+
+
+# reduced form yearly graphs
+
+for (i in seq(1,16,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,1,1998,-0.01,0.035,0.005)
+}
 
 # 4. Exports XLSX with results
 # =================================================================
 
-write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName = "imr",row.names = F,append = T)
+write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName = "spending",row.names = F,append = T)
 
 
 
 # 5. Specifications graph
 # =================================================================
 
-scale_f <- -7
-scale_l <- 11
+scale_f <- -4
+scale_l <- 9
 scale_s <- 1
+
 
 color_graph <- pal_lancet("lanonc")(9)
 
@@ -260,21 +273,10 @@ graph <- df_graph_all %>%
          spec = ifelse(spec=="3", "3. municipality + state-time FE, with controls",spec)) %>% 
   mutate(term = as.factor(term)) %>% 
   mutate(term = fct_relevel(term,
-                            var_map[15,2],
-                            var_map[14,2],
-                            var_map[13,2],
                             var_map[12,2],
                             var_map[11,2],
                             var_map[10,2],
-                            var_map[9,2],
-                            var_map[8,2],
-                            var_map[7,2],
-                            var_map[6,2],
-                            var_map[5,2],
-                            var_map[4,2],
-                            var_map[3,2],
-                            var_map[2,2],
-                            var_map[1,2])) %>%  
+                            var_map[09,2])) %>%  
   ggplot(aes(color = spec)) +
   geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
   geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
@@ -302,15 +304,15 @@ graph <- df_graph_all %>%
 
 
 
-ggsave(paste0(dir,main_folder,robust_folder,"imr_all.png"),
+ggsave(paste0(dir,main_folder,robust_folder,"spending_all.png"),
        plot = graph,
        device = "png",
-       width = 10, height = 12,
+       width = 10, height = 6.5,
        units = "in")
-ggsave(paste0(dir,main_folder,robust_folder,"imr_all.pdf"),
+ggsave(paste0(dir,main_folder,robust_folder,"spending_all.pdf"),
        plot = graph,
        device = "pdf",
-       width = 10, height = 12,
+       width = 10, height = 6.5,
        units = "in")
 
 
@@ -322,21 +324,10 @@ graph <- df_graph_below %>%
          spec = ifelse(spec=="3", "3. municipality + state-time FE, with controls",spec)) %>% 
   mutate(term = as.factor(term)) %>% 
   mutate(term = fct_relevel(term,
-                            var_map[15,2],
-                            var_map[14,2],
-                            var_map[13,2],
                             var_map[12,2],
                             var_map[11,2],
                             var_map[10,2],
-                            var_map[9,2],
-                            var_map[8,2],
-                            var_map[7,2],
-                            var_map[6,2],
-                            var_map[5,2],
-                            var_map[4,2],
-                            var_map[3,2],
-                            var_map[2,2],
-                            var_map[1,2])) %>%  
+                            var_map[09,2])) %>% 
   ggplot(aes(color = spec)) +
   geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
   geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
@@ -364,15 +355,15 @@ graph <- df_graph_below %>%
 
 
 
-ggsave(paste0(dir,main_folder,robust_folder,"imr_below.png"),
+ggsave(paste0(dir,main_folder,robust_folder,"spending_below.png"),
        plot = graph,
        device = "png",
-       width = 10, height = 12,
+       width = 10, height = 6.5,
        units = "in")
-ggsave(paste0(dir,main_folder,robust_folder,"imr_below.pdf"),
+ggsave(paste0(dir,main_folder,robust_folder,"spending_below.pdf"),
        plot = graph,
        device = "pdf",
-       width = 10, height = 12,
+       width = 10, height = 6.5,
        units = "in")
 
 
@@ -383,21 +374,10 @@ graph <- df_graph_above %>%
          spec = ifelse(spec=="3", "3. municipality + state-time FE, with controls",spec)) %>% 
   mutate(term = as.factor(term)) %>% 
   mutate(term = fct_relevel(term,
-                            var_map[15,2],
-                            var_map[14,2],
-                            var_map[13,2],
                             var_map[12,2],
                             var_map[11,2],
                             var_map[10,2],
-                            var_map[9,2],
-                            var_map[8,2],
-                            var_map[7,2],
-                            var_map[6,2],
-                            var_map[5,2],
-                            var_map[4,2],
-                            var_map[3,2],
-                            var_map[2,2],
-                            var_map[1,2])) %>%  
+                            var_map[09,2])) %>% 
   ggplot(aes(color = spec)) +
   geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
   geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
@@ -425,15 +405,15 @@ graph <- df_graph_above %>%
 
 
 
-ggsave(paste0(dir,main_folder,robust_folder,"imr_above.png"),
+ggsave(paste0(dir,main_folder,robust_folder,"spending_above.png"),
        plot = graph,
        device = "png",
-       width = 10, height = 12,
+       width = 10, height = 6.5,
        units = "in")
-ggsave(paste0(dir,main_folder,robust_folder,"imr_above.pdf"),
+ggsave(paste0(dir,main_folder,robust_folder,"spending_above.pdf"),
        plot = graph,
        device = "pdf",
-       width = 10, height = 12,
+       width = 10, height = 6.5,
        units = "in")
 
 

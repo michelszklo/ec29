@@ -54,11 +54,17 @@ main_folder <- "regs_outputs/"
 
 # 2SLS specification robustness figures folder
 # ------------------------------------
-robust_folder <- "post_robust_finbra_popw/"
+robust_folder <- "post_robust_finbra_popw_review/"
+
+
+# IV yearly estimates figures folder
+# ------------------------------------
+yearly_folder_iv <- "yearly_iv_finbra_popw_review/"
+
 
 # Reduced form yearly estimates figures folder
 # ------------------------------------
-yearly_folder <- "yearly_reduced_finbra_popw/"
+yearly_folder <- "yearly_reduced_finbra_popw_review/"
 
 
 # don't forget to add "/" in the end of the folder name
@@ -66,7 +72,7 @@ yearly_folder <- "yearly_reduced_finbra_popw/"
 
 # Regression output excel file
 # ------------------------------------
-output_file <- "results_finbra_popw.xlsx"
+output_file <- "results_finbra_popw_review.xlsx"
 
 
 
@@ -138,12 +144,12 @@ df <- df %>%
   mutate(post_07 = ifelse(ano==2007,1,0)) %>% 
   mutate(post_08 = ifelse(ano==2008,1,0)) %>% 
   mutate(post_09 = ifelse(ano==2009,1,0)) %>% 
-  mutate(post_10 = ifelse(ano==2010,1,0)) %>% 
-  mutate(post_11 = ifelse(ano==2011,1,0)) %>% 
-  mutate(post_12 = ifelse(ano==2012,1,0)) %>% 
-  mutate(post_13 = ifelse(ano==2013,1,0)) %>% 
-  mutate(post_14 = ifelse(ano==2014,1,0)) %>% 
-  mutate(post_15 = ifelse(ano==2015,1,0)) 
+  mutate(post_10 = ifelse(ano==2010,1,0)) # %>% 
+  # mutate(post_11 = ifelse(ano==2011,1,0)) %>% 
+  # mutate(post_12 = ifelse(ano==2012,1,0)) %>% 
+  # mutate(post_13 = ifelse(ano==2013,1,0)) %>% 
+  # mutate(post_14 = ifelse(ano==2014,1,0)) %>% 
+  # mutate(post_15 = ifelse(ano==2015,1,0)) 
 
 
 
@@ -234,8 +240,10 @@ df[yeartreat_dummies] <- df[dummies]
 df <- df %>% 
   mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline,
          post_dist_spending_baseline = post * dist_spending_baseline,
-         post_ec29_baseline = post * ec29_baseline) %>% 
-  mutate_at(yeartreat_dummies, `*`,quote(dist_spending_pc_baseline)) 
+         post_ec29_baseline = post * ec29_baseline) %>%
+  mutate_at(yeartreat_dummies, `*`,quote(dist_spending_pc_baseline)) %>% 
+  unnest(all_of(yeartreat_dummies))
+
 
 
 
@@ -256,7 +264,7 @@ controls <- c(grep("^ano_1998_", names(df), value = T),
               grep("^ano_2008_", names(df), value = T),
               grep("^ano_2009_", names(df), value = T),
               grep("^ano_2010_", names(df), value = T),
-              grep("^ano_2011_", names(df), value = T),
+              # grep("^ano_2011_", names(df), value = T),
               # grep("^ano_2012_", names(df), value = T),
               # grep("^ano_2013_", names(df), value = T),
               # grep("^ano_2014_", names(df), value = T),
@@ -274,7 +282,9 @@ spec1_iv <- paste(" ~ 0","| cod_mun + ano | (")
 spec2_iv <- paste(" ~ 0","| cod_mun + uf_y_fe | (")
 spec3_iv <- paste(" ~ ", " + ",paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | (")
 
-spec_instrument <- paste(" ~ post_dist_spending_pc_baseline)"," | cod_mun")
+spec_instrument <- paste(" ~ dist_spending_pc_baseline)"," | cod_mun")
+
+spec_instrument_yearly <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + "),")"," | cod_mun")
 
 
 # Reduce form specification and first stage - yearly
@@ -294,9 +304,9 @@ spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", pa
 # ------------------------------------------------
 
 # spending in per capita figures
-spec1_post <- paste(" ~ ","post_dist_spending_pc_baseline"," | cod_mun + ano | 0 | cod_mun")
-spec2_post <- paste(" ~ ","post_dist_spending_pc_baseline"," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3_post <- paste(" ~ ","post_dist_spending_pc_baseline"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec1_post <- paste(" ~ ","dist_spending_pc_baseline"," | cod_mun + ano | 0 | cod_mun")
+spec2_post <- paste(" ~ ","dist_spending_pc_baseline"," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post <- paste(" ~ ","dist_spending_pc_baseline"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 # spending in total figures
 # spec1_post <- paste(" ~ ","post_dist_spending_baseline"," | cod_mun + ano | 0 | cod_mun")
@@ -362,7 +372,7 @@ iv <- function(outcome,treat,df,regression_output,transform,year_filter){
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,dist_spending_pc_baseline,all_of(controls),pop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -405,6 +415,96 @@ iv <- function(outcome,treat,df,regression_output,transform,year_filter){
   assign(regression_output,table, envir = .GlobalEnv)
   
   
+  
+  
+}
+
+iv_yearly <- function(outcome,var_name,treat,df,transform,year_filter,y0,yf,ys){
+  
+  df_reg <- df %>% filter(ano>=year_filter)
+  
+  # log of treatment variable
+  ln_treat <- paste0("ln_",treat)
+  df_reg[ln_treat] <- sapply(df_reg[treat], function(x) ifelse(x==0,x+0.000001,x))
+  df_reg <- df_reg %>% 
+    mutate_at(ln_treat,log)
+  
+  # outcome variable transformation
+  
+  if(transform==1){
+    # log
+    ln_outcome <- paste0("ln_",outcome)
+    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
+    df_reg <- df_reg %>% 
+      mutate_at(ln_outcome,log)
+    
+    
+    
+  } else if(transform==2){
+    # inverse hyperbolic sign
+    ln_outcome <- paste0("ln_",outcome)
+    df_reg[ln_outcome] <- df_reg[outcome]
+    df_reg <- df_reg %>% 
+      mutate_at(ln_outcome,asinh)
+  } else {
+    # level
+    ln_outcome <- paste0("ln_",outcome)
+    df_reg[ln_outcome] <- df_reg[outcome]
+  }
+  
+  # filtering regression variables
+  df_reg <- df_reg %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),all_of(yeartreat_dummies),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,dist_spending_pc_baseline,all_of(controls),pop) %>% 
+    filter(ano>=year_filter)
+  
+  df_reg <- df_reg[complete.cases(df_reg),]
+  df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
+  
+  
+  # Regressions
+  # ------------------------------------
+  
+  spec_reg<- get(paste0("spec",3,"_iv"))
+  
+  # second stage regression
+  # ------------------------------
+  regformula <- as.formula(paste(ln_outcome,spec_reg,ln_treat,spec_instrument_yearly))
+  fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
+  
+  table <- fit %>% 
+    broom::tidy() %>%
+    slice(1:13) %>%
+    select(term,estimate,std.error) %>% 
+    mutate(estimate = ifelse(term=="post_00_dist_spending_pc_baseline",0,estimate)) %>% 
+    mutate(lb = estimate - 1.96 * std.error,
+           ub = estimate + 1.96 * std.error,
+           year = seq.int(year_filter,2010))
+  
+  graph <- table %>%
+    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub))+
+    geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+    geom_pointrange(size = 0.5, alpha = 0.8) +
+    scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+    scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+    theme_light() +
+    labs(y = var_name) +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          plot.title = element_text(size = 10, face = "bold"),
+          axis.title = element_text(size=10),
+          legend.position="bottom")
+  
+  ggsave(paste0(dir,main_folder,yearly_folder_iv,ln_outcome,".png"),
+         plot = graph,
+         device = "png",
+         width = 7, height = 5,
+         units = "in")
+  ggsave(paste0(dir,main_folder,yearly_folder_iv,ln_outcome,".pdf"),
+         plot = graph,
+         device = "pdf",
+         width = 7, height = 5,
+         units = "in")
   
   
 }
@@ -455,7 +555,7 @@ ols <- function(outcome,treat,df,regression_output,transform,year_filter){
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,dist_spending_pc_baseline,all_of(controls),pop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -535,6 +635,56 @@ iv_first <- function(df,treat,year_filter,obj_name){
 }
 
 
+iv_first_yearly <- function(df,treat,year_filter,y0,yf,ys,graph_name){
+  df_reg <- df %>% filter(ano>=year_filter)
+  ln_treat <- paste0("ln_",treat)
+  
+  for (spec in c(1,2,3)){
+    
+    spec_first <-get( paste0("spec",spec,"_post_y"))
+    regformula1 <- as.formula(paste(ln_treat,spec_first))
+    
+    fit <- felm(regformula1, data = df_reg, weights = df_reg$pop,exactDOF = T)
+    
+    table <- fit %>% 
+      broom::tidy() %>%
+      slice(1:13) %>%
+      select(term,estimate,std.error) %>% 
+      mutate(estimate = ifelse(term=="post_00_dist_spending_pc_baseline",0,estimate)) %>% 
+      mutate(lb = estimate - 1.96 * std.error,
+             ub = estimate + 1.96 * std.error,
+             year = seq.int(year_filter,2010))
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.5, alpha = 0.8) +
+      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      theme_light() +
+      labs(y = "Health and Sanitation Spending per capita (log)") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title = element_text(size=10),
+            legend.position="bottom")
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",spec,"_",graph_name),".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",spec,"_",graph_name),".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+  }
+  
+}
+
+
 # 8. Reduced Form
 # =================================================================
 
@@ -567,7 +717,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,dist_spending_pc_baseline,all_of(controls),pop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -640,7 +790,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys){
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,dist_spending_pc_baseline,all_of(controls),pop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -672,7 +822,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys){
     geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
     geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
     geom_pointrange(size = 0.5, alpha = 0.8) +
-    scale_x_continuous(breaks = seq(1998,2015,1), limits = c(1997.5,2015.5)) +
+    scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
     scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
     theme_light() +
     labs(y = var_name) +
