@@ -185,8 +185,8 @@ for(i in seq.int(1,length(controlsvar_baseline))){
 # sample 1: municipalities below target (positive distance to the target)
 # ------------------------------------------------------------------------
 df_below <- df %>%
-  filter(dist_ec29_baseline<0) #  %>%
-# mutate(ln_dist_spending_pc_baseline = log(dist_spending_pc_baseline))
+  filter(dist_ec29_baseline<0) %>%
+  mutate(ln_dist_spending_pc_baseline = log(dist_spending_pc_baseline))
 
 # interacting dummies with treatment (dist_ec29_baseline)
 
@@ -196,9 +196,9 @@ yeartreat_dummies <- sapply(dummies, function(x) paste0(x,"_dist_spending_pc_bas
 df_below[yeartreat_dummies] <- df_below[dummies]
 
 df_below <- df_below %>%
-  # mutate_at(yeartreat_dummies, `*`,quote(ln_dist_spending_pc_baseline)) %>%
-  # unnest(all_of(yeartreat_dummies)) %>%
-  # mutate(post_ln_dist_spending_pc_baseline = post * ln_dist_spending_pc_baseline)
+  mutate_at(yeartreat_dummies, `*`,quote(ln_dist_spending_pc_baseline)) %>%
+  unnest(all_of(yeartreat_dummies)) %>%
+  mutate(post_ln_dist_spending_pc_baseline = post * ln_dist_spending_pc_baseline)
   mutate_at(yeartreat_dummies, `*`,quote(dist_spending_pc_baseline)) %>%
   unnest(all_of(yeartreat_dummies)) %>%
   mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline,
@@ -208,18 +208,18 @@ df_below <- df_below %>%
 # sample 2: municipalities above target
 # ------------------------------------------------------------------------
 df_above <- df %>%
-  filter(dist_ec29_baseline>0) # %>% 
-# mutate(dist_spending_pc_baseline = - dist_spending_pc_baseline) %>% 
-# mutate(ln_dist_spending_pc_baseline = log(dist_spending_pc_baseline))
+  filter(dist_ec29_baseline>0) %>% 
+    mutate(dist_spending_pc_baseline = - dist_spending_pc_baseline) %>% 
+    mutate(ln_dist_spending_pc_baseline = log(dist_spending_pc_baseline))
 
 # interacting dummies with treatment (dist_ec29_baseline)
 
 df_above[yeartreat_dummies] <- df_above[dummies]
 
 df_above <- df_above %>%
-  # mutate_at(yeartreat_dummies, `*`,quote(ln_dist_spending_pc_baseline)) %>%
-  # unnest(all_of(yeartreat_dummies)) %>%
-  # mutate(post_ln_dist_spending_pc_baseline = post * ln_dist_spending_pc_baseline)
+  mutate_at(yeartreat_dummies, `*`,quote(ln_dist_spending_pc_baseline)) %>%
+  unnest(all_of(yeartreat_dummies)) %>%
+  mutate(post_ln_dist_spending_pc_baseline = post * ln_dist_spending_pc_baseline)
   mutate_at(yeartreat_dummies, `*`,quote(dist_spending_pc_baseline)) %>%
   unnest(all_of(yeartreat_dummies)) %>%
   mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline,
