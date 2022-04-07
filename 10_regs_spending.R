@@ -62,17 +62,17 @@ var_map <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita (log)'
                  cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (log)'),
                  cbind('finbra_desp_adm_pcapita','Administrative Spending per capita (log)'),
                  cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)'),
-                     cbind('finbra_desp_transporte_pcapita','Trasnport Spending per capita - Total (log)'),
-                     cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (log)'),
-                     cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (log)'),
-                     cbind('finbra_desp_assist_prev_pcapita','Social Security Spending per capita (log)'),
-                     cbind('siops_despsaude_pcapita','Health Spending per capita - Total (log)'),
-                     cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (log)'),
-                     cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Transfers (log)'),
-                     cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources (log)'),
-                     cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (log)'),
-                     cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (log)'),
-                     cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (log)'))
+                 cbind('finbra_desp_transporte_pcapita','Trasnport Spending per capita - Total (log)'),
+                 cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (log)'),
+                 cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (log)'),
+                 cbind('finbra_desp_assist_prev_pcapita','Social Security Spending per capita (log)'),
+                 cbind('siops_despsaude_pcapita','Health Spending per capita - Total (log)'),
+                 cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (log)'),
+                 cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Transfers (log)'),
+                 cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources (log)'),
+                 cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (log)'),
+                 cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (log)'),
+                 cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (log)'))
 
 
 
@@ -196,7 +196,15 @@ regress_output <- function(var,var_name,transform,year_filter){
 
 # 3. Run and ouput
 # =================================================================
-
+df <- df %>%
+  filter(ano<=2010) %>%
+  mutate(dist_spending_pc_baseline=ifelse(ano==2000,0,dist_spending_pc_baseline)) 
+df_below <- df_below %>%
+  filter(ano<=2010) %>%
+  mutate(dist_spending_pc_baseline=ifelse(ano==2000,0,dist_spending_pc_baseline)) 
+df_above <- df_above %>%
+  filter(ano<=2010) %>%
+  mutate(dist_spending_pc_baseline=ifelse(ano==2000,0,dist_spending_pc_baseline)) 
 
 for (i in seq(1,16,1)){
   var <- var_map[i,1]
@@ -205,7 +213,7 @@ for (i in seq(1,16,1)){
   
   regress_output(var,var_name,1,1998)
   
-
+  
   if(exists("df_table_all")){
     df_table_all <- rbind(df_table_all,table_all)
     df_graph_all <- rbind(df_graph_all,graph_all)
@@ -221,13 +229,24 @@ for (i in seq(1,16,1)){
   
 }
 
+# IV yearly graphs (does it make sense to aggregate cross section regressions?)
+
+for (i in seq(1,16,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  iv_yearly(var,var_name,"finbra_desp_saude_san_pcapita",df,1,1998,-3,3,1)
+}
+
+
+
 # reduced form yearly graphs
 
 for (i in seq(1,16,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,1,1998,-0.025,0.035,0.005)
+  reduced_yearly(var,var_name,df,1,1998,-0.01,0.035,0.005)
 }
 
 # 4. Exports XLSX with results
@@ -396,5 +415,5 @@ ggsave(paste0(dir,main_folder,robust_folder,"spending_above.pdf"),
        device = "pdf",
        width = 10, height = 6.5,
        units = "in")
-  
+
 
