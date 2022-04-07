@@ -67,13 +67,20 @@ yearly_folder_iv <- "yearly_iv_finbra_popw_review/"
 yearly_folder <- "yearly_reduced_finbra_popw_review/"
 
 
-# don't forget to add "/" in the end of the folder name
+# Instrumental variable (uncoment the selected one)
+# ------------------------------------
+
+# instrument <- "ec29_baseline"
+# instrument <- "ec29_baseline_below"
+# instrument <- "dist_ec29_baseline"
+# instrument <- "dist_ec29_baseline_below"
+instrument <- "dist_spending_pc_baseline"
+# instrument <- "dist_spending_pc_baseline_below"
 
 
 # Regression output excel file
 # ------------------------------------
 output_file <- "results_finbra_popw_review.xlsx"
-
 
 
 # 1. Load data frame
@@ -114,12 +121,15 @@ df <- df %>%
   group_by(cod_mun) %>% 
   mutate(dist_ec29_baseline = mean(dist_ec29_baseline, na.rm = T)) %>%
   mutate(ec29_baseline = dist_ec29_baseline + 0.15) %>% 
+  mutate(dist_ec29_baseline_below = ifelse(dist_ec29_baseline<0,-dist_ec29_baseline,0),
+         ec29_baseline_below = ifelse(ec29_baseline<0.15,ec29_baseline,0)) %>% 
   ungroup() %>% 
   # distance to the EC29 target as per capita spending
   mutate(dist_spending_pc = -((siops_pct_recproprios_ec29 - 0.15)*(siops_rimpostosetransfconst/pop))) %>% 
   mutate(dist_spending_pc_baseline = ifelse(ano==2000,dist_spending_pc,NA)) %>% 
   group_by(cod_mun) %>% 
   mutate(dist_spending_pc_baseline = mean(dist_spending_pc_baseline, na.rm = T)) %>% 
+  mutate(dist_spending_pc_baseline_below = ifelse(dist_spending_pc_baseline>0,dist_spending_pc_baseline,0)) %>% 
   ungroup() %>% 
   # distance to the EC29 target as total spending
   mutate(dist_spending = -((siops_pct_recproprios_ec29 - 0.15)*(siops_rimpostosetransfconst))) %>% 
@@ -198,50 +208,38 @@ df_below <- df %>%
 
 dummies <- c(grep("^pre",names(df_below),value = T),grep("^post_",names(df), value = T))
 # yeartreat_dummies <- sapply(dummies, function(x) paste0(x,"_ln_dist_spending_pc_baseline"), simplify = "array", USE.NAMES = F)
-yeartreat_dummies <- sapply(dummies, function(x) paste0(x,"_dist_spending_pc_baseline"), simplify = "array", USE.NAMES = F)
+yeartreat_dummies <- sapply(dummies, function(x) paste0(x,"_",instrument), simplify = "array", USE.NAMES = F)
 df_below[yeartreat_dummies] <- df_below[dummies]
 
+df_below["iv"] <- df_below[instrument]
+
 df_below <- df_below %>%
-  # mutate_at(yeartreat_dummies, `*`,quote(ln_dist_spending_pc_baseline)) %>%
-  # unnest(all_of(yeartreat_dummies)) %>%
-  # mutate(post_ln_dist_spending_pc_baseline = post * ln_dist_spending_pc_baseline)
-  mutate_at(yeartreat_dummies, `*`,quote(dist_spending_pc_baseline)) %>%
-  unnest(all_of(yeartreat_dummies)) %>%
-  mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline,
-         post_dist_spending_baseline = post * dist_spending_baseline,
-         post_ec29_baseline = post * ec29_baseline)
+  mutate_at(yeartreat_dummies, `*`,quote(iv)) %>%
+  unnest(all_of(yeartreat_dummies))
 
 # sample 2: municipalities above target
 # ------------------------------------------------------------------------
 df_above <- df %>%
   filter(dist_ec29_baseline>0) # %>% 
-# mutate(dist_spending_pc_baseline = - dist_spending_pc_baseline) %>% 
-# mutate(ln_dist_spending_pc_baseline = log(dist_spending_pc_baseline))
 
 # interacting dummies with treatment (dist_ec29_baseline)
 
 df_above[yeartreat_dummies] <- df_above[dummies]
+df_above["iv"] <- df_above[instrument]
 
 df_above <- df_above %>%
-  # mutate_at(yeartreat_dummies, `*`,quote(ln_dist_spending_pc_baseline)) %>%
-  # unnest(all_of(yeartreat_dummies)) %>%
-  # mutate(post_ln_dist_spending_pc_baseline = post * ln_dist_spending_pc_baseline)
-  mutate_at(yeartreat_dummies, `*`,quote(dist_spending_pc_baseline)) %>%
-  unnest(all_of(yeartreat_dummies)) %>%
-  mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline,
-         post_dist_spending_baseline = post * dist_spending_baseline,
-         post_ec29_baseline = post * ec29_baseline)
+  mutate_at(yeartreat_dummies, `*`,quote(iv)) %>%
+  unnest(all_of(yeartreat_dummies))
 
 
 # Full sample
 # ------------------------------------------------------------------------
 
 df[yeartreat_dummies] <- df[dummies]
+df["iv"] <- df[instrument]
+
 df <- df %>% 
-  mutate(post_dist_spending_pc_baseline = post * dist_spending_pc_baseline,
-         post_dist_spending_baseline = post * dist_spending_baseline,
-         post_ec29_baseline = post * ec29_baseline) %>%
-  mutate_at(yeartreat_dummies, `*`,quote(dist_spending_pc_baseline)) %>% 
+  mutate_at(yeartreat_dummies, `*`,quote(iv)) %>% 
   unnest(all_of(yeartreat_dummies))
 
 
@@ -282,7 +280,7 @@ spec1_iv <- paste(" ~ 0","| cod_mun + ano | (")
 spec2_iv <- paste(" ~ 0","| cod_mun + uf_y_fe | (")
 spec3_iv <- paste(" ~ ", " + ",paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | (")
 
-spec_instrument <- paste(" ~ dist_spending_pc_baseline)"," | cod_mun")
+spec_instrument <- paste(" ~ ",instrument,")"," | cod_mun")
 
 spec_instrument_yearly <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + "),")"," | cod_mun")
 
@@ -294,30 +292,14 @@ spec1_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_m
 spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
-# spec1_post <- paste(" ~ ","post_ln_dist_spending_pc_baseline"," | cod_mun + ano | 0 | cod_mun")
-# spec2_post <- paste(" ~ ","post_ln_dist_spending_pc_baseline"," | cod_mun + uf_y_fe | 0 | cod_mun")
-# spec3_post <- paste(" ~ ","post_ln_dist_spending_pc_baseline"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
-
-
 
 # Reduced form specifications and first stage
 # ------------------------------------------------
 
 # spending in per capita figures
-spec1_post <- paste(" ~ ","dist_spending_pc_baseline"," | cod_mun + ano | 0 | cod_mun")
-spec2_post <- paste(" ~ ","dist_spending_pc_baseline"," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3_post <- paste(" ~ ","dist_spending_pc_baseline"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
-
-# spending in total figures
-# spec1_post <- paste(" ~ ","post_dist_spending_baseline"," | cod_mun + ano | 0 | cod_mun")
-# spec2_post <- paste(" ~ ","post_dist_spending_baseline"," | cod_mun + uf_y_fe | 0 | cod_mun")
-# spec3_post <- paste(" ~ ","post_dist_spending_baseline"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
-
-# Share of own resources spent in health
-# spec1_post <- paste(" ~ ","post_ec29_baseline"," | cod_mun + ano | 0 | cod_mun")
-# spec2_post <- paste(" ~ ","post_ec29_baseline"," | cod_mun + uf_y_fe | 0 | cod_mun")
-# spec3_post <- paste(" ~ ","post_ec29_baseline"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
-
+spec1_post <- paste(" ~ ",instrument," | cod_mun + ano | 0 | cod_mun")
+spec2_post <- paste(" ~ ",instrument," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post <- paste(" ~ ",instrument," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 # OLS specifications
@@ -372,7 +354,7 @@ iv <- function(outcome,treat,df,regression_output,transform,year_filter){
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,dist_spending_pc_baseline,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),iv,all_of(controls),pop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -454,7 +436,7 @@ iv_yearly <- function(outcome,var_name,treat,df,transform,year_filter,y0,yf,ys){
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),all_of(yeartreat_dummies),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,dist_spending_pc_baseline,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),all_of(yeartreat_dummies),iv,all_of(controls),pop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -555,7 +537,7 @@ ols <- function(outcome,treat,df,regression_output,transform,year_filter){
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,dist_spending_pc_baseline,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),iv,all_of(controls),pop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -717,7 +699,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,dist_spending_pc_baseline,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,all_of(controls),pop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -790,7 +772,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys){
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,dist_spending_pc_baseline,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
