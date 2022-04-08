@@ -70,17 +70,17 @@ yearly_folder <- "yearly_reduced_finbra_popw_review/"
 # Instrumental variable (uncoment the selected one)
 # ------------------------------------
 
-# instrument <- "ec29_baseline"
+instrument <- "ec29_baseline"
 # instrument <- "ec29_baseline_below"
 # instrument <- "dist_ec29_baseline"
 # instrument <- "dist_ec29_baseline_below"
-instrument <- "dist_spending_pc_baseline"
+#instrument <- "dist_spending_pc_baseline"
 # instrument <- "dist_spending_pc_baseline_below"
 
 
 # Regression output excel file
 # ------------------------------------
-output_file <- "results_finbra_popw_review.xlsx"
+output_file <- "results_1st_ec29.xlsx"
 
 
 # 1. Load data frame
@@ -280,7 +280,7 @@ spec1_iv <- paste(" ~ 0","| cod_mun + ano | (")
 spec2_iv <- paste(" ~ 0","| cod_mun + uf_y_fe | (")
 spec3_iv <- paste(" ~ ", " + ",paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | (")
 
-spec_instrument <- paste(" ~ ",instrument,")"," | cod_mun")
+spec_instrument <- paste(" ~ iv)"," | cod_mun")
 
 spec_instrument_yearly <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + "),")"," | cod_mun")
 
@@ -297,9 +297,9 @@ spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", pa
 # ------------------------------------------------
 
 # spending in per capita figures
-spec1_post <- paste(" ~ ",instrument," | cod_mun + ano | 0 | cod_mun")
-spec2_post <- paste(" ~ ",instrument," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3_post <- paste(" ~ ",instrument," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec1_post <- paste(" ~ ","iv"," | cod_mun + ano | 0 | cod_mun")
+spec2_post <- paste(" ~ ","iv"," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post <- paste(" ~ ","iv"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 # OLS specifications
