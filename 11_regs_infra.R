@@ -197,6 +197,17 @@ regress_output <- function(var,var_name,transform,year_filter){
 # 3. Run and ouput
 # =================================================================
 
+df <- df %>%
+  filter(ano<=2010) %>%
+  mutate(iv=ifelse(ano==2000,0,iv)) 
+df_below <- df_below %>%
+  filter(ano<=2010) %>%
+  mutate(iv=ifelse(ano==2000,0,iv)) 
+df_above <- df_above %>%
+  filter(ano<=2010) %>%
+  mutate(iv=ifelse(ano==2000,0,iv)) 
+
+
 
 for (i in c(1,2,4,5)){
   var <- var_map[i,1]

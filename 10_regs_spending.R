@@ -198,13 +198,13 @@ regress_output <- function(var,var_name,transform,year_filter){
 # =================================================================
 df <- df %>%
   filter(ano<=2010) %>%
-  mutate(dist_spending_pc_baseline=ifelse(ano==2000,0,dist_spending_pc_baseline)) 
+  mutate(iv=ifelse(ano==2000,0,iv)) 
 df_below <- df_below %>%
   filter(ano<=2010) %>%
-  mutate(dist_spending_pc_baseline=ifelse(ano==2000,0,dist_spending_pc_baseline)) 
+  mutate(iv=ifelse(ano==2000,0,iv)) 
 df_above <- df_above %>%
   filter(ano<=2010) %>%
-  mutate(dist_spending_pc_baseline=ifelse(ano==2000,0,dist_spending_pc_baseline)) 
+  mutate(iv=ifelse(ano==2000,0,iv)) 
 
 for (i in seq(1,16,1)){
   var <- var_map[i,1]
@@ -231,12 +231,12 @@ for (i in seq(1,16,1)){
 
 # IV yearly graphs (does it make sense to aggregate cross section regressions?)
 
-for (i in seq(1,16,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  iv_yearly(var,var_name,"finbra_desp_saude_san_pcapita",df,1,1998,-3,3,1)
-}
+# for (i in seq(1,16,1)){
+#   var <- var_map[i,1]
+#   var_name <- var_map[i,2]
+#   print(var_name)
+#   iv_yearly(var,var_name,"finbra_desp_saude_san_pcapita",df,1,1998,-3,3,1)
+# }
 
 
 
