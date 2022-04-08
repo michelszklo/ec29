@@ -148,15 +148,15 @@ table_formatting <- function(df){
 # =================================================================
 df <- df %>%
   filter(ano<=2010) %>%
-  mutate(dist_spending_pc_baseline=ifelse(ano==2000,0,dist_spending_pc_baseline)) %>%
+  mutate(iv=ifelse(ano==2000 & !is.na(iv),0,iv)) %>%
   transform_select("finbra_desp_saude_san_pcapita") 
 df_below <- df_below %>%
   filter(ano<=2010) %>%
-  mutate(dist_spending_pc_baseline=ifelse(ano==2000,0,dist_spending_pc_baseline)) %>%
+  mutate(iv=ifelse(ano==2000 & !is.na(iv),0,iv)) %>%
   transform_select("finbra_desp_saude_san_pcapita")
 df_above <- df_above %>%
   filter(ano<=2010) %>%
-  mutate(dist_spending_pc_baseline=ifelse(ano==2000,0,dist_spending_pc_baseline)) %>% 
+  mutate(iv=ifelse(ano==2000 & !is.na(iv),0,iv)) %>% 
   transform_select("finbra_desp_saude_san_pcapita")
 
 iv_first(df,"finbra_desp_saude_san_pcapita",1998,"table_all")
@@ -164,18 +164,15 @@ iv_first(df_below,"finbra_desp_saude_san_pcapita",1998,"table_below")
 iv_first(df_above,"finbra_desp_saude_san_pcapita",1998,"table_above")
 
 
-iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-0.002,0.007,0.001,"full")
-iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-0.005,0.005,0.001,"below")
-iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-0.005,0.008,0.001,"above")
+iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-0.002,0.007,0.001,"dist_spend_b_full")
+iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-0.005,0.005,0.001,"dist_spend_b_below")
+iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-0.005,0.008,0.001,"dist_spend_b_above")
+
+# iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-5,5,1,"dist_ec29_b_full")
+# iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-5,5,1,"dist_ec29_b_below")
+# iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-5,5,1,"dist_ec29_b_above")
 
 
-# df <- df %>% transform_select("siops_desptotalsaude")
-# df_below <- df_below %>% transform_select("siops_desptotalsaude")
-# df_above <- df_above %>% transform_select("siops_desptotalsaude")
-# 
-# iv_first(df,"siops_desptotalsaude",2000,"table_all")
-# iv_first(df_below,"siops_desptotalsaude",2000,"table_below")
-# iv_first(df_above,"siops_desptotalsaude",2000,"table_above")
 
 
 
@@ -187,6 +184,7 @@ table_all <- table_all %>% table_formatting() %>% mutate(sample = "all")
 table_below <- table_below %>% table_formatting() %>% mutate(sample = "below")
 table_above <- table_above %>% table_formatting() %>% mutate(sample = "above")
 
+tables <- bind_rows(table_all,table_below)
 tables <- bind_rows(table_all,table_below,table_above)
 
 
