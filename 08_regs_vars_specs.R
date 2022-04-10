@@ -56,12 +56,6 @@ main_folder <- "regs_outputs/"
 # ------------------------------------
 robust_folder <- "post_robust_finbra_popw_review/"
 
-
-# IV yearly estimates figures folder
-# ------------------------------------
-yearly_folder_iv <- "yearly_iv_finbra_popw_review/"
-
-
 # Reduced form yearly estimates figures folder
 # ------------------------------------
 yearly_folder <- "yearly_reduced_finbra_popw_review/"
@@ -74,13 +68,15 @@ instrument <- "ec29_baseline"
 # instrument <- "ec29_baseline_below"
 # instrument <- "dist_ec29_baseline"
 # instrument <- "dist_ec29_baseline_below"
-#instrument <- "dist_spending_pc_baseline"
+# instrument <- "dist_spending_pc_baseline"
 # instrument <- "dist_spending_pc_baseline_below"
 
+# is the instrument restricted to the sample below the target?
+below <- 0
 
 # Regression output excel file
 # ------------------------------------
-output_file <- "results_1st_ec29.xlsx"
+output_file <- "results_1st_dist_spend_b.xlsx"
 
 
 # 1. Load data frame
@@ -122,7 +118,7 @@ df <- df %>%
   mutate(dist_ec29_baseline = mean(dist_ec29_baseline, na.rm = T)) %>%
   mutate(ec29_baseline = dist_ec29_baseline + 0.15) %>% 
   mutate(dist_ec29_baseline_below = ifelse(dist_ec29_baseline<0,-dist_ec29_baseline,0),
-         ec29_baseline_below = ifelse(ec29_baseline<0.15,ec29_baseline,0)) %>% 
+         ec29_baseline_below = ifelse(ec29_baseline<0.15,ec29_baseline,0.15)) %>% 
   ungroup() %>% 
   # distance to the EC29 target as per capita spending
   mutate(dist_spending_pc = -((siops_pct_recproprios_ec29 - 0.15)*(siops_rimpostosetransfconst/pop))) %>% 
@@ -628,41 +624,61 @@ iv_first_yearly <- function(df,treat,year_filter,y0,yf,ys,graph_name){
     
     fit <- felm(regformula1, data = df_reg, weights = df_reg$pop,exactDOF = T)
     
-    table <- fit %>% 
+    out <- fit %>% 
       broom::tidy() %>%
       slice(1:13) %>%
       select(term,estimate,std.error) %>% 
-      mutate(estimate = ifelse(term=="post_00_dist_spending_pc_baseline",0,estimate)) %>% 
+      mutate(estimate = ifelse(term==paste0("post_00_",instrument),0,estimate)) %>% 
       mutate(lb = estimate - 1.96 * std.error,
              ub = estimate + 1.96 * std.error,
-             year = seq.int(year_filter,2010))
+             year = seq.int(year_filter,2010),
+             spec = as.character(spec))
     
-    graph <- table %>%
-      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub))+
-      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.5, alpha = 0.8) +
-      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
-      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
-      theme_light() +
-      labs(y = "Health and Sanitation Spending per capita (log)") +
-      theme(panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title = element_text(size=10),
-            legend.position="bottom")
+    if(spec==1){
+      table <- out
+    }
+    else{
+      table <- rbind(table,out)
+    }
     
-    ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",spec,"_",graph_name),".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
-    ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",spec,"_",graph_name),".pdf"),
-           plot = graph,
-           device = "pdf",
-           width = 7, height = 5,
-           units = "in")
   }
+  
+  color_graph <- pal_lancet("lanonc")(9)
+  
+  graph <- table %>%
+    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ubcolor = spec,group=spec))+
+    geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+    geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6)) +
+    scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+    scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+    scale_colour_manual(values = color_graph) +
+    theme_light() +
+    labs(y = "Health and Sanitation Spending per capita (log)",
+         color = "Specification") +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          plot.title = element_text(size = 10, face = "bold"),
+          axis.title = element_text(size=10),
+          legend.position="bottom")
+  
+  if(below==1){
+    sample <- "_below"
+  }else{
+    sample <- "_full"
+  }
+  
+  
+  ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",graph_name,"_",sample),".png"),
+         plot = graph,
+         device = "png",
+         width = 7, height = 5,
+         units = "in")
+  ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",graph_name,"_",sample),".pdf"),
+         plot = graph,
+         device = "pdf",
+         width = 7, height = 5,
+         units = "in")
   
 }
 
@@ -743,7 +759,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
   
 }
 
-reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys){
+reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,below){
   
   df_reg <- df
   
@@ -782,44 +798,68 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys){
   # Regressions
   # ------------------------------------
   
-  spec_reduced<- get(paste0("spec",3,"_post_y"))
+  for (spec in c(1,2,3)){
+    
+    spec_reduced<- get(paste0("spec",spec,"_post_y"))
+    
+    # second stage regression
+    # ------------------------------
+    
+    regformula <- as.formula(paste(ln_outcome,spec_reduced))
+    fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
+    
+    out <- fit %>% 
+      broom::tidy() %>%
+      slice(1:13) %>%
+      select(term,estimate,std.error) %>% 
+      mutate(estimate = ifelse(term==paste0("post_00_",instrument),0,estimate)) %>% 
+      mutate(lb = estimate - 1.96 * std.error,
+             ub = estimate + 1.96 * std.error,
+             year = seq.int(year_filter,2010),
+             spec = as.character(spec))
+    
+    if(spec==1){
+      table <- out
+    }
+    else{
+      table <- rbind(table,out)
+    }
+  }
   
-  # second stage regression
-  # ------------------------------
   
-  regformula <- as.formula(paste(ln_outcome,spec_reduced))
-  fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
   
-  table <- fit %>% 
-    broom::tidy() %>%
-    slice(1:18) %>%
-    select(term,estimate,std.error) %>% 
-    mutate(estimate = ifelse(term=="post_00_dist_spending_pc_baseline",0,estimate)) %>% 
-    mutate(lb = estimate - 1.96 * std.error,
-           ub = estimate + 1.96 * std.error,
-           year = seq.int(year_filter,2015))
+  
+  color_graph <- pal_lancet("lanonc")(9)
   
   graph <- table %>%
-    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub))+
+    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = spec,group=spec))+
     geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
     geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_pointrange(size = 0.5, alpha = 0.8) +
+    geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6)) +
     scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
     scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+    scale_colour_manual(values = color_graph) +
     theme_light() +
-    labs(y = var_name) +
+    labs(y = var_name,
+         color = "Specification") +
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           plot.title = element_text(size = 10, face = "bold"),
           axis.title = element_text(size=10),
           legend.position="bottom")
   
-  ggsave(paste0(dir,main_folder,yearly_folder,ln_outcome,".png"),
+  if(below==1){
+    sample <- "_below"
+  }else{
+    sample <- "_full"
+  }
+  
+  ggsave(paste0(dir,main_folder,yearly_folder,ln_outcome,sample,".png"),
          plot = graph,
          device = "png",
          width = 7, height = 5,
          units = "in")
-  ggsave(paste0(dir,main_folder,yearly_folder,ln_outcome,".pdf"),
+  ggsave(paste0(dir,main_folder,yearly_folder,ln_outcome,sample,".pdf"),
          plot = graph,
          device = "pdf",
          width = 7, height = 5,

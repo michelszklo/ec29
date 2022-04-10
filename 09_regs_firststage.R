@@ -161,12 +161,18 @@ df_above <- df_above %>%
 
 iv_first(df,"finbra_desp_saude_san_pcapita",1998,"table_all")
 iv_first(df_below,"finbra_desp_saude_san_pcapita",1998,"table_below")
-iv_first(df_above,"finbra_desp_saude_san_pcapita",1998,"table_above")
 
+if(below!=1){
+  iv_first(df_above,"finbra_desp_saude_san_pcapita",1998,"table_above")
+}
 
-iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-0.002,0.007,0.001,"dist_spend_b_full")
-iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-0.005,0.005,0.001,"dist_spend_b_below")
-iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-0.005,0.008,0.001,"dist_spend_b_above")
+iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-0.002,0.007,0.001,paste0(instrument,"_b_full"))
+iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-0.005,0.005,0.001,paste0(instrument,"_b_below"))
+
+if(below!=1){
+  iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-0.005,0.008,0.001,paste0(instrument,"_b_above"))
+}
+
 
 # iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-5,5,1,"dist_ec29_b_full")
 # iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-5,5,1,"dist_ec29_b_below")
@@ -182,18 +188,31 @@ iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-0.005,0.008,0.001
 
 table_all <- table_all %>% table_formatting() %>% mutate(sample = "all")
 table_below <- table_below %>% table_formatting() %>% mutate(sample = "below")
-table_above <- table_above %>% table_formatting() %>% mutate(sample = "above")
 
-tables <- bind_rows(table_all,table_below)
-tables <- bind_rows(table_all,table_below,table_above)
+if(below!=1){
+  table_above <- table_above %>% table_formatting() %>% mutate(sample = "above")
+}
+
+if(below==1){
+  tables <- bind_rows(table_all,table_below)
+}else{
+  tables <- bind_rows(table_all,table_below,table_above)
+}
+
+
 
 
 
 # 5. exporting
 # =================================================================
 
+if(below==1){
+  write.xlsx2(tables, file = paste0(dir,main_folder,output_file) ,sheetName = "first_stage_b",row.names = F,append = T)
+  
+} else{
+  write.xlsx2(tables, file = paste0(dir,main_folder,output_file) ,sheetName = "first_stage",row.names = F,append = T)
+}
 
-write.xlsx2(tables, file = paste0(dir,main_folder,output_file) ,sheetName = "first_stage",row.names = F,append = T)
 
 
 
