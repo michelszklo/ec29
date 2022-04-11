@@ -464,20 +464,20 @@ df <- df %>%
 # ==============================================================
 
 df <- df %>% 
-  mutate(finbra_desp_pessoal_share = finbra_desp_pessoal_pcapita / finbra_desp_c_pcapita,
-         finbra_desp_investimento_share = finbra_desp_investimento_pcapita / finbra_desp_c_pcapita,
-         finbra_desp_adm_share = finbra_desp_adm_pcapita / finbra_desp_c_pcapita,
-         finbra_desp_saude_san_share = finbra_desp_saude_san_pcapita / finbra_desp_c_pcapita,
-         finbra_desp_transporte_share = finbra_desp_transporte_pcapita / finbra_desp_c_pcapita,
-         finbra_desp_educ_cultura_share = finbra_desp_educ_cultura_pcapita / finbra_desp_c_pcapita,
-         finbra_desp_hab_urb_share = finbra_desp_hab_urb_pcapita / finbra_desp_c_pcapita,
-         finbra_desp_assist_prev_share = finbra_desp_assist_prev_pcapita / finbra_desp_c_pcapita,
-         siops_desprecpropriosaude_share = siops_desprecpropriosaude_pcapita / siops_despsaude_pcapita,
-         siops_despexrecproprio_share = siops_despexrecproprio_pcapita / siops_despsaude_pcapita,
-         siops_desppessoal_share = siops_desppessoal_pcapita / siops_despsaude_pcapita,
-         siops_despinvest_share = siops_despinvest_pcapita / siops_despsaude_pcapita,
-         siops_despservicoster_share = siops_despservicoster_pcapita / siops_despsaude_pcapita,
-         siops_despoutros_share = siops_despoutros_pcapita / siops_despsaude_pcapita)
+  mutate(finbra_desp_pessoal_share = ifelse(finbra_desp_c_pcapita!=0,finbra_desp_pessoal_pcapita / finbra_desp_c_pcapita,0),
+         finbra_desp_investimento_share = ifelse(finbra_desp_c_pcapita!=0,finbra_desp_investimento_pcapita / finbra_desp_c_pcapita,0),
+         finbra_desp_adm_share = ifelse(finbra_desp_c_pcapita!=0,finbra_desp_adm_pcapita / finbra_desp_c_pcapita,0),
+         finbra_desp_saude_san_share = ifelse(finbra_desp_c_pcapita!=0,finbra_desp_saude_san_pcapita / finbra_desp_c_pcapita,0),
+         finbra_desp_transporte_share = ifelse(finbra_desp_c_pcapita!=0,finbra_desp_transporte_pcapita / finbra_desp_c_pcapita,0),
+         finbra_desp_educ_cultura_share = ifelse(finbra_desp_c_pcapita!=0,finbra_desp_educ_cultura_pcapita / finbra_desp_c_pcapita,0),
+         finbra_desp_hab_urb_share = ifelse(finbra_desp_c_pcapita!=0,finbra_desp_hab_urb_pcapita / finbra_desp_c_pcapita,0),
+         finbra_desp_assist_prev_share = ifelse(finbra_desp_c_pcapita!=0,finbra_desp_assist_prev_pcapita / finbra_desp_c_pcapita,0),
+         siops_desprecpropriosaude_share = ifelse(siops_despsaude_pcapita!=0,siops_desprecpropriosaude_pcapita / siops_despsaude_pcapita,0),
+         siops_despexrecproprio_share = ifelse(siops_despsaude_pcapita!=0,siops_despexrecproprio_pcapita / siops_despsaude_pcapita,0),
+         siops_desppessoal_share = ifelse(siops_despsaude_pcapita!=0,siops_desppessoal_pcapita / siops_despsaude_pcapita,0),
+         siops_despinvest_share = ifelse(siops_despsaude_pcapita!=0,siops_despinvest_pcapita / siops_despsaude_pcapita,0),
+         siops_despservicoster_share = ifelse(siops_despsaude_pcapita!=0,siops_despservicoster_pcapita / siops_despsaude_pcapita,0),
+         siops_despoutros_share = ifelse(siops_despsaude_pcapita!=0,siops_despoutros_pcapita / siops_despsaude_pcapita,0))
 
 
 # 18. saving
