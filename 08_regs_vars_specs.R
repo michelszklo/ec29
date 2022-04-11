@@ -45,26 +45,31 @@ options(digits = 15)
 
 dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 
+
+# loading Folder, files and instrument setup
+
+load(paste0(dir,"output_setup.RData"))
+
 # ------------------------------------
 
 
 # Regressions' outputs main folder
 # ------------------------------------
-main_folder <- "regs_outputs/"
+# main_folder <- "regs_outputs/"
 
 # 2SLS specification robustness figures folder
 # ------------------------------------
-robust_folder <- "post_robust_finbra_popw_review/"
+# robust_folder <- "post_robust_finbra_popw_review/"
 
 # Reduced form yearly estimates figures folder
 # ------------------------------------
-yearly_folder <- "yearly_reduced_finbra_popw_review/"
+# yearly_folder <- "yearly_reduced_finbra_popw_review/"
 
 
 # Instrumental variable (uncoment the selected one)
 # ------------------------------------
 
-instrument <- "ec29_baseline"
+# instrument <- "ec29_baseline"
 # instrument <- "ec29_baseline_below"
 # instrument <- "dist_ec29_baseline"
 # instrument <- "dist_ec29_baseline_below"
@@ -72,11 +77,11 @@ instrument <- "ec29_baseline"
 # instrument <- "dist_spending_pc_baseline_below"
 
 # is the instrument restricted to the sample below the target?
-below <- 0
+# below <- 0
 
 # Regression output excel file
 # ------------------------------------
-output_file <- "results_1st_dist_spend_b.xlsx"
+# output_file <- "results_1st_dist_spend_b.xlsx"
 
 
 # 1. Load data frame
@@ -646,7 +651,7 @@ iv_first_yearly <- function(df,treat,year_filter,y0,yf,ys,graph_name){
   color_graph <- pal_lancet("lanonc")(9)
   
   graph <- table %>%
-    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ubcolor = spec,group=spec))+
+    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub,color = spec,group=spec))+
     geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
     geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
     geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6)) +

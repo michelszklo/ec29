@@ -47,15 +47,48 @@ options(digits = 15)
 # ------------------------------------
 
 dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
-scripts <- "ec29/"
-
 
 # ------------------------------------
 
-
-# 1. Run all
+# 1. Folder, files and instrument setup
 # =================================================================
 
+# Regressions' outputs main folder
+# ------------------------------------
+main_folder <- "regs_outputs/"
+
+# Reduced form yearly estimates figures folder
+# ------------------------------------
+yearly_folder <- "yearly_reduced_form/"
+
+# Instrumental variable (uncoment the selected one)
+# ------------------------------------
+
+instrument <- "ec29_baseline"
+# instrument <- "ec29_baseline_below"
+# instrument <- "dist_ec29_baseline"
+# instrument <- "dist_ec29_baseline_below"
+# instrument <- "dist_spending_pc_baseline"
+# instrument <- "dist_spending_pc_baseline_below"
+
+# is the instrument restricted to the sample below the target?
+below <- 0
+
+# Regression output excel file
+# ------------------------------------
+output_file <- "results_ec29_baseline.xlsx"
+
+
+save.image(paste0(dir,"output_setup.RData"))
+
+
+
+# 2. Run all
+# =================================================================
+
+scripts <- "ec29/"
+source(paste0(dir,scripts,"08_regs_vars_specs.R"))
+scripts <- "ec29/"
 source(paste0(dir,scripts,"09_regs_firststage.R"))
 scripts <- "ec29/"
 source(paste0(dir,scripts,"10_regs_spending.R"))
