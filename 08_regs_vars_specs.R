@@ -156,11 +156,11 @@ df <- df %>%
   mutate(post_08 = ifelse(ano==2008,1,0)) %>% 
   mutate(post_09 = ifelse(ano==2009,1,0)) %>% 
   mutate(post_10 = ifelse(ano==2010,1,0)) # %>% 
-  # mutate(post_11 = ifelse(ano==2011,1,0)) %>% 
-  # mutate(post_12 = ifelse(ano==2012,1,0)) %>% 
-  # mutate(post_13 = ifelse(ano==2013,1,0)) %>% 
-  # mutate(post_14 = ifelse(ano==2014,1,0)) %>% 
-  # mutate(post_15 = ifelse(ano==2015,1,0)) 
+# mutate(post_11 = ifelse(ano==2011,1,0)) %>% 
+# mutate(post_12 = ifelse(ano==2012,1,0)) %>% 
+# mutate(post_13 = ifelse(ano==2013,1,0)) %>% 
+# mutate(post_14 = ifelse(ano==2014,1,0)) %>% 
+# mutate(post_15 = ifelse(ano==2015,1,0)) 
 
 
 
@@ -668,9 +668,9 @@ iv_first_yearly <- function(df,treat,year_filter,y0,yf,ys,graph_name){
           legend.position="bottom")
   
   if(below==1){
-    sample <- "_below"
+    sample <- "_belowvar"
   }else{
-    sample <- "_full"
+    sample <- "_fullvar"
   }
   
   
@@ -764,7 +764,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
   
 }
 
-reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,below){
+reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below){
   
   df_reg <- df
   
@@ -854,17 +854,17 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,be
           legend.position="bottom")
   
   if(below==1){
-    sample <- "_below"
+    iv <- "_belowvar"
   }else{
-    sample <- "_full"
+    iv <- "_fullvar"
   }
   
-  ggsave(paste0(dir,main_folder,yearly_folder,ln_outcome,sample,".png"),
+  ggsave(paste0(dir,main_folder,yearly_folder,ln_outcome,"_",instrument,"_",iv,"_",sample,".png"),
          plot = graph,
          device = "png",
          width = 7, height = 5,
          units = "in")
-  ggsave(paste0(dir,main_folder,yearly_folder,ln_outcome,sample,".pdf"),
+  ggsave(paste0(dir,main_folder,yearly_folder,ln_outcome,"_",instrument,"_",iv,"_",sample,".pdf"),
          plot = graph,
          device = "pdf",
          width = 7, height = 5,
