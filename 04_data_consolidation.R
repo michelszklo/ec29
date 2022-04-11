@@ -83,7 +83,19 @@ finbra <- finbra %>% left_join(finbra_receita, by = c("ano","cod_mun"))
 rm(finbra_receita)
 
 
+
 finbra[8:33] <- lapply(finbra[8:33], function(x) as.numeric(gsub(",","",x),digits = 15))
+
+
+
+# "correcting errors in data
+
+vars_correct <- names(finbra)[!(names(finbra) %in% c("ano","cod_mun","nome_mun","cod_uf","uf","pop","pop2000","finbra_desp_o","finbra_desp_c","finbra_reccorr"))]
+
+finbra <- finbra %>% 
+  mutate_at(vars_correct, function(x) ifelse(.$finbra_desp_c<x,NA,x))
+
+rm(vars_correct)
 
 
 # 4. Importing SIOPS data
