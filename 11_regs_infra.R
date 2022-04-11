@@ -76,9 +76,9 @@ df_below <- df_below %>% adjust_years()
 df_above <- df_above %>% adjust_years()
 
 
-table_formating <- function(df){
+table_formating <- function(df,s){
   df <- df %>% 
-    filter(spec==3) %>%
+    filter(spec==s) %>%
     select(-spec) %>% 
     mutate(term=var_name) %>% 
     mutate(sig = ifelse(p.value<=0.01,"***",""),

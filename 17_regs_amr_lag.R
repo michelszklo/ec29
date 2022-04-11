@@ -75,9 +75,9 @@ var_map <-  rbind(cbind('tx_ma_l1','Adult Mortality Rate (log) - 1y lag'),
 )
 
 
-table_formating <- function(df){
+table_formating <- function(df,s){
   df <- df %>% 
-    filter(spec==3) %>%
+    filter(spec==s) %>%
     select(-spec) %>% 
     mutate(term=var_name) %>% 
     mutate(sig = ifelse(p.value<=0.01,"***",""),

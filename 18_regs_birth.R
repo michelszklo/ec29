@@ -64,9 +64,9 @@ var_map <- rbind(cbind('birth_apgar1','Apgar 1 (log)'),
                  cbind('birth_prenat_7_plus','Prenatal Visits 7+'))
 
 
-table_formating <- function(df){
+table_formating <- function(df,s){
   df <- df %>% 
-    filter(spec==3) %>%
+    filter(spec==s) %>%
     select(-spec) %>% 
     mutate(term=var_name) %>% 
     mutate(sig = ifelse(p.value<=0.01,"***",""),

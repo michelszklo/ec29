@@ -64,9 +64,9 @@ var_map <- rbind(cbind('sia_pcapita','Outpatient procedures per capita (log)'),
                  cbind('sia_ativ_grupo_pcapita','Educational activities in group per capita (log)'))
 
 
-table_formating <- function(df){
+table_formating <- function(df,s){
   df <- df %>% 
-    filter(spec==3) %>%
+    filter(spec==s) %>%
     select(-spec) %>% 
     mutate(term=var_name) %>% 
     mutate(sig = ifelse(p.value<=0.01,"***",""),
