@@ -361,7 +361,7 @@ for (i in c(3)){
   
   if(below==1){
     
-    regress_output_below(var,var_name,1,1998)
+    regress_output_below(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){
