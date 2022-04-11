@@ -106,6 +106,8 @@ scripts <- "ec29/"
 source(paste0(dir,scripts,"16_regs_imr_lag.R"))
 scripts <- "ec29/"
 source(paste0(dir,scripts,"17_regs_amr_lag.R"))
+scripts <- "ec29/"
+source(paste0(dir,scripts,"18_regs_birth.R"))
 
 
 
