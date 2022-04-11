@@ -110,17 +110,30 @@ regress_output <- function(var,var_name,transform,year_filter){
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
     
-    iv(var,"siops_despsaude_pcapita",d,1,obj,transform,year_filter) # function for IV regression and bootstrap estimating of SE
+    iv(var,"finbra_desp_saude_san_pcapita",d,obj,transform,year_filter) # function for IV regression and bootstrap estimating of SE
     
     print(paste0("IV regs for sample ",data))
   } 
   
   # 2sls final tables
-  table_all <- reg_df %>% mutate(sample = "full") %>% table_formating() %>% rename("2SLS_full" = "2SLS")
-  table_below <- reg_df_below %>% mutate(sample = "below") %>% table_formating() %>% rename("2SLS_below" = "2SLS") %>% select(-term)
-  table_above <- reg_df_above %>% mutate(sample = "above") %>% table_formating() %>% rename("2SLS_above" = "2SLS") %>% select(-term)
+  table_all_1 <- reg_df %>% mutate(sample = "full") %>% table_formating(1) %>% rename("2SLS_full" = "2SLS")
+  table_all_2 <- reg_df %>% mutate(sample = "full") %>% table_formating(2) %>% rename("2SLS_full" = "2SLS")
+  table_all_3 <- reg_df %>% mutate(sample = "full") %>% table_formating(3) %>% rename("2SLS_full" = "2SLS")
   
-  table_2sls <- bind_cols(table_all,table_below,table_above) 
+  table_below_1 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(1) %>% rename("2SLS_below" = "2SLS") %>% select(-term)
+  table_below_2 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(2) %>% rename("2SLS_below" = "2SLS") %>% select(-term) 
+  table_below_3 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(3) %>% rename("2SLS_below" = "2SLS") %>% select(-term) 
+  
+  
+  table_above_1 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(1) %>% rename("2SLS_above" = "2SLS") %>% select(-term) %>% mutate(spec=1)
+  table_above_2 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(2) %>% rename("2SLS_above" = "2SLS") %>% select(-term) %>% mutate(spec=2)
+  table_above_3 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(3) %>% rename("2SLS_above" = "2SLS") %>% select(-term) %>% mutate(spec=3)
+  
+  
+  
+  table_2sls <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3),
+                          bind_rows(table_below_1,table_below_2,table_below_3),
+                          bind_rows(table_above_1,table_above_2,table_above_3)) 
   
   # 2sls dataframe input for coefficients graph
   graph_all <- reg_df %>% graph_formatting()
@@ -136,17 +149,30 @@ regress_output <- function(var,var_name,transform,year_filter){
     
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
-    ols(var,"siops_despsaude_pcapita",d,obj,transform,year_filter) # function for OLS regression
+    ols(var,"finbra_desp_saude_san_pcapita",d,obj,transform,year_filter) # function for OLS regression
     
     print(paste0("OLS regs for sample ",data))
   }
   
   # OLS final tables
-  table_all <- reg_df %>% mutate(sample = "full") %>% table_formating() %>% rename("OLS_full" = "2SLS")
-  table_below <- reg_df_below %>% mutate(sample = "below") %>% table_formating() %>% rename("OLS_below" = "2SLS") %>% select(-term)
-  table_above <- reg_df_above %>% mutate(sample = "above") %>% table_formating() %>% rename("OLS_above" = "2SLS") %>% select(-term)
+  table_all_1 <- reg_df %>% mutate(sample = "full") %>% table_formating(1) %>% rename("OLS_full" = "2SLS")
+  table_all_2 <- reg_df %>% mutate(sample = "full") %>% table_formating(2) %>% rename("OLS_full" = "2SLS")
+  table_all_3 <- reg_df %>% mutate(sample = "full") %>% table_formating(3) %>% rename("OLS_full" = "2SLS")
   
-  table_ols <- bind_cols(table_all,table_below,table_above)
+  table_below_1 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(1) %>% rename("OLS_below" = "2SLS") %>% select(-term)
+  table_below_2 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(2) %>% rename("OLS_below" = "2SLS") %>% select(-term) 
+  table_below_3 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(3) %>% rename("OLS_below" = "2SLS") %>% select(-term) 
+  
+  
+  table_above_1 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(1) %>% rename("OLS_above" = "2SLS") %>% select(-term) %>% mutate(spec=1)
+  table_above_2 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(2) %>% rename("OLS_above" = "2SLS") %>% select(-term) %>% mutate(spec=2)
+  table_above_3 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(3) %>% rename("OLS_above" = "2SLS") %>% select(-term) %>% mutate(spec=3)
+  
+  
+  
+  table_ols <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3),
+                         bind_rows(table_below_1,table_below_2,table_below_3),
+                         bind_rows(table_above_1,table_above_2,table_above_3)) 
   
   
   # REDUCED FORM REGRESSION
@@ -163,11 +189,24 @@ regress_output <- function(var,var_name,transform,year_filter){
   }
   
   # Reduced form final tables
-  table_all <- reg_df %>% mutate(sample = "full") %>% table_formating() %>% rename("RF_full" = "2SLS")
-  table_below <- reg_df_below %>% mutate(sample = "below") %>% table_formating() %>% rename("RF_below" = "2SLS") %>% select(-term)
-  table_above <- reg_df_above %>% mutate(sample = "above") %>% table_formating() %>% rename("RF_above" = "2SLS") %>% select(-term)
+  table_all_1 <- reg_df %>% mutate(sample = "full") %>% table_formating(1) %>% rename("RF_full" = "2SLS")
+  table_all_2 <- reg_df %>% mutate(sample = "full") %>% table_formating(2) %>% rename("RF_full" = "2SLS")
+  table_all_3 <- reg_df %>% mutate(sample = "full") %>% table_formating(3) %>% rename("RF_full" = "2SLS")
   
-  table_rf <- bind_cols(table_all,table_below,table_above)
+  table_below_1 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(1) %>% rename("RF_below" = "2SLS") %>% select(-term)
+  table_below_2 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(2) %>% rename("RF_below" = "2SLS") %>% select(-term) 
+  table_below_3 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(3) %>% rename("RF_below" = "2SLS") %>% select(-term) 
+  
+  
+  table_above_1 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(1) %>% rename("RF_above" = "2SLS") %>% select(-term) %>% mutate(spec=1)
+  table_above_2 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(2) %>% rename("RF_above" = "2SLS") %>% select(-term) %>% mutate(spec=2)
+  table_above_3 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(3) %>% rename("RF_above" = "2SLS") %>% select(-term) %>% mutate(spec=3)
+  
+  
+  
+  table_rf <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3),
+                        bind_rows(table_below_1,table_below_2,table_below_3),
+                        bind_rows(table_above_1,table_above_2,table_above_3)) 
   
   
   # IV + OLS + reduced form table
@@ -180,7 +219,8 @@ regress_output <- function(var,var_name,transform,year_filter){
                                 table_rf %>% select(`RF_below`),
                                 table_ols %>% select(OLS_above),
                                 table_2sls %>% select(`2SLS_above`),
-                                table_rf %>% select(`RF_above`))
+                                table_rf %>% select(`RF_above`),
+                                table_rf %>% select(`spec`))
   
   # assigning objects to the global envir
   assign("table_all",table_all, envir = .GlobalEnv) 
