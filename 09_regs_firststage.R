@@ -76,7 +76,7 @@ transform_select <- function(df,treat){
   # balanced panel
   # df <- df[complete.cases(df),]
   df <- df[complete.cases(df[,ln_treat]),]
-
+  
 } 
 
 
@@ -166,11 +166,20 @@ if(below!=1){
   iv_first(df_above,"finbra_desp_saude_san_pcapita",1998,"table_above")
 }
 
-iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-0.002,0.007,0.001,paste0(instrument,"_b_full"))
-iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-0.005,0.005,0.001,paste0(instrument,"_b_below"))
+
+# First stage IV graphs
+
+if (below==1){
+  sample <- "_b"
+} else{
+  sample <- ""
+}
+
+iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-0.002,0.007,0.001,paste0(instrument,sample,"_full"))
+iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-0.005,0.005,0.001,paste0(instrument,sample,"_below"))
 
 if(below!=1){
-  iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-0.005,0.008,0.001,paste0(instrument,"_b_above"))
+  iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-0.005,0.008,0.001,paste0(instrument,sample,"_above"))
 }
 
 
