@@ -62,7 +62,7 @@ var_map <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita (log)'
                  cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (log)'),
                  cbind('finbra_desp_adm_pcapita','Administrative Spending per capita (log)'),
                  cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)'),
-                 cbind('finbra_desp_transporte_pcapita','Trasnport Spending per capita - Total (log)'),
+                 cbind('finbra_desp_transporte_pcapita','Transport Spending per capita (log)'),
                  cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (log)'),
                  cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (log)'),
                  cbind('finbra_desp_assist_prev_pcapita','Social Security Spending per capita (log)'),
@@ -72,7 +72,22 @@ var_map <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita (log)'
                  cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources (log)'),
                  cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (log)'),
                  cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (log)'),
-                 cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (log)'))
+                 cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (log)'),
+                 
+                 cbind('finbra_desp_pessoal_share','Human Resources Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_investimento_share','Investment Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_adm_share','Administrative Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_saude_san_share','Health and Sanitation Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_transporte_share','Transport Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_educ_cultura_share','Education and Culture Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_hab_urb_share','Housing and Urban Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_assist_prev_share','Social Security Spending per capita (% Total Spending)'),
+                 cbind('siops_desprecpropriosaude_share','Health Spending per capita - Own Resources (% Health Spending)'),
+                 cbind('siops_despexrecproprio_share','Health Spending per capita - Transfers (% Health Spending)'),
+                 cbind('siops_desppessoal_share','Health Spending per capita - Human Resources (% Health Spending)'),
+                 cbind('siops_despinvest_share','Health Spending per capita - Investiment (% Health Spending)'),
+                 cbind('siops_despservicoster_share','Health Spending per capita - 3rd parties services (% Health Spending)'),
+                 cbind('siops_despoutros_share','Health Spending per capita - other expenditures (% Health Spending)'))
 
 
 
@@ -359,6 +374,52 @@ for (i in seq(1,16,1)){
   if(below==1){
     
     regress_output_below(var,var_name,1,1998)
+    
+    
+    if(exists("df_table_all")){
+      df_table_all <- rbind(df_table_all,table_all)
+      df_graph_all <- rbind(df_graph_all,graph_all)
+      df_graph_below <- rbind(df_graph_below,graph_below)
+    } else {
+      
+      df_table_all <- table_all
+      df_graph_all <- graph_all
+      df_graph_below <- graph_below
+    }
+    
+  }else{
+    regress_output(var,var_name,1,1998)
+    
+    
+    if(exists("df_table_all")){
+      df_table_all <- rbind(df_table_all,table_all)
+      df_graph_all <- rbind(df_graph_all,graph_all)
+      df_graph_below <- rbind(df_graph_below,graph_below)
+      df_graph_above <- rbind(df_graph_above,graph_above)
+    } else {
+      
+      df_table_all <- table_all
+      df_graph_all <- graph_all
+      df_graph_below <- graph_below
+      df_graph_above <- graph_above
+    }
+    
+  }
+  
+  
+  
+}
+
+
+for (i in seq(17,30,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  
+  
+  if(below==1){
+    
+    regress_output_below(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){
