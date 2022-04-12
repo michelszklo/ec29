@@ -74,7 +74,7 @@ var_map <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita (log)'
                  cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (log)'),
                  cbind('finbra_desp_adm_pcapita','Administrative Spending per capita (log)'),
                  cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)'),
-                 cbind('finbra_desp_transporte_pcapita','Trasnport Spending per capita - Total (log)'),
+                 cbind('finbra_desp_transporte_pcapita','Transport Spending per capita (log)'),
                  cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (log)'),
                  cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (log)'),
                  cbind('finbra_desp_assist_prev_pcapita','Social Security Spending per capita (log)'),
@@ -84,16 +84,35 @@ var_map <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita (log)'
                  cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources (log)'),
                  cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (log)'),
                  cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (log)'),
-                 cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (log)'))
+                 cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (log)'),
+                 
+                 cbind('finbra_desp_pessoal_share','Human Resources Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_investimento_share','Investment Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_adm_share','Administrative Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_saude_san_share','Health and Sanitation Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_transporte_share','Transport Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_educ_cultura_share','Education and Culture Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_hab_urb_share','Housing and Urban Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_assist_prev_share','Social Security Spending per capita (% Total Spending)'),
+                 cbind('siops_desprecpropriosaude_share','Health Spending per capita - Own Resources (% Health Spending)'),
+                 cbind('siops_despexrecproprio_share','Health Spending per capita - Transfers (% Health Spending)'),
+                 cbind('siops_desppessoal_share','Health Spending per capita - Human Resources (% Health Spending)'),
+                 cbind('siops_despinvest_share','Health Spending per capita - Investiment (% Health Spending)'),
+                 cbind('siops_despservicoster_share','Health Spending per capita - 3rd parties services (% Health Spending)'),
+                 cbind('siops_despoutros_share','Health Spending per capita - other expenditures (% Health Spending)'))
 
 
-
-for (i in seq(1,16,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df,1,1998,-12,5,1,below = below) # ec29baseline
+if (instrument="ec29_baseline"){
+  for (i in seq(1,30,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    reduced_yearly(var,var_name,df,1,1998,-22,12,2,"full",below = below) # ec29baseline
+    # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
+  }
 }
+
+
 
 
 # 3. Infra
@@ -105,25 +124,28 @@ var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community He
                  cbind('unity_mun_pcapita','Municipal Outpatient Facilities per 1000 population (log)'),
                  cbind('leitos_pc','Hospital Beds per capita (log)'))
 
-
-
-for (i in c(1,2,4,5)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
+if (instrument="ec29_baseline"){
+  for (i in c(1,2,4,5)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    
+    reduced_yearly(var,var_name,df,1,1998,-15,35,5,sample = "full",below = below) # ec29baseline
+    
+  }
   
-  reduced_yearly(var,var_name,df,1,1998,-0.05,0.05,0.01) # ec29baseline
+  for (i in c(3)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    
+    reduced_yearly(var,var_name,df,3,1998,-1,1,0.2,sample = "full",below = below) # ec29baseline
+    
+  }
   
 }
 
-for (i in c(3)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  
-  reduced_yearly(var,var_name,df,3,1998,-0.05,0.05,0.01) # ec29baseline
-  
-}
+
 
 
 
@@ -138,15 +160,18 @@ var_map <- rbind(cbind('sia_pcapita','Outpatient procedures per capita (log)'),
                  cbind('sia_visita_medio_pcapita','Household visits by non college degree personal per capita (log)'),
                  cbind('sia_ativ_grupo_pcapita','Educational activities in group per capita (log)'))
 
-
-for (i in seq(1,7,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  
-  reduced_yearly(var,var_name,df,1,1998,-0.01,0.025,0.005) # ec29baseline
+if (instrument="ec29_baseline"){
+  for (i in seq(1,7,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    
+    reduced_yearly(var,var_name,df,1,1998,-20,15,5,sample = "full",below = below) # ec29baseline
+    
+  }
   
 }
+
 
 
 
@@ -162,15 +187,18 @@ var_map <- rbind(cbind('hr_all_pcapita','Total Health workers per 1000 populatio
                  cbind('hr_admin_pcapita','Administrative workers per 1000 population (log)'))
 
 
-
-for (i in seq(1,5,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
+if (instrument="ec29_baseline"){
   
-  reduced_yearly(var,var_name,df,1,1998,-0.01,0.01,0.005) # ec29baseline
-  
-  
+  for (i in seq(1,5,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    
+    reduced_yearly(var,var_name,df,1,1998,-8,8,2, sample = "full",below = "below") # ec29baseline
+    
+    
+    
+  }
   
 }
 
@@ -193,15 +221,18 @@ var_map <-  rbind(cbind('tx_mi','Infant Mortality Rate (log)'),
                   cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days (log)'),
                   cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year (log)'))
 
-for (i in seq(1,15,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  
-  reduced_yearly(var,var_name,df,1,1998,-0.02,0.02,0.005) # ec29baseline
-  
-  
+if (instrument="ec29_baseline"){
+  for (i in seq(1,15,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    
+    reduced_yearly(var,var_name,df,1,1998,-15,20,5,sample = "full",below = below) # ec29baseline
+    
+    
+  }
 }
+
 
 # 7. AMR
 # =================================================================
@@ -221,82 +252,85 @@ var_map <-  rbind(cbind('tx_ma','Adult Mortality Rate (log)'),
                   cbind('tx_ma_icsap','Adult Mortality Rate (log) - APC'),
                   cbind('tx_ma_nicsap','Adult Mortality Rate (log) - non-APC'))
 
-for (i in seq(1,13,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  
-  reduced_yearly(var,var_name,df,1,2000,-0.01,0.015,0.005) # ec29baseline
-  
-  
+if (instrument="ec29_baseline"){
+  for (i in seq(1,13,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    
+    reduced_yearly(var,var_name,df,1,1998,-4,8,1,sample = "full",below = below)  # ec29baseline
+    
+    
+  }
 }
+
 
 # 8. IMR Lagged
 # =================================================================
 
-var_map <-  rbind(cbind('tx_mi_l1','Infant Mortality Rate (log) - 1y lag'),
-                  cbind('tx_mi_l2','Infant Mortality Rate (log) - 2y lag'),
-                  cbind('tx_mi_l3','Infant Mortality Rate (log) - 3y lag'),
-                  cbind('tx_mi_l4','Infant Mortality Rate (log) - 4y lag'),
-                  cbind('tx_mi_l5','Infant Mortality Rate (log) - 5y lag'),
-                  cbind('tx_mi_icsap_l1','Infant Mortality Rate - APC (log) - 1y lag'),
-                  cbind('tx_mi_icsap_l2','Infant Mortality Rate - APC (log) - 2y lag'),
-                  cbind('tx_mi_icsap_l3','Infant Mortality Rate - APC (log) - 3y lag'),
-                  cbind('tx_mi_icsap_l4','Infant Mortality Rate - APC (log) - 4y lag'),
-                  cbind('tx_mi_icsap_l5','Infant Mortality Rate - APC (log) - 5y lag'),
-                  cbind('tx_mi_nicsap_l1','Infant Mortality Rate - non-APC (log) - 1y lag'),
-                  cbind('tx_mi_nicsap_l2','Infant Mortality Rate - non-APC (log) - 2y lag'),
-                  cbind('tx_mi_nicsap_l3','Infant Mortality Rate - non-APC (log) - 3y lag'),
-                  cbind('tx_mi_nicsap_l4','Infant Mortality Rate - non-APC (log) - 4y lag'),
-                  cbind('tx_mi_nicsap_l4','Infant Mortality Rate - non-APC (log) - 5y lag')
-)
-
-
-
-for (i in seq(1,15,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  
-  reduced_yearly(var,var_name,df,1,2000,-0.02,0.015,0.005) # ec29baseline
-  
-  
-}
-
-
-# 9. AMR Lagged
-# =================================================================
-
-
-
-var_map <-  rbind(cbind('tx_ma_l1','Adult Mortality Rate (log) - 1y lag'),
-                  cbind('tx_ma_l2','Adult Mortality Rate (log) - 2y lag'),
-                  cbind('tx_ma_l3','Adult Mortality Rate (log) - 3y lag'),
-                  cbind('tx_ma_l4','Adult Mortality Rate (log) - 4y lag'),
-                  cbind('tx_ma_l5','Adult Mortality Rate (log) - 5y lag'),
-                  cbind('tx_ma_icsap_l1','Adult Mortality Rate - APC (log) - 1y lag'),
-                  cbind('tx_ma_icsap_l2','Adult Mortality Rate - APC (log) - 2y lag'),
-                  cbind('tx_ma_icsap_l3','Adult Mortality Rate - APC (log) - 3y lag'),
-                  cbind('tx_ma_icsap_l4','Adult Mortality Rate - APC (log) - 4y lag'),
-                  cbind('tx_ma_icsap_l5','Adult Mortality Rate - APC (log) - 5y lag'),
-                  cbind('tx_ma_nicsap_l1','Adult Mortality Rate - non-APC (log) - 1y lag'),
-                  cbind('tx_ma_nicsap_l2','Adult Mortality Rate - non-APC (log) - 2y lag'),
-                  cbind('tx_ma_nicsap_l3','Adult Mortality Rate - non-APC (log) - 3y lag'),
-                  cbind('tx_ma_nicsap_l4','Adult Mortality Rate - non-APC (log) - 4y lag'),
-                  cbind('tx_ma_nicsap_l4','Adult Mortality Rate - non-APC (log) - 5y lag')
-)
-
-
-
-for (i in seq(1,15,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  
-  reduced_yearly(var,var_name,df,1,1998,-0.01,0.015,0.005)
-  
-  
-}
+# var_map <-  rbind(cbind('tx_mi_l1','Infant Mortality Rate (log) - 1y lag'),
+#                   cbind('tx_mi_l2','Infant Mortality Rate (log) - 2y lag'),
+#                   cbind('tx_mi_l3','Infant Mortality Rate (log) - 3y lag'),
+#                   cbind('tx_mi_l4','Infant Mortality Rate (log) - 4y lag'),
+#                   cbind('tx_mi_l5','Infant Mortality Rate (log) - 5y lag'),
+#                   cbind('tx_mi_icsap_l1','Infant Mortality Rate - APC (log) - 1y lag'),
+#                   cbind('tx_mi_icsap_l2','Infant Mortality Rate - APC (log) - 2y lag'),
+#                   cbind('tx_mi_icsap_l3','Infant Mortality Rate - APC (log) - 3y lag'),
+#                   cbind('tx_mi_icsap_l4','Infant Mortality Rate - APC (log) - 4y lag'),
+#                   cbind('tx_mi_icsap_l5','Infant Mortality Rate - APC (log) - 5y lag'),
+#                   cbind('tx_mi_nicsap_l1','Infant Mortality Rate - non-APC (log) - 1y lag'),
+#                   cbind('tx_mi_nicsap_l2','Infant Mortality Rate - non-APC (log) - 2y lag'),
+#                   cbind('tx_mi_nicsap_l3','Infant Mortality Rate - non-APC (log) - 3y lag'),
+#                   cbind('tx_mi_nicsap_l4','Infant Mortality Rate - non-APC (log) - 4y lag'),
+#                   cbind('tx_mi_nicsap_l4','Infant Mortality Rate - non-APC (log) - 5y lag')
+# )
+# 
+# 
+# 
+# for (i in seq(1,15,1)){
+#   var <- var_map[i,1]
+#   var_name <- var_map[i,2]
+#   print(var_name)
+#   
+#   reduced_yearly(var,var_name,df,1,2000,-0.02,0.015,0.005) # ec29baseline
+#   
+#   
+# }
+# 
+# 
+# # 9. AMR Lagged
+# # =================================================================
+# 
+# 
+# 
+# var_map <-  rbind(cbind('tx_ma_l1','Adult Mortality Rate (log) - 1y lag'),
+#                   cbind('tx_ma_l2','Adult Mortality Rate (log) - 2y lag'),
+#                   cbind('tx_ma_l3','Adult Mortality Rate (log) - 3y lag'),
+#                   cbind('tx_ma_l4','Adult Mortality Rate (log) - 4y lag'),
+#                   cbind('tx_ma_l5','Adult Mortality Rate (log) - 5y lag'),
+#                   cbind('tx_ma_icsap_l1','Adult Mortality Rate - APC (log) - 1y lag'),
+#                   cbind('tx_ma_icsap_l2','Adult Mortality Rate - APC (log) - 2y lag'),
+#                   cbind('tx_ma_icsap_l3','Adult Mortality Rate - APC (log) - 3y lag'),
+#                   cbind('tx_ma_icsap_l4','Adult Mortality Rate - APC (log) - 4y lag'),
+#                   cbind('tx_ma_icsap_l5','Adult Mortality Rate - APC (log) - 5y lag'),
+#                   cbind('tx_ma_nicsap_l1','Adult Mortality Rate - non-APC (log) - 1y lag'),
+#                   cbind('tx_ma_nicsap_l2','Adult Mortality Rate - non-APC (log) - 2y lag'),
+#                   cbind('tx_ma_nicsap_l3','Adult Mortality Rate - non-APC (log) - 3y lag'),
+#                   cbind('tx_ma_nicsap_l4','Adult Mortality Rate - non-APC (log) - 4y lag'),
+#                   cbind('tx_ma_nicsap_l4','Adult Mortality Rate - non-APC (log) - 5y lag')
+# )
+# 
+# 
+# 
+# for (i in seq(1,15,1)){
+#   var <- var_map[i,1]
+#   var_name <- var_map[i,2]
+#   print(var_name)
+#   
+#   reduced_yearly(var,var_name,df,1,1998,-0.01,0.015,0.005)
+#   
+#   
+# }
 
 
 
@@ -311,15 +345,19 @@ var_map <- rbind(cbind('birth_apgar1','Apgar 1 (log)'),
                  cbind('birth_low_weight_2500g','Low Birth Weight (<2.5k) (log)'),
                  cbind('birth_prenat_7_plus','Prenatal Visits 7+'))
 
-
-for (i in seq(1,7,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  
-  reduced_yearly(var,var_name,df,1,1998,-0.01,0.025,0.005) # ec29baseline
+if (instrument="ec29_baseline"){
+  for (i in seq(1,7,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    
+    reduced_yearly(var,var_name,df,1,1998,-2,2,0.5,sample = "full",below = below) # ec29baseline
+    
+  }
   
 }
+
+
 
 
 
