@@ -117,12 +117,12 @@ df <- df %>%
   # state year fixed effects
   mutate(uf_y_fe = as.factor(paste0(ano,"_",uf))) %>% 
   # distance to the EC29 target spending in the baseline
-  mutate(dist_ec29 = (siops_pct_recproprios_ec29 - 0.15)) %>% 
+  mutate(dist_ec29 = -(siops_pct_recproprios_ec29 - 0.15)) %>% 
   mutate(dist_ec29_baseline = ifelse(ano==2000,dist_ec29,NA)) %>% 
   group_by(cod_mun) %>% 
   mutate(dist_ec29_baseline = mean(dist_ec29_baseline, na.rm = T)) %>%
   mutate(ec29_baseline = dist_ec29_baseline + 0.15) %>% 
-  mutate(dist_ec29_baseline_below = ifelse(dist_ec29_baseline<0,-dist_ec29_baseline,0),
+  mutate(dist_ec29_baseline_below = ifelse(dist_ec29_baseline>0,dist_ec29_baseline,0),
          ec29_baseline_below = ifelse(ec29_baseline<0.15,ec29_baseline,0.15)) %>% 
   ungroup() %>% 
   # distance to the EC29 target as per capita spending
@@ -202,7 +202,7 @@ for(i in seq.int(1,length(controlsvar_baseline))){
 # sample 1: municipalities below target (positive distance to the target)
 # ------------------------------------------------------------------------
 df_below <- df %>%
-  filter(dist_ec29_baseline<0) #  %>%
+  filter(dist_ec29_baseline>0) #  %>%
 # mutate(ln_dist_spending_pc_baseline = log(dist_spending_pc_baseline))
 
 # interacting dummies with treatment (dist_ec29_baseline)
@@ -221,7 +221,7 @@ df_below <- df_below %>%
 # sample 2: municipalities above target
 # ------------------------------------------------------------------------
 df_above <- df %>%
-  filter(dist_ec29_baseline>0) # %>% 
+  filter(dist_ec29_baseline<0) # %>% 
 
 # interacting dummies with treatment (dist_ec29_baseline)
 
