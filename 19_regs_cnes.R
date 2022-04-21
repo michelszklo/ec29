@@ -788,9 +788,9 @@ for (i in seq(1,21,1)){
 # =================================================================
 
 if(below==1){
-  write.xlsx2(tables, file = paste0(dir,main_folder,output_file) ,sheetName = "cnes_cs_b",row.names = F,append = T)
+  write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file) ,sheetName = "cnes_cs_b",row.names = F,append = T)
   
 } else{
-  write.xlsx2(tables, file = paste0(dir,main_folder,output_file) ,sheetName = "cnes_cs",row.names = F,append = T)
+  write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file) ,sheetName = "cnes_cs",row.names = F,append = T)
 }
 
