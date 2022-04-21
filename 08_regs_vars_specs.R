@@ -121,7 +121,7 @@ df <- df %>%
   mutate(dist_ec29_baseline = ifelse(ano==2000,dist_ec29,NA)) %>% 
   group_by(cod_mun) %>% 
   mutate(dist_ec29_baseline = mean(dist_ec29_baseline, na.rm = T)) %>%
-  mutate(ec29_baseline = dist_ec29_baseline + 0.15) %>% 
+  mutate(ec29_baseline = -dist_ec29_baseline + 0.15) %>% 
   mutate(dist_ec29_baseline_below = ifelse(dist_ec29_baseline>0,dist_ec29_baseline,0),
          ec29_baseline_below = ifelse(ec29_baseline<0.15,ec29_baseline,0.15)) %>% 
   ungroup() %>% 
