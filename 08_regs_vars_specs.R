@@ -137,6 +137,7 @@ df <- df %>%
   mutate(dist_spending_baseline = ifelse(ano==2000,dist_spending,NA)) %>% 
   group_by(cod_mun) %>% 
   mutate(dist_spending_baseline = mean(dist_spending_baseline, na.rm = T)) %>% 
+  mutate(dist_spending_baseline_below = ifelse(dist_spending_baseline>0,dist_spending_baseline,0)) %>% 
   ungroup() %>% 
   # baseline year
   mutate(baseline = 2000) %>% 
