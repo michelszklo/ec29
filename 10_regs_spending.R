@@ -60,7 +60,7 @@ load(paste0(dir,"regs.RData"))
 var_map <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita (log)'),
                  cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita (log)'),
                  cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (log)'),
-                 cbind('finbra_desp_adm_pcapita','Administrative Spending per capita (log)'),
+                 cbind('finbra_desp_outros_pcapita','Other Spending per capita (log)'),
                  cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)'),
                  cbind('finbra_desp_transporte_pcapita','Transport Spending per capita (log)'),
                  cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (log)'),
@@ -411,50 +411,50 @@ for (i in seq(1,16,1)){
 }
 
 
-for (i in seq(17,30,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  
-  
-  if(below==1){
-    
-    regress_output_below(var,var_name,3,1998)
-    
-    
-    if(exists("df_table_all")){
-      df_table_all <- rbind(df_table_all,table_all)
-      df_graph_all <- rbind(df_graph_all,graph_all)
-      df_graph_below <- rbind(df_graph_below,graph_below)
-    } else {
-      
-      df_table_all <- table_all
-      df_graph_all <- graph_all
-      df_graph_below <- graph_below
-    }
-    
-  }else{
-    regress_output(var,var_name,1,1998)
-    
-    
-    if(exists("df_table_all")){
-      df_table_all <- rbind(df_table_all,table_all)
-      df_graph_all <- rbind(df_graph_all,graph_all)
-      df_graph_below <- rbind(df_graph_below,graph_below)
-      df_graph_above <- rbind(df_graph_above,graph_above)
-    } else {
-      
-      df_table_all <- table_all
-      df_graph_all <- graph_all
-      df_graph_below <- graph_below
-      df_graph_above <- graph_above
-    }
-    
-  }
-  
-  
-  
-}
+# for (i in seq(17,30,1)){
+#   var <- var_map[i,1]
+#   var_name <- var_map[i,2]
+#   print(var_name)
+#   
+#   
+#   if(below==1){
+#     
+#     regress_output_below(var,var_name,3,1998)
+#     
+#     
+#     if(exists("df_table_all")){
+#       df_table_all <- rbind(df_table_all,table_all)
+#       df_graph_all <- rbind(df_graph_all,graph_all)
+#       df_graph_below <- rbind(df_graph_below,graph_below)
+#     } else {
+#       
+#       df_table_all <- table_all
+#       df_graph_all <- graph_all
+#       df_graph_below <- graph_below
+#     }
+#     
+#   }else{
+#     regress_output(var,var_name,1,1998)
+#     
+#     
+#     if(exists("df_table_all")){
+#       df_table_all <- rbind(df_table_all,table_all)
+#       df_graph_all <- rbind(df_graph_all,graph_all)
+#       df_graph_below <- rbind(df_graph_below,graph_below)
+#       df_graph_above <- rbind(df_graph_above,graph_above)
+#     } else {
+#       
+#       df_table_all <- table_all
+#       df_graph_all <- graph_all
+#       df_graph_below <- graph_below
+#       df_graph_above <- graph_above
+#     }
+#     
+#   }
+#   
+#   
+#   
+# }
 
 
 for (i in seq(17,30,1)){
