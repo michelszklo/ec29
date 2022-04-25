@@ -97,6 +97,9 @@ finbra <- finbra %>%
 
 rm(vars_correct)
 
+finbra <- finbra %>% 
+  mutate(finbra_desp_outros = finbra_desp_c - (finbra_desp_pessoal + finbra_desp_investimento))
+
 
 # 4. Importing SIOPS data
 # =================================================================
@@ -122,6 +125,7 @@ siops <- siops %>%
          siops_despinvest_pcapita = ifelse(check==1,NA,siops_despinvest_pcapita),
          siops_despservicoster_pcapita = ifelse(check==1,NA,siops_despservicoster_pcapita),
          siops_despmedicamentos_pcapita = ifelse(check==1,NA,siops_despmedicamentos_pcapita)) %>% 
+  mutate(siops_despoutros_pcapita =  siops_despsaude_pcapita - siops_despoutros_pcapita) %>% 
   select(-check)
 
 
@@ -478,6 +482,7 @@ df <- df %>%
 df <- df %>% 
   mutate(finbra_desp_pessoal_share = ifelse(finbra_desp_c_pcapita!=0,finbra_desp_pessoal_pcapita / finbra_desp_c_pcapita,0),
          finbra_desp_investimento_share = ifelse(finbra_desp_c_pcapita!=0,finbra_desp_investimento_pcapita / finbra_desp_c_pcapita,0),
+         finbra_desp_outros_share = ifelse(finbra_desp_c_pcapita!=0,finbra_desp_outros_pcapita / finbra_desp_c_pcapita,0),
          finbra_desp_adm_share = ifelse(finbra_desp_c_pcapita!=0,finbra_desp_adm_pcapita / finbra_desp_c_pcapita,0),
          finbra_desp_saude_san_share = ifelse(finbra_desp_c_pcapita!=0,finbra_desp_saude_san_pcapita / finbra_desp_c_pcapita,0),
          finbra_desp_transporte_share = ifelse(finbra_desp_c_pcapita!=0,finbra_desp_transporte_pcapita / finbra_desp_c_pcapita,0),
@@ -490,7 +495,6 @@ df <- df %>%
          siops_despinvest_share = ifelse(siops_despsaude_pcapita!=0,siops_despinvest_pcapita / siops_despsaude_pcapita,0),
          siops_despservicoster_share = ifelse(siops_despsaude_pcapita!=0,siops_despservicoster_pcapita / siops_despsaude_pcapita,0),
          siops_despoutros_share = ifelse(siops_despsaude_pcapita!=0,siops_despoutros_pcapita / siops_despsaude_pcapita,0))
-
 
 # 18. saving
 # ==============================================================
