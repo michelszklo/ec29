@@ -59,7 +59,6 @@ load(paste0(dir,"regs.RData"))
 var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community Health Agents (log)'),
                  cbind('eSF_popprop','Population covered (share) by Family Health Agents (log)'),
                  cbind('hospital','Presence of Municipal Hospital'),
-                 cbind('unity_mun_pcapita','Municipal Outpatient Facilities per 1000 population (log)'),
                  cbind('leitos_pc','Hospital Beds per capita (log)'))
 
 
