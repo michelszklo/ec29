@@ -233,7 +233,7 @@ load(paste0(dir,"regs.RData"))
 
 var_map <- rbind(cbind('finbra_desp_pessoal_share','Human Resources Spending per capita (% Total Spending)'),
                  cbind('finbra_desp_investimento_share','Investment Spending per capita (% Total Spending)'),
-                 cbind('finbra_desp_adm_share','Administrative Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_outros_share','Other Spending per capita (% Total Spending)'),
                  cbind('finbra_desp_saude_san_share','Health and Sanitation Spending per capita (% Total Spending)'),
                  cbind('finbra_desp_transporte_share','Transport Spending per capita (% Total Spending)'),
                  cbind('finbra_desp_educ_cultura_share','Education and Culture Spending per capita (% Total Spending)'),
@@ -332,7 +332,7 @@ color_graph <- pal_lancet("lanonc")(9)
 plot4 <- df_plot_finbra %>%
   filter(category == "Human Resources Spending per capita (% Total Spending)" |
            category == "Investment Spending per capita (% Total Spending)" | 
-           category == "Administrative Spending per capita (% Total Spending)") %>% 
+           category == "Other Spending per capita (% Total Spending)") %>% 
   ggplot(aes(x = ano, y = spending, color = category, group = category)) +
   geom_line(size = 0.8, alpha = 0.6) +
   scale_color_manual(values = color_graph) +
@@ -352,7 +352,7 @@ plot4 <- df_plot_finbra %>%
 plot5 <- df_plot_finbra_top %>%
   filter(category == "Human Resources Spending per capita (% Total Spending)" |
            category == "Investment Spending per capita (% Total Spending)" | 
-           category == "Administrative Spending per capita (% Total Spending)") %>% 
+           category == "Other Spending per capita (% Total Spending)") %>% 
   ggplot(aes(x = ano, y = spending, color = category, group = category)) +
   geom_line(size = 0.8, alpha = 0.6) +
   scale_color_manual(values = color_graph) +
@@ -374,7 +374,7 @@ plot5 <- df_plot_finbra_top %>%
 plot6 <- df_plot_finbra_bottom %>%
   filter(category == "Human Resources Spending per capita (% Total Spending)" |
            category == "Investment Spending per capita (% Total Spending)" | 
-           category == "Administrative Spending per capita (% Total Spending)") %>% 
+           category == "Other Spending per capita (% Total Spending)") %>% 
   ggplot(aes(x = ano, y = spending, color = category, group = category)) +
   geom_line(size = 0.8, alpha = 0.6) +
   scale_color_manual(values = color_graph) +
@@ -447,7 +447,7 @@ color_graph <- pal_lancet("lanonc")(9)
 plot7 <- df_plot_finbra %>%
   filter(category != "Human Resources Spending per capita (% Total Spending)" &
            category != "Investment Spending per capita (% Total Spending)" & 
-           category != "Administrative Spending per capita (% Total Spending)") %>% 
+           category != "Other Spending per capita (% Total Spending)") %>% 
   ggplot(aes(x = ano, y = spending, color = category, group = category)) +
   geom_line(size = 0.8, alpha = 0.6) +
   scale_color_manual(values = color_graph) +
@@ -467,7 +467,7 @@ plot7 <- df_plot_finbra %>%
 plot8 <- df_plot_finbra_top %>%
   filter(category != "Human Resources Spending per capita (% Total Spending)" &
            category != "Investment Spending per capita (% Total Spending)" & 
-           category != "Administrative Spending per capita (% Total Spending)") %>% 
+           category != "Other Spending per capita (% Total Spending)") %>% 
   ggplot(aes(x = ano, y = spending, color = category, group = category)) +
   geom_line(size = 0.8, alpha = 0.6) +
   scale_color_manual(values = color_graph) +
@@ -489,7 +489,7 @@ plot8 <- df_plot_finbra_top %>%
 plot9 <- df_plot_finbra_bottom %>%
   filter(category != "Human Resources Spending per capita (% Total Spending)" &
            category != "Investment Spending per capita (% Total Spending)" & 
-           category != "Administrative Spending per capita (% Total Spending)") %>% 
+           category != "Other Spending per capita (% Total Spending)") %>% 
   ggplot(aes(x = ano, y = spending, color = category, group = category)) +
   geom_line(size = 0.8, alpha = 0.6) +
   scale_color_manual(values = color_graph) +
@@ -677,7 +677,7 @@ plot13 <- df_plot_siops %>%
   geom_line(size = 0.8, alpha = 0.6) +
   scale_color_manual(values = color_graph) +
   scale_x_continuous(breaks = seq(2000,2010,1), limits = c(1999.5,2010.5)) +
-  scale_y_continuous(breaks = seq(0,1,0.1), limits = c(0,1)) +
+  scale_y_continuous(breaks = seq(0,0.7,0.1), limits = c(0,0.7)) +
   labs(x = "Year",
        y = "% of Health Spending") +
   theme_light() +
@@ -696,7 +696,7 @@ plot14 <- df_plot_siops_top %>%
   geom_line(size = 0.8, alpha = 0.6) +
   scale_color_manual(values = color_graph) +
   scale_x_continuous(breaks = seq(2000,2010,1), limits = c(1999.5,2010.5)) +
-  scale_y_continuous(breaks = seq(0,1,0.1), limits = c(0,1)) +
+  scale_y_continuous(breaks = seq(0,0.7,0.1), limits = c(0,0.7)) +
   labs(x = "Year",
        y = "% of Health Spending",
        title = "Top Quartile of EC29") +
@@ -717,7 +717,7 @@ plot15 <- df_plot_siops_bottom %>%
   geom_line(size = 0.8, alpha = 0.6) +
   scale_color_manual(values = color_graph) +
   scale_x_continuous(breaks = seq(2000,2010,1), limits = c(1999.5,2010.5)) +
-  scale_y_continuous(breaks = seq(0,1,0.1), limits = c(0,1)) +
+  scale_y_continuous(breaks = seq(0,0.7,0.1), limits = c(0,0.7)) +
   labs(x = "Year",
        y = "% of Health Spending",
        title = "Bottom Quartile of EC29") +
