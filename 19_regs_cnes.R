@@ -66,7 +66,7 @@ df <- df %>%
 
 df_above <- df_above %>% 
   select(all_of(vars))
-  
+
 
 df_below <- df_below %>% 
   select(all_of(vars))
@@ -224,8 +224,10 @@ iv_first_cs <- function(df,treat,year_filter,obj_name){
 
 # running regs
 iv_first_cs(df,"finbra_desp_saude_san_pcapita",1998,"table_all")
-iv_first_cs(df_above,"finbra_desp_saude_san_pcapita",1998,"table_above")
 iv_first_cs(df_below,"finbra_desp_saude_san_pcapita",1998,"table_below")
+if(below==0){
+  iv_first_cs(df_above,"finbra_desp_saude_san_pcapita",1998,"table_above")
+}
 
 
 
@@ -443,7 +445,7 @@ iv_cs <- function(outcome,treat,df,regression_output,transform,year_filter){
     fit <- felm(regformula, data = df_reg, weights = df_reg$pop ,exactDOF = T)
     
     # output
-
+    
     out <- cbind(fit %>% broom::tidy() %>% slice_tail(),fit %>% broom::glance() %>% select(nobs))
     
     out <- cbind(out,spec)
@@ -494,7 +496,7 @@ var_map <- rbind(cbind('cnes_st_all_mun_pcapita','Municipal Health Facilities (p
                  cbind('cnes_eq_mun_pcapita','Municipal Health Equipments (per capita * 1mi)'),
                  cbind('cnes_eq_private_pcapita','Private Health Equipments (per capita * 1mi)'),
                  cbind('cnes_eq_public_pcapita','Public Health Equipments (per capita * 1mi)')
-                 )
+)
 
 # write regression and regression output all and below
 
@@ -553,7 +555,7 @@ regress_output <- function(var,var_name,transform,year_filter){
                           bind_rows(table_below_1,table_below_2,table_below_3),
                           bind_rows(table_above_1,table_above_2,table_above_3)) 
   
-
+  
   
   # OLS REGRESSION
   # ----------------------------------------
@@ -638,7 +640,7 @@ regress_output <- function(var,var_name,transform,year_filter){
   
   # assigning objects to the global envir
   assign("table_all",table_all, envir = .GlobalEnv) 
-
+  
 }  # runs regressions and output objects
 
 regress_output_below <- function(var,var_name,transform,year_filter){
@@ -670,7 +672,7 @@ regress_output_below <- function(var,var_name,transform,year_filter){
   table_2sls <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3),
                           bind_rows(table_below_1,table_below_2,table_below_3)) 
   
-
+  
   # OLS REGRESSION
   # ----------------------------------------
   
@@ -737,7 +739,7 @@ regress_output_below <- function(var,var_name,transform,year_filter){
   
   # assigning objects to the global envir
   assign("table_all",table_all, envir = .GlobalEnv) 
-
+  
 }  # runs regressions and output objects
 
 
@@ -758,11 +760,11 @@ for (i in seq(1,21,1)){
     
     if(exists("df_table_all")){
       df_table_all <- rbind(df_table_all,table_all)
-
+      
     } else {
       
       df_table_all <- table_all
-
+      
     }
     
   }else{
