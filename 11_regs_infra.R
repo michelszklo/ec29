@@ -378,7 +378,7 @@ df_above <- df_above %>%
 
 
 
-for (i in c(1,2,4,5)){
+for (i in c(1,2,4)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
