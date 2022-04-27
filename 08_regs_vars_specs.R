@@ -133,7 +133,7 @@ df <- df %>%
   mutate(dist_spending_pc_baseline_below = ifelse(dist_spending_pc_baseline>0,dist_spending_pc_baseline,0)) %>% 
   ungroup() %>% 
   # distance to the EC29 target as total spending
-  mutate(dist_spending = -((siops_pct_recproprios_ec29 - 0.15)*(siops_rimpostosetransfconst))) %>% 
+  mutate(dist_spending = (-((siops_pct_recproprios_ec29 - 0.15)*(siops_rimpostosetransfconst)))/1000000) %>% 
   mutate(dist_spending_baseline = ifelse(ano==2000,dist_spending,NA)) %>% 
   group_by(cod_mun) %>% 
   mutate(dist_spending_baseline = mean(dist_spending_baseline, na.rm = T)) %>% 
