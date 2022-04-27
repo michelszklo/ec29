@@ -58,15 +58,19 @@ running_map <- rbind(
   cbind("regs_outputs/","yearly_reduced_form_ec29_b/","ec29_baseline_below",1,"results_ec29_baseline.xlsx"),
   cbind("regs_outputs/","yearly_reduced_form_dist_ec29/","dist_ec29_baseline",0,"results_dist_ec29_baseline.xlsx"),
   cbind("regs_outputs/","yearly_reduced_form_dist_ec29_b/","dist_ec29_baseline_below",1,"results_dist_ec29_baseline.xlsx"),
-  cbind("regs_outputs/","yearly_reduced_form_dist_spending/","dist_spending_pc_baseline",0,"results_dist_ec29_baseline.xlsx"),
-  cbind("regs_outputs/","yearly_reduced_form_dist_spending_b/","dist_spending_pc_baseline_below",1,"results_dist_spending_baseline.xlsx")
+  cbind("regs_outputs/","yearly_reduced_form_dist_spending/","dist_spending_pc_baseline",0,"results_dist_spending_baseline.xlsx"),
+  cbind("regs_outputs/","yearly_reduced_form_dist_spending_b/","dist_spending_pc_baseline_below",1,"results_dist_spending_baseline.xlsx"),
+  cbind("regs_outputs/","yearly_reduced_form_dist_spending2/","dist_spending_baseline",0,"results_dist_spending2_baseline.xlsx"),
+  cbind("regs_outputs/","yearly_reduced_form_dist_spending2_b/","dist_spending_baseline_below",1,"results_dist_spending2_baseline.xlsx")
 )
 
 
 # 2. Run all loop
 # =================================================================
 
-for(i in seq.int(1:nrow(running_map))){
+for(i in seq.int(5,nrow(running_map))){
+  
+  rm(list= ls()[!(ls() %in% c("dir","running_map","i"))])
   
   # Regressions' outputs main folder
   # ------------------------------------
@@ -84,7 +88,7 @@ for(i in seq.int(1:nrow(running_map))){
   print(paste0("Instrumental Variable: ", instrument))
   
   # is the instrument restricted to the sample below the target?
-  below <- running_map[i,4]
+  below <- running_map[i,4] %>% as.numeric()
   if(below==0){
     p <- "No"
   } else {
@@ -131,6 +135,5 @@ for(i in seq.int(1:nrow(running_map))){
   source(paste0(dir,scripts,"18_regs_birth.R"))
   scripts <- "ec29/"
   source(paste0(dir,scripts,"19_regs_cnes.R"))
-  
   
 }
