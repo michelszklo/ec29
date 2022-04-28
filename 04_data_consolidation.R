@@ -142,24 +142,24 @@ fns[20] <- lapply(fns[20], function(x) as.numeric(gsub(",",".",x)))
 fns_ab <- fns %>% 
   filter(bloco == "ATENÇÃO BÁSICA") %>% 
   group_by(cod_mun,ano) %>% 
-  summarize(transf_faf_ab = sum(vl_liquido, na.rm = T)) %>% 
+  summarise(transf_faf_ab = sum(vl_liquido, na.rm = T)) %>% 
   ungroup()
 
 fns_pabfixo <- fns %>% 
   filter(bloco == "ATENÇÃO BÁSICA" & componente=="PISO DA ATENÇÃO BÁSICA FIXO - PAB FIXO") %>% 
   group_by(cod_mun,ano) %>% 
-  summarize(transf_faf_pabfixo = sum(vl_liquido, na.rm = T)) %>% 
+  summarise(transf_faf_pabfixo = sum(vl_liquido, na.rm = T)) %>% 
   ungroup() 
 
 fns_pabvar <- fns %>% 
   filter(bloco == "ATENÇÃO BÁSICA" & componente=="PISO DA ATENÇÃO BÁSICA VARIÁVEL") %>% 
   group_by(cod_mun,ano) %>% 
-  summarize(transf_faf_pabvar = sum(vl_liquido, na.rm = T)) %>% 
+  summarise(transf_faf_pabvar = sum(vl_liquido, na.rm = T)) %>% 
   ungroup() 
 
 fns <- fns %>% 
   group_by(cod_mun,ano) %>% 
-  summarize(transf_faf = sum(vl_liquido, na.rm = T)) %>% 
+  summarise(transf_faf = sum(vl_liquido, na.rm = T)) %>% 
   ungroup()
 
 fns <- fns %>% 
@@ -355,6 +355,12 @@ df <- df %>%
 
 # infant mortality
 sim_vars <- grep("^mi",names(df), value = T)
+
+# transforming NA mi into 0
+df <- df %>% 
+  mutate_at(sim_vars, ~ if_else(is.na(.), 0, .))
+
+
 sim_vars_new <- sapply(sim_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F)
 df[sim_vars_new] <- df[sim_vars]
 
