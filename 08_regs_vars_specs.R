@@ -139,6 +139,10 @@ df <- df %>%
   mutate(dist_spending_baseline = mean(dist_spending_baseline, na.rm = T)) %>% 
   mutate(dist_spending_baseline_below = ifelse(dist_spending_baseline>0,dist_spending_baseline,0)) %>% 
   ungroup() %>% 
+  # percentual distance to the EC29 target
+  mutate(pcent_dist_ec29 = dist_ec29 / 0.15,
+         pcent_dist_ec29_baseline = dist_ec29_baseline / 0.15,
+         pcent_dist_ec29_baseline_below = ifelse(pcent_dist_ec29_baseline<0,0,pcent_dist_ec29_baseline)) %>% 
   # baseline year
   mutate(baseline = 2000) %>% 
   # post dummy
