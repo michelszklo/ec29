@@ -330,7 +330,8 @@ iv <- function(outcome,treat,df,regression_output,transform,year_filter){
   
   # log of treatment variable
   ln_treat <- paste0("ln_",treat)
-  df_reg[ln_treat] <- sapply(df_reg[treat], function(x) ifelse(x==0,x+0.000001,x))
+  # df_reg[ln_treat] <- sapply(df_reg[treat], function(x) ifelse(x==0,x+0.000001,x))
+  df_reg[ln_treat] <- df_reg[treat]
   df_reg <- df_reg %>% 
     mutate_at(ln_treat,log)
   
@@ -340,7 +341,8 @@ iv <- function(outcome,treat,df,regression_output,transform,year_filter){
   if(transform==1){
     # log
     ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
+    # df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
+    df_reg[ln_outcome] <- df_reg[outcome]
     df_reg <- df_reg %>% 
       mutate_at(ln_outcome,log)
     
@@ -413,7 +415,8 @@ iv_yearly <- function(outcome,var_name,treat,df,transform,year_filter,y0,yf,ys){
   
   # log of treatment variable
   ln_treat <- paste0("ln_",treat)
-  df_reg[ln_treat] <- sapply(df_reg[treat], function(x) ifelse(x==0,x+0.000001,x))
+  # df_reg[ln_treat] <- sapply(df_reg[treat], function(x) ifelse(x==0,x+0.000001,x))
+  df_reg[ln_treat] <- df_reg[treat]
   df_reg <- df_reg %>% 
     mutate_at(ln_treat,log)
   
@@ -422,7 +425,8 @@ iv_yearly <- function(outcome,var_name,treat,df,transform,year_filter,y0,yf,ys){
   if(transform==1){
     # log
     ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
+    # df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
+    df_reg[ln_outcome] <- df_reg[outcome]
     df_reg <- df_reg %>% 
       mutate_at(ln_outcome,log)
     
@@ -511,7 +515,8 @@ ols <- function(outcome,treat,df,regression_output,transform,year_filter){
   
   # log of treatment variable
   ln_treat <- paste0("ln_",treat)
-  df_reg[ln_treat] <- sapply(df_reg[treat], function(x) ifelse(x==0,x+0.000001,x))
+  # df_reg[ln_treat] <- sapply(df_reg[treat], function(x) ifelse(x==0,x+0.000001,x))
+  df_reg[ln_treat] <- df_reg[treat]
   df_reg <- df_reg %>% 
     mutate_at(ln_treat,log)
   
@@ -523,7 +528,8 @@ ols <- function(outcome,treat,df,regression_output,transform,year_filter){
   if(transform==1){
     # log
     ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
+    # df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
+    df_reg[ln_outcome] <- df_reg[outcome]
     df_reg <- df_reg %>% 
       mutate_at(ln_outcome,log)
     
@@ -705,7 +711,8 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
   if(transform==1){
     # log
     ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
+    # df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
+    df_reg[ln_outcome] <- df_reg[outcome]
     df_reg <- df_reg %>% 
       mutate_at(ln_outcome,log)
     
@@ -778,7 +785,8 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   if(transform==1){
     # log
     ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
+    # df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
+    df_reg[ln_outcome] <- df_reg[outcome]
     df_reg <- df_reg %>% 
       mutate_at(ln_outcome,log)
     
