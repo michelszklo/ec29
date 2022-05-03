@@ -341,8 +341,7 @@ iv <- function(outcome,treat,df,regression_output,transform,year_filter){
   if(transform==1){
     # log
     ln_outcome <- paste0("ln_",outcome)
-    # df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
-    df_reg[ln_outcome] <- df_reg[outcome]
+    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
     df_reg <- df_reg %>% 
       mutate_at(ln_outcome,log)
     
@@ -425,8 +424,7 @@ iv_yearly <- function(outcome,var_name,treat,df,transform,year_filter,y0,yf,ys){
   if(transform==1){
     # log
     ln_outcome <- paste0("ln_",outcome)
-    # df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
-    df_reg[ln_outcome] <- df_reg[outcome]
+    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
     df_reg <- df_reg %>% 
       mutate_at(ln_outcome,log)
     
@@ -528,8 +526,7 @@ ols <- function(outcome,treat,df,regression_output,transform,year_filter){
   if(transform==1){
     # log
     ln_outcome <- paste0("ln_",outcome)
-    # df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
-    df_reg[ln_outcome] <- df_reg[outcome]
+    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
     df_reg <- df_reg %>% 
       mutate_at(ln_outcome,log)
     
@@ -711,8 +708,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
   if(transform==1){
     # log
     ln_outcome <- paste0("ln_",outcome)
-    # df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
-    df_reg[ln_outcome] <- df_reg[outcome]
+    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
     df_reg <- df_reg %>% 
       mutate_at(ln_outcome,log)
     
@@ -785,8 +781,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   if(transform==1){
     # log
     ln_outcome <- paste0("ln_",outcome)
-    # df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,x+0.000001,x))
-    df_reg[ln_outcome] <- df_reg[outcome]
+    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
     df_reg <- df_reg %>% 
       mutate_at(ln_outcome,log)
     
