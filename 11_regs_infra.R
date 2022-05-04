@@ -57,13 +57,9 @@ load(paste0(dir,"regs.RData"))
 # =================================================================
 
 var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community Health Agents (log)'),
-                 cbind('eSF_popprop','Population covered (share) by Family Health Agents (log)'),
-                 cbind('hospital','Presence of Municipal Hospital'),
-                 cbind('leitos_pc','Hospital Beds per capita (log)'))
+                 cbind('eSF_popprop','Population covered (share) by Family Health Agents (log)'))
 
 
-# changing baseline year of AMS variables: 1999 -> 2000
-adjust_years_vars <- var_map[3:4,1]
 
 adjust_years <- function(df){
   df <- df %>% 
@@ -378,7 +374,7 @@ df_above <- df_above %>%
 
 
 
-for (i in c(1,2,4)){
+for (i in c(1,2)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -420,47 +416,6 @@ for (i in c(1,2,4)){
   
 }
 
-for (i in c(3)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  
-  if(below==1){
-    
-    regress_output_below(var,var_name,3,1998)
-    
-    
-    if(exists("df_table_all")){
-      df_table_all <- rbind(df_table_all,table_all)
-      df_graph_all <- rbind(df_graph_all,graph_all)
-      df_graph_below <- rbind(df_graph_below,graph_below)
-    } else {
-      
-      df_table_all <- table_all
-      df_graph_all <- graph_all
-      df_graph_below <- graph_below
-    }
-    
-  }else{
-    regress_output(var,var_name,1,1998)
-    
-    
-    if(exists("df_table_all")){
-      df_table_all <- rbind(df_table_all,table_all)
-      df_graph_all <- rbind(df_graph_all,graph_all)
-      df_graph_below <- rbind(df_graph_below,graph_below)
-      df_graph_above <- rbind(df_graph_above,graph_above)
-    } else {
-      
-      df_table_all <- table_all
-      df_graph_all <- graph_all
-      df_graph_below <- graph_below
-      df_graph_above <- graph_above
-    }
-    
-  }
-  
-}
 
 # exporting results
 # ---------------------
