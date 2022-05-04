@@ -69,7 +69,7 @@ running_map <- rbind(
 # =================================================================
 
 for(i in 3){
-# for(i in seq.int(5,nrow(running_map))){
+  # for(i in seq.int(5,nrow(running_map))){
   
   rm(list= ls()[!(ls() %in% c("dir","running_map","i"))])
   
@@ -127,8 +127,6 @@ for(i in 3){
   scripts <- "ec29/"
   source(paste0(dir,scripts,"14_regs_imr.R"))
   scripts <- "ec29/"
-  source(paste0(dir,scripts,"14_regs_imr_level.R"))
-  scripts <- "ec29/"
   source(paste0(dir,scripts,"15_regs_amr.R"))
   scripts <- "ec29/"
   # source(paste0(dir,scripts,"16_regs_imr_lag.R"))
@@ -136,7 +134,5 @@ for(i in 3){
   # source(paste0(dir,scripts,"17_regs_amr_lag.R"))
   scripts <- "ec29/"
   source(paste0(dir,scripts,"18_regs_birth.R"))
-  scripts <- "ec29/"
-  source(paste0(dir,scripts,"19_regs_cnes.R"))
   
 }
