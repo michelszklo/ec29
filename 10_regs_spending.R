@@ -57,22 +57,22 @@ load(paste0(dir,"regs.RData"))
 # 2. Define outcomes output name and output functions
 # =================================================================
 
-var_map <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita (log)'),
-                 cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita (log)'),
-                 cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (log)'),
-                 cbind('finbra_desp_outros_pcapita','Other Spending per capita (log)'),
-                 cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)'),
-                 cbind('finbra_desp_transporte_pcapita','Transport Spending per capita (log)'),
-                 cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (log)'),
-                 cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (log)'),
-                 cbind('finbra_desp_assist_prev_pcapita','Social Security Spending per capita (log)'),
-                 cbind('siops_despsaude_pcapita','Health Spending per capita - Total (log)'),
-                 cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (log)'),
-                 cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Transfers (log)'),
-                 cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources (log)'),
-                 cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (log)'),
-                 cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (log)'),
-                 cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (log)'),
+var_map <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita (asinh)'),
+                 cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita (asinh)'),
+                 cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (asinh)'),
+                 cbind('finbra_desp_outros_pcapita','Other Spending per capita (asinh)'),
+                 cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (asinh)'),
+                 cbind('finbra_desp_transporte_pcapita','Transport Spending per capita (asinh)'),
+                 cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (asinh)'),
+                 cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (asinh)'),
+                 cbind('finbra_desp_assist_prev_pcapita','Social Security Spending per capita (asinh)'),
+                 cbind('siops_despsaude_pcapita','Health Spending per capita - Total (asinh)'),
+                 cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (asinh)'),
+                 cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Transfers (asinh)'),
+                 cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources (asinh)'),
+                 cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (asinh)'),
+                 cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (asinh)'),
+                 cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (asinh)'),
                  
                  cbind('finbra_desp_pessoal_share','Human Resources Spending per capita (% Total Spending)'),
                  cbind('finbra_desp_investimento_share','Investment Spending per capita (% Total Spending)'),
@@ -398,7 +398,7 @@ for (i in seq(1,16,1)){
   
   if(below==1){
     
-    regress_output_below(var,var_name,1,1998)
+    regress_output_below(var,var_name,2,1998)
     
     
     if(exists("df_table_all")){
@@ -413,7 +413,7 @@ for (i in seq(1,16,1)){
     }
     
   }else{
-    regress_output(var,var_name,1,1998)
+    regress_output(var,var_name,2,1998)
     
     
     if(exists("df_table_all")){
@@ -490,7 +490,7 @@ for (i in seq(17,30,1)){
   
   if(below==1){
     
-    regress_output_below(var,var_name,1,1998)
+    regress_output_below(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){
@@ -505,7 +505,7 @@ for (i in seq(17,30,1)){
     }
     
   }else{
-    regress_output(var,var_name,1,1998)
+    regress_output(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){
