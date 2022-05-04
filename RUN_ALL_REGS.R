@@ -68,7 +68,8 @@ running_map <- rbind(
 # 2. Run all loop
 # =================================================================
 
-for(i in seq.int(5,nrow(running_map))){
+for(i in 3){
+# for(i in seq.int(5,nrow(running_map))){
   
   rm(list= ls()[!(ls() %in% c("dir","running_map","i"))])
   
