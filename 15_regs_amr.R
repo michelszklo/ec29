@@ -56,19 +56,19 @@ load(paste0(dir,"regs.RData"))
 # 2. Define outcomes output name and output functions
 # =================================================================
 
-var_map <-  rbind(cbind('tx_ma','Adult Mortality Rate (log)'),
-                  cbind('tx_ma_circ','Adult Mortality Rate (log) - Circulatory'),
-                  cbind('tx_ma_neop','Adult Mortality Rate (log) - Neoplasm'),
-                  cbind('tx_ma_resp','Adult Mortality Rate (log) - Respiratory'),
-                  cbind('tx_ma_endoc','Adult Mortality Rate (log) - Endocrine'),
-                  cbind('tx_ma_ext','Adult Mortality Rate (log) - External'),
-                  cbind('tx_ma_nut','Adult Mortality Rate (log) - Nutritional'),
-                  cbind('tx_ma_illdef','Adult Mortality Rate (log) - Ill-Defined'),
-                  cbind('tx_ma_out','Adult Mortality Rate (log) - Other'),
-                  cbind('tx_ma_diab','Adult Mortality Rate (log) - Diabetes'),
-                  cbind('tx_ma_hyper','Adult Mortality Rate (log) - Hypertension'),
-                  cbind('tx_ma_icsap','Adult Mortality Rate (log) - APC'),
-                  cbind('tx_ma_nicsap','Adult Mortality Rate (log) - non-APC'))
+var_map <-  rbind(cbind('tx_ma','Adult Mortality Rate'),
+                  cbind('tx_ma_circ','Adult Mortality Rate - Circulatory'),
+                  cbind('tx_ma_neop','Adult Mortality Rate - Neoplasm'),
+                  cbind('tx_ma_resp','Adult Mortality Rate - Respiratory'),
+                  cbind('tx_ma_endoc','Adult Mortality Rate - Endocrine'),
+                  cbind('tx_ma_ext','Adult Mortality Rate - External'),
+                  cbind('tx_ma_nut','Adult Mortality Rate - Nutritional'),
+                  cbind('tx_ma_illdef','Adult Mortality Rate - Ill-Defined'),
+                  cbind('tx_ma_out','Adult Mortality Rate - Other'),
+                  cbind('tx_ma_diab','Adult Mortality Rate - Diabetes'),
+                  cbind('tx_ma_hyper','Adult Mortality Rate - Hypertension'),
+                  cbind('tx_ma_icsap','Adult Mortality Rate - APC'),
+                  cbind('tx_ma_nicsap','Adult Mortality Rate - non-APC'))
 
 
 
@@ -382,7 +382,7 @@ for (i in seq(1,13,1)){
   
   if(below==1){
     
-    regress_output_below(var,var_name,1,1998)
+    regress_output_below(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){
@@ -397,7 +397,7 @@ for (i in seq(1,13,1)){
     }
     
   }else{
-    regress_output(var,var_name,1,1998)
+    regress_output(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){

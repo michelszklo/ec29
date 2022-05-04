@@ -55,13 +55,11 @@ load(paste0(dir,"regs.RData"))
 # 2. Define outcomes output name and output functions
 # =================================================================
 
-var_map <- rbind(cbind('sia_pcapita','Outpatient procedures per capita (log)'),
-                 cbind('sia_ab_pcapita','PC Outpatient procedures per capita (log)'),
-                 cbind('sia_ab_nsuperior_pcapita','PC outpatient proced college degree personal per capita (log)'),
-                 cbind('sia_ab_enfermagem_pcapita','PC outpatient proced non college degree personal per capita (log)'),
-                 cbind('sia_visita_superior_pcapita','Household visits by college degree personal per capita (log)'),
-                 cbind('sia_visita_medio_pcapita','Household visits by non college degree personal per capita (log)'),
-                 cbind('sia_ativ_grupo_pcapita','Educational activities in group per capita (log)'))
+var_map <- rbind(cbind('sia_pcapita','Outpatient procedures per capita'),
+                 cbind('sia_ab_pcapita','PC Outpatient procedures per capita'),
+                 cbind('sia_visita_superior_pcapita','Household visits by college degree personal per capita'),
+                 cbind('sia_visita_medio_pcapita','Household visits by non college degree personal per capita'),
+                 cbind('sia_ativ_grupo_pcapita','Educational activities in group per capita'))
 
 
 table_formating <- function(df,s){
@@ -376,7 +374,7 @@ for (i in seq(1,7,1)){
   
   if(below==1){
     
-    regress_output_below(var,var_name,1,1998)
+    regress_output_below(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){
@@ -391,7 +389,7 @@ for (i in seq(1,7,1)){
     }
     
   }else{
-    regress_output(var,var_name,1,1998)
+    regress_output(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){

@@ -56,8 +56,8 @@ load(paste0(dir,"regs.RData"))
 # 2. Define outcomes output name and output functions
 # =================================================================
 
-var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community Health Agents (log)'),
-                 cbind('eSF_popprop','Population covered (share) by Family Health Agents (log)'))
+var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community Health Agents'),
+                 cbind('eSF_popprop','Population covered (share) by Family Health Agents'))
 
 
 
@@ -381,7 +381,7 @@ for (i in c(1,2)){
   
   if(below==1){
     
-    regress_output_below(var,var_name,1,1998)
+    regress_output_below(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){
@@ -396,7 +396,7 @@ for (i in c(1,2)){
     }
     
   }else{
-    regress_output(var,var_name,1,1998)
+    regress_output(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){

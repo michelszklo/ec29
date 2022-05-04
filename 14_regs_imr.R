@@ -56,21 +56,21 @@ load(paste0(dir,"regs.RData"))
 # 2. Define outcomes output name and output functions
 # =================================================================
 
-var_map <-  rbind(cbind('tx_mi','Infant Mortality Rate (log)'),
-                  cbind('tx_mi_icsap','Infant Mortality Rate - APC (log)'),
-                  cbind('tx_mi_nicsap','Infant Mortality Rate - non-APC (log)'),
-                  cbind('tx_mi_infec','Infant Mortality Rate - Infectious (log)'),
-                  cbind('tx_mi_resp','Infant Mortality Rate - Respiratory (log)'),
-                  cbind('tx_mi_perinat','Infant Mortality Rate - Perinatal (log)'),
-                  cbind('tx_mi_cong','Infant Mortality Rate - Congenital (log)'),
-                  cbind('tx_mi_ext','Infant Mortality Rate - External (log)'),
-                  cbind('tx_mi_nut','Infant Mortality Rate - Nutritional (log)'),
-                  cbind('tx_mi_out','Infant Mortality Rate - Other (log)'),
-                  cbind('tx_mi_illdef','Infant Mortality Rate - Ill-Defined (log)'),
-                  cbind('tx_mi_fet','Infant Mortality Rate - Fetal (log)'),
-                  cbind('tx_mi_24h','Infant Mortality Rate - Within 24h (log)'),
-                  cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days (log)'),
-                  cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year (log)'))
+var_map <-  rbind(cbind('tx_mi','Infant Mortality Rate'),
+                  cbind('tx_mi_icsap','Infant Mortality Rate - APC'),
+                  cbind('tx_mi_nicsap','Infant Mortality Rate - non-APC'),
+                  cbind('tx_mi_infec','Infant Mortality Rate - Infectious'),
+                  cbind('tx_mi_resp','Infant Mortality Rate - Respiratory'),
+                  cbind('tx_mi_perinat','Infant Mortality Rate - Perinatal'),
+                  cbind('tx_mi_cong','Infant Mortality Rate - Congenital'),
+                  cbind('tx_mi_ext','Infant Mortality Rate - External'),
+                  cbind('tx_mi_nut','Infant Mortality Rate - Nutritional'),
+                  cbind('tx_mi_out','Infant Mortality Rate - Other'),
+                  cbind('tx_mi_illdef','Infant Mortality Rate - Ill-Defined'),
+                  cbind('tx_mi_fet','Infant Mortality Rate - Fetal'),
+                  cbind('tx_mi_24h','Infant Mortality Rate - Within 24h'),
+                  cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days'),
+                  cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year'))
 
 
 
@@ -384,7 +384,7 @@ for (i in seq(1,15,1)){
   
   if(below==1){
     
-    regress_output_below(var,var_name,1,1998)
+    regress_output_below(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){
@@ -399,7 +399,7 @@ for (i in seq(1,15,1)){
     }
     
   }else{
-    regress_output(var,var_name,1,1998)
+    regress_output(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){

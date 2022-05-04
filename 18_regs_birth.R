@@ -55,12 +55,14 @@ load(paste0(dir,"regs.RData"))
 # 2. Define outcomes output name and output functions
 # =================================================================
 
-var_map <- rbind(cbind('birth_apgar1','Apgar 1 (log)'),
-                 cbind('birth_apgar5','Apgar 5 (log)'),
-                 cbind('birth_c_sections','Share of C-Section (log)'),
-                 cbind('birth_gest_37plus','Gestation Weeks 37+ (log)'),
-                 cbind('birth_hospital','Birth at Hospital (log)'),
-                 cbind('birth_low_weight_2500g','Low Birth Weight (<2.5k) (log)'),
+var_map <- rbind(cbind('birth_apgar1','Apgar 1'),
+                 cbind('birth_apgar5','Apgar 5'),
+                 cbind('birth_c_sections','Share of C-Section'),
+                 cbind('birth_gest_37plus','Gestation Weeks 37+'),
+                 cbind('birth_hospital','Birth at Hospital'),
+                 cbind('birth_low_weight_2500g','Low Birth Weight (<2.5k)'),
+                 cbind('birth_prenat_0','Prenatal Visits None'),
+                 cbind('birth_prenat_1_6','Prenatal Visits 1-6'),
                  cbind('birth_prenat_7_plus','Prenatal Visits 7+'))
 
 
@@ -368,14 +370,14 @@ df_above <- df_above %>%
 
 
 
-for (i in seq(1,7,1)){
+for (i in seq(1,9,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   
   if(below==1){
     
-    regress_output_below(var,var_name,1,1998)
+    regress_output_below(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){
@@ -390,7 +392,7 @@ for (i in seq(1,7,1)){
     }
     
   }else{
-    regress_output(var,var_name,1,1998)
+    regress_output(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){
