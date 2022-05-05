@@ -62,8 +62,7 @@ var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community He
 
 
 adjust_years <- function(df){
-  df <- df %>% 
-    mutate_at(adjust_years_vars, function(x) ifelse(.$ano ==2000,lag(x,1),x))
+  df <- df
 }
 
 df <- df %>% adjust_years()
