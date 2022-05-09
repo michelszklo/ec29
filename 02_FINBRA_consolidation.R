@@ -494,8 +494,8 @@ write.table(finbra, paste0(output,"FINBRA.csv"), fileEncoding = "latin1", sep = 
 for (ano in c(1998,1999)) {
   
   temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"), encoding = "UTF-8",sep = ";")
-  temp <- temp %>% select(c('X.U.FEFF.UF','MUNICIPIO','Rec.Correntes'))
-  colnames(temp) <- c('uf','nome_mun','reccorr')
+  temp <- temp %>% select(c('X.U.FEFF.UF','MUNICIPIO','Rec.Correntes','Rec.Orçamentária','Rec.Tributária','Rec.Transf.Correntes'))
+  colnames(temp) <- c('uf','nome_mun','reccorr','recorc','rectribut','rectransf')
   temp <- temp %>% mutate(nome_mun = as.character(nome_mun), uf = as.character(uf))
   
   names_map <- rbind(
@@ -545,7 +545,10 @@ for (ano in c(1998,1999)) {
   
   temp <- temp %>% 
     mutate(mun_merge = replace_non_ascii(gsub("-","",gsub("'","",gsub(" ","",tolower(as.character(nome_mun)))))),
-           reccorr = gsub(",","",reccorr))
+           reccorr = gsub(",","",reccorr),
+           recorc = gsub(",","",recorc),
+           rectribut = gsub(",","",rectribut),
+           rectransf = gsub(",","",rectransf))
   
   temp <- left_join(temp,id_mun, by = c("mun_merge","uf"))
   temp$ano <- ano
@@ -567,8 +570,8 @@ for (ano in c(1998,1999)) {
 for (ano in c(2000,2001,seq.int(2003,2012))){
   # temp <- read.xlsx(file = paste0(raw,"finbra",ano,"_despesa.xlsx"),sheetIndex = 1, encoding = "UTF-8")
   temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"), encoding = "UTF-8",sep = ";")
-  temp <- temp %>% select(c('X.U.FEFF.CD_UF','CD_MUN','UF','MUNICIPIO','Rec.Correntes'))
-  colnames(temp) <- c('cod_uf','cod_mun','uf','nome_mun','reccorr')
+  temp <- temp %>% select(c('X.U.FEFF.CD_UF','CD_MUN','UF','MUNICIPIO','Rec.Correntes','Rec.Orçamentária','Rec.Tributária','Rec.Transf.Correntes'))
+  colnames(temp) <- c('cod_uf','cod_mun','uf','nome_mun','reccorr','recorc','rectribut','rectransf')
   temp <- temp %>%
     mutate(nome_mun = as.character(nome_mun), uf = as.character(uf),
            n = nchar(cod_mun),
@@ -576,7 +579,10 @@ for (ano in c(2000,2001,seq.int(2003,2012))){
     mutate(cod_mun = ifelse(n==1, paste0("000",cod_mun), ifelse(n==2, paste0("00",cod_mun), ifelse(n==3,paste0("0",cod_mun),cod_mun)))) %>% 
     mutate(cod_mun = as.numeric(paste0(cod_uf,cod_mun))) %>% 
     select(-n) %>% 
-    mutate(reccorr = gsub(",","",reccorr))
+    mutate(reccorr = gsub(",","",reccorr),
+           recorc = gsub(",","",recorc),
+           rectribut = gsub(",","",rectribut),
+           rectransf = gsub(",","",rectransf))
   
   temp$ano <- ano
   
@@ -592,8 +598,8 @@ for (ano in c(2000,2001,seq.int(2003,2012))){
 for (ano in c(2002)){
   # temp <- read.xlsx(file = paste0(raw,"finbra",ano,"_despesa.xlsx"),sheetIndex = 1, encoding = "UTF-8")
   temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"), encoding = "UTF-8",sep = ";")
-  temp <- temp %>% select(c('X.U.FEFF.CD_UF','CD_MUN','UF','NOME.DO.MUNICIPIO.SIAFI','Rec.Correntes'))
-  colnames(temp) <- c('cod_uf','cod_mun','uf','nome_mun','reccorr')
+  temp <- temp %>% select(c('X.U.FEFF.CD_UF','CD_MUN','UF','NOME.DO.MUNICIPIO.SIAFI','Rec.Correntes','Rec.Orçamentária','Rec.Tributária','Rec.Transf.Correntes'))
+  colnames(temp) <- c('cod_uf','cod_mun','uf','nome_mun','reccorr','recorc','rectribut','rectransf')
   temp <- temp %>%
     mutate(nome_mun = as.character(nome_mun), uf = as.character(uf),
            n = nchar(cod_mun),
@@ -601,7 +607,10 @@ for (ano in c(2002)){
     mutate(cod_mun = ifelse(n==1, paste0("000",cod_mun), ifelse(n==2, paste0("00",cod_mun), ifelse(n==3,paste0("0",cod_mun),cod_mun)))) %>% 
     mutate(cod_mun = as.numeric(paste0(cod_uf,cod_mun))) %>% 
     select(-n) %>% 
-    mutate(reccorr = gsub(",","",reccorr))
+    mutate(reccorr = gsub(",","",reccorr),
+           recorc = gsub(",","",recorc),
+           rectribut = gsub(",","",rectribut),
+           rectransf = gsub(",","",rectransf))
   
   temp$ano <- ano
   
@@ -617,29 +626,42 @@ for (ano in c(2002)){
 
 
 for (ano in seq.int(2013,2017)){
-  temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"), encoding = "UTF-8",sep = ";", skip = 3)
+  temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"), encoding = "Latin-1",sep = ";", skip = 3)
   temp <- temp %>% 
-    filter(Conta=="1.0.0.0.00.00.00 - Receitas Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) %>% 
-    rename(cod_mun = Cod.IBGE,
-           reccorr = Valor) %>% 
-    select(c("cod_mun","reccorr")) %>% 
-    mutate(reccorr = gsub(",",".",reccorr),
+    filter((Conta=="1.0.0.0.00.00.00 - Receitas Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
+             (Conta=="1.1.0.0.00.00.00 - Receita Tributária" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
+             (Conta=="1.7.0.0.00.00.00 - Transferências Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas"))) %>% 
+    rename(cod_mun = Cod.IBGE) %>% 
+    select(c("cod_mun","Conta","Valor")) %>% 
+    mutate(Conta = ifelse(Conta=="1.0.0.0.00.00.00 - Receitas Correntes","reccorr",Conta),
+           Conta = ifelse(Conta=="1.1.0.0.00.00.00 - Receita Tributária","rectribut",Conta),
+           Conta = ifelse(Conta=="1.7.0.0.00.00.00 - Transferências Correntes","rectransf",Conta)) %>% 
+    mutate(Conta = gsub(",",".",Conta),
            cod_mun = substr(cod_mun,1,6),
-           cod_mun = as.numeric(cod_mun))
+           cod_mun = as.numeric(cod_mun)) %>% 
+    pivot_wider(names_from = "Conta",
+                values_from = "Valor")
   
   temp$ano <- ano
   finbra <- bind_rows(finbra,temp)
 }
 
-temp <- read.csv(file = paste0(raw,"receita/finbra",2018,"_receita.csv"), encoding = "UTF-8",sep = ";", skip = 3)
+temp <- read.csv(file = paste0(raw,"receita/finbra",2018,"_receita.csv"), encoding = "Latin-1",sep = ";", skip = 3)
 temp <- temp %>% 
-  filter(Conta=="1.0.0.0.00.0.0 - Receitas Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) %>% 
-  rename(cod_mun = Cod.IBGE,
-         reccorr = Valor) %>% 
-  select(c("cod_mun","reccorr")) %>% 
-  mutate(reccorr = gsub(",",".",reccorr),
+  filter((Conta=="1.0.0.0.00.0.0 - Receitas Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
+           (Conta=="1.1.0.0.00.0.0 - Impostos, Taxas e Contribuições de Melhoria" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
+           (Conta=="1.7.0.0.00.0.0 - Transferências Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas"))) %>%
+  rename(cod_mun = Cod.IBGE) %>% 
+  select(c("cod_mun","Conta","Valor")) %>% 
+  mutate(Conta = ifelse(Conta=="1.0.0.0.00.0.0 - Receitas Correntes","reccorr",Conta),
+         Conta = ifelse(Conta=="1.1.0.0.00.0.0 - Impostos, Taxas e Contribuições de Melhoria","rectribut",Conta),
+         Conta = ifelse(Conta=="1.7.0.0.00.0.0 - Transferências Correntes","rectransf",Conta)) %>% 
+  mutate(Conta = gsub(",",".",Conta),
          cod_mun = substr(cod_mun,1,6),
-         cod_mun = as.numeric(cod_mun))
+         cod_mun = as.numeric(cod_mun)) %>% 
+  pivot_wider(names_from = "Conta",
+              values_from = "Valor")
+
 
 temp$ano <- 2018
 finbra <- bind_rows(finbra,temp)
@@ -650,7 +672,7 @@ finbra <- bind_rows(finbra,temp)
 # =================================================================
 
 
-finbra_select <- finbra %>% select(c("cod_mun","ano","reccorr"))
+finbra_select <- finbra %>% select(c("cod_mun","ano","reccorr","rectribut","rectransf"))
 write.table(finbra_select, paste0(output,"FINBRA_receita.csv"), fileEncoding = "latin1", sep = ",", row.names = F)
 
 
