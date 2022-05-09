@@ -262,6 +262,8 @@ df <- mun_list %>%
   left_join(fns, by = c("ano","cod_mun")) %>%
   # datasus - infra
   left_join(infra, by = c("ano","cod_mun")) %>% 
+  mutate(ACS_popprop = ACS_popprop / 100,
+         eSF_popprop = eSF_popprop / 100) %>% 
   # datasus - sinasc
   left_join(sinasc, by = c("ano","cod_mun")) %>% 
   # datasus - sim
@@ -455,8 +457,7 @@ vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", US
 df[vars_new] <- df[vars]
 
 df <- df %>% 
-  mutate_at(vars_new,`/`,quote(pop)) %>% 
-  mutate_at(vars_new,`*`,quote(1000))
+  mutate_at(vars_new,`/`,quote(pop))
 
 
 
