@@ -76,7 +76,7 @@ var_map <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita (asinh
                  
                  cbind('finbra_desp_pessoal_share','Human Resources Spending per capita (% Total Spending)'),
                  cbind('finbra_desp_investimento_share','Investment Spending per capita (% Total Spending)'),
-                 cbind('finbra_desp_adm_share','Administrative Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_outros_share','Other Spending per capita (% Total Spending)'),
                  cbind('finbra_desp_saude_san_share','Health and Sanitation Spending per capita (% Total Spending)'),
                  cbind('finbra_desp_transporte_share','Transport Spending per capita (% Total Spending)'),
                  cbind('finbra_desp_educ_cultura_share','Education and Culture Spending per capita (% Total Spending)'),
