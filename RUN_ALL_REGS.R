@@ -46,7 +46,8 @@ options(digits = 15)
 # SET PATH FOR EC 29-2000 ON YOUR COMPUTER
 # ------------------------------------
 
-dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+dir <- "C:/Users/Michel/Documents/GitHub/"
+dir2 <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 
 # ------------------------------------
 
@@ -64,14 +65,19 @@ running_map <- rbind(
   cbind("regs_outputs/","yearly_reduced_form_dist_spending2_b/","dist_spending_baseline_below",1,"results_dist_spending2_baseline.xlsx")
 )
 
+running_map <- rbind(
+  cbind("regs_outputs/","yearly_reduced_form_dist_ec29/","dist_ec29_baseline",0,"results_dist_ec29_baseline_elect.xlsx")
+  
+)
+
 
 # 2. Run all loop
 # =================================================================
 
-for(i in 3){
+for(i in 1){
   # for(i in seq.int(5,nrow(running_map))){
   
-  rm(list= ls()[!(ls() %in% c("dir","running_map","i"))])
+  rm(list= ls()[!(ls() %in% c("dir","dir2","running_map","i"))])
   
   # Regressions' outputs main folder
   # ------------------------------------
@@ -108,31 +114,39 @@ for(i in 3){
   
   # Saving set up
   # ------------------------------------
-  save.image(paste0(dir,"output_setup.RData"))
+  save.image(paste0(dir2,"output_setup.RData"))
   
   
   # Run all regressions
   # ------------------------------------
   
   scripts <- "ec29/"
+  dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"08_regs_vars_specs.R"))
   scripts <- "ec29/"
+  dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"09_regs_firststage.R"))
   scripts <- "ec29/"
+  dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"10_regs_spending.R"))
   scripts <- "ec29/"
+  dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"11_regs_infra.R"))
   scripts <- "ec29/"
+  dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"12_regs_sia.R"))
   scripts <- "ec29/"
+  dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"14_regs_imr.R"))
   scripts <- "ec29/"
+  dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"15_regs_amr.R"))
   scripts <- "ec29/"
+  dir <- "C:/Users/Michel/Documents/GitHub/"
   # source(paste0(dir,scripts,"16_regs_imr_lag.R"))
   # scripts <- "ec29/"
   # source(paste0(dir,scripts,"17_regs_amr_lag.R"))
-  scripts <- "ec29/"
+  # scripts <- "ec29/"
   source(paste0(dir,scripts,"18_regs_birth.R"))
   
 }
