@@ -50,6 +50,8 @@ dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 
 load(paste0(dir,"output_setup.RData"))
 
+dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+
 # ------------------------------------
 
 
@@ -249,8 +251,14 @@ df <- df %>%
   unnest(all_of(yeartreat_dummies))
 
 
+# converting df_above to sample of municipalities of mayors who ran for reelection
+df_above <- df %>% 
+  filter(reelect_sample==1)
 
+# converting df_below to sample of municipalities of mayors who didn't run for reelection
 
+df_below <- df %>% 
+  filter(reelect_sample==0)
 
 # 4. regression specifications
 # =================================================================
