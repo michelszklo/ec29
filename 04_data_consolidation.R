@@ -55,7 +55,7 @@ mun_list <- read.csv(paste0(raw,"lista_mun/lista_mun_2000.csv"), encoding = "UTF
   ungroup() %>% 
   unnest(ano) %>% 
   rename("cod_mun" = 1)
-  
+
 
 
 # 2. Expenditure deflator
@@ -75,15 +75,36 @@ finbra <- read.csv(paste0(raw,"Finbra/FINBRA.csv"), encoding = "UTF-8") %>%
 names(finbra) <- gsub("desp","finbra_desp",names(finbra))
 
 finbra_receita <- read.csv(paste0(raw,"Finbra/FINBRA_receita.csv"), encoding = "UTF-8") %>% 
-  rename(finbra_reccorr=reccorr) %>% 
-  filter(ano<=2010)
+  rename(finbra_reccorr=reccorr,
+         finbra_rectribut = rectribut,
+         finbra_rectransf = rectransf) %>%
+  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf"), function(x) ifelse(.$ano>2012,gsub(",",".",x),x)) %>% 
+  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf"),as.numeric)
 
 finbra <- finbra %>% left_join(finbra_receita, by = c("ano","cod_mun"))
-  
+
 rm(finbra_receita)
 
 
+
 finbra[8:33] <- lapply(finbra[8:33], function(x) as.numeric(gsub(",","",x),digits = 15))
+
+
+
+# "correcting errors in data
+
+vars_correct <- names(finbra)[!(names(finbra) %in% c("ano","cod_mun","nome_mun","cod_uf","uf","pop","pop2000","finbra_desp_o","finbra_desp_c","finbra_reccorr","finbra_rectribut","finbra_rectransf"))]
+
+finbra <- finbra %>% 
+  mutate_at(vars_correct, function(x) ifelse(.$finbra_desp_o<x,NA,x))
+
+rm(vars_correct)
+
+finbra <- finbra %>% 
+  mutate(finbra_desp_outros = finbra_desp_c - (finbra_desp_pessoal + finbra_desp_investimento),
+         finbra_desp_outros_area =  finbra_desp_o - 
+           (finbra_desp_saude_san + finbra_desp_transporte + finbra_desp_educ_cultura + finbra_desp_assist_prev),
+         finbra_rec_outros = finbra_reccorr - (finbra_rectribut + finbra_rectransf))
 
 
 # 4. Importing SIOPS data
@@ -110,6 +131,7 @@ siops <- siops %>%
          siops_despinvest_pcapita = ifelse(check==1,NA,siops_despinvest_pcapita),
          siops_despservicoster_pcapita = ifelse(check==1,NA,siops_despservicoster_pcapita),
          siops_despmedicamentos_pcapita = ifelse(check==1,NA,siops_despmedicamentos_pcapita)) %>% 
+  mutate(siops_despoutros_pcapita =  siops_despsaude_pcapita - siops_despoutros_pcapita) %>% 
   select(-check)
 
 
@@ -126,24 +148,24 @@ fns[20] <- lapply(fns[20], function(x) as.numeric(gsub(",",".",x)))
 fns_ab <- fns %>% 
   filter(bloco == "ATENÇÃO BÁSICA") %>% 
   group_by(cod_mun,ano) %>% 
-  summarize(transf_faf_ab = sum(vl_liquido, na.rm = T)) %>% 
+  summarise(transf_faf_ab = sum(vl_liquido, na.rm = T)) %>% 
   ungroup()
 
 fns_pabfixo <- fns %>% 
   filter(bloco == "ATENÇÃO BÁSICA" & componente=="PISO DA ATENÇÃO BÁSICA FIXO - PAB FIXO") %>% 
   group_by(cod_mun,ano) %>% 
-  summarize(transf_faf_pabfixo = sum(vl_liquido, na.rm = T)) %>% 
+  summarise(transf_faf_pabfixo = sum(vl_liquido, na.rm = T)) %>% 
   ungroup() 
 
 fns_pabvar <- fns %>% 
   filter(bloco == "ATENÇÃO BÁSICA" & componente=="PISO DA ATENÇÃO BÁSICA VARIÁVEL") %>% 
   group_by(cod_mun,ano) %>% 
-  summarize(transf_faf_pabvar = sum(vl_liquido, na.rm = T)) %>% 
+  summarise(transf_faf_pabvar = sum(vl_liquido, na.rm = T)) %>% 
   ungroup() 
 
 fns <- fns %>% 
   group_by(cod_mun,ano) %>% 
-  summarize(transf_faf = sum(vl_liquido, na.rm = T)) %>% 
+  summarise(transf_faf = sum(vl_liquido, na.rm = T)) %>% 
   ungroup()
 
 fns <- fns %>% 
@@ -223,7 +245,7 @@ elect <- read.csv(paste0(raw,"TSE/run_reelection.csv"), encoding = "UTF-8") %>%
   distinct(cod_mun, .keep_all = T) %>% 
   filter(!is.na(cod_mun)) %>% 
   filter(!(cod_mun==420860 & reelect==1))
-  
+
 
 
 # 11. Merging all
@@ -240,6 +262,8 @@ df <- mun_list %>%
   left_join(fns, by = c("ano","cod_mun")) %>%
   # datasus - infra
   left_join(infra, by = c("ano","cod_mun")) %>% 
+  mutate(ACS_popprop = ACS_popprop / 100,
+         eSF_popprop = eSF_popprop / 100) %>% 
   # datasus - sinasc
   left_join(sinasc, by = c("ano","cod_mun")) %>% 
   # datasus - sim
@@ -278,30 +302,30 @@ df <- mun_list %>%
   mutate(hospital_nmun = hospital_est + hospital_fed) %>% 
   mutate(hr_all = hr_superior + hr_technician + hr_elementary + hr_admin)
 
-  # creating dummies for the presence of hospitals
+# creating dummies for the presence of hospitals
 
-      dummy_vars <- c("hospital_all",
-                      "hospital_all_esp",
-                      "hospital_est",
-                      "hospital_est_esp",
-                      "hospital_fed",
-                      "hospital_fed_esp",
-                      "hospital_mun",
-                      "hospital_mun_esp",
-                      "hospital_pvt",
-                      "hospital_pvt_esp",
-                      "hospital_nmun",
-                      "hospital_pub",
-                      "hospital_pub_esp")
-      
-      for (v in dummy_vars){
-        newvar <-  paste0("d_",v)
-        df <- df %>% 
-          mutate(!!newvar :=  ifelse(!!sym(v)>0,1,0))
-      }
-      
-  
-      
+dummy_vars <- c("hospital_all",
+                "hospital_all_esp",
+                "hospital_est",
+                "hospital_est_esp",
+                "hospital_fed",
+                "hospital_fed_esp",
+                "hospital_mun",
+                "hospital_mun_esp",
+                "hospital_pvt",
+                "hospital_pvt_esp",
+                "hospital_nmun",
+                "hospital_pub",
+                "hospital_pub_esp")
+
+for (v in dummy_vars){
+  newvar <-  paste0("d_",v)
+  df <- df %>% 
+    mutate(!!newvar :=  ifelse(!!sym(v)>0,1,0))
+}
+
+
+
 # 12. Deflating variables
 # ==============================================================
 
@@ -329,8 +353,8 @@ df <- df %>%
   mutate_at(fns_vars_new, `/`, quote(pop)) %>% 
   mutate_at(fns_vars_new, `/`, quote(deflator_saude)) %>% 
   select(-all_of(fns_vars))
-  
-  
+
+
 
 
 # 13. Creating mortality rates
@@ -339,6 +363,12 @@ df <- df %>%
 
 # infant mortality
 sim_vars <- grep("^mi",names(df), value = T)
+
+# transforming NA mi into 0
+df <- df %>% 
+  mutate_at(sim_vars, ~ if_else(is.na(.), 0, .))
+
+
 sim_vars_new <- sapply(sim_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F)
 df[sim_vars_new] <- df[sim_vars]
 
@@ -417,9 +447,9 @@ df <- df %>%
 infra_vars <- c("ACS_I", "eSF_I")
 sia_vars <- grep("^sia",names(df),value = T)
 ams_vars <- c(grep("^hospital_",names(df), value = T),
-         grep("^unity_",names(df), value = T),
-         grep("^therapy_",names(df), value = T),
-         grep("^hr_",names(df), value = T))
+              grep("^unity_",names(df), value = T),
+              grep("^therapy_",names(df), value = T),
+              grep("^hr_",names(df), value = T))
 
 vars <- c(infra_vars,sia_vars,ams_vars)
 vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
@@ -427,8 +457,7 @@ vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", US
 df[vars_new] <- df[vars]
 
 df <- df %>% 
-  mutate_at(vars_new,`/`,quote(pop)) %>% 
-  mutate_at(vars_new,`*`,quote(1000))
+  mutate_at(vars_new,`/`,quote(pop))
 
 
 
@@ -460,7 +489,58 @@ df <- df %>%
   mutate(lrf = ifelse(finbra_desp_pessoal_pcapita/finbra_desp_c_pcapita>0.6,1,0))
 
 
-# 16. saving
+# 17. Share of spending to total spending (finbra)
+# ==============================================================
+
+df <- df %>% 
+  mutate(finbra_desp_pessoal_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_pessoal_pcapita / finbra_desp_o_pcapita,0),
+         finbra_desp_investimento_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_investimento_pcapita / finbra_desp_o_pcapita,0),
+         finbra_desp_outros_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_outros_pcapita / finbra_desp_o_pcapita,0),
+         finbra_desp_adm_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_adm_pcapita / finbra_desp_o_pcapita,0),
+         finbra_desp_saude_san_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_saude_san_pcapita / finbra_desp_o_pcapita,0),
+         finbra_desp_transporte_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_transporte_pcapita / finbra_desp_o_pcapita,0),
+         finbra_desp_educ_cultura_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_educ_cultura_pcapita / finbra_desp_o_pcapita,0),
+         finbra_desp_hab_urb_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_hab_urb_pcapita / finbra_desp_o_pcapita,0),
+         finbra_desp_assist_prev_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_assist_prev_pcapita / finbra_desp_o_pcapita,0),
+         finbra_desp_outros_area_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_outros_area_pcapita / finbra_desp_o_pcapita,0),
+         finbra_rectransf_share = ifelse(finbra_reccorr_pcapita!=0,finbra_rectransf_pcapita / finbra_reccorr_pcapita,0),
+         finbra_rectribut_share = ifelse(finbra_reccorr_pcapita!=0,finbra_rectribut_pcapita / finbra_reccorr_pcapita,0),
+         finbra_rec_outros_share = ifelse(finbra_reccorr_pcapita!=0,finbra_rec_outros_pcapita / finbra_reccorr_pcapita,0),
+         siops_desprecpropriosaude_share = ifelse(siops_despsaude_pcapita!=0,siops_desprecpropriosaude_pcapita / siops_despsaude_pcapita,0),
+         siops_despexrecproprio_share = ifelse(siops_despsaude_pcapita!=0,siops_despexrecproprio_pcapita / siops_despsaude_pcapita,0),
+         siops_desppessoal_share = ifelse(siops_despsaude_pcapita!=0,siops_desppessoal_pcapita / siops_despsaude_pcapita,0),
+         siops_despinvest_share = ifelse(siops_despsaude_pcapita!=0,siops_despinvest_pcapita / siops_despsaude_pcapita,0),
+         siops_despservicoster_share = ifelse(siops_despsaude_pcapita!=0,siops_despservicoster_pcapita / siops_despsaude_pcapita,0),
+         siops_despoutros_share = ifelse(siops_despsaude_pcapita!=0,siops_despoutros_pcapita / siops_despsaude_pcapita,0)) %>% 
+  # checking if values sum 1
+  mutate(sum_check = finbra_desp_saude_san_share + finbra_desp_transporte_share + finbra_desp_educ_cultura_share +
+           finbra_desp_hab_urb_share + finbra_desp_assist_prev_share,
+         sum_check2 = finbra_rectransf_share + finbra_rectribut_share) %>% 
+  mutate(finbra_desp_saude_san_share = ifelse(sum_check>1,NA,finbra_desp_saude_san_share),
+         finbra_desp_saude_san_pcapita = ifelse(sum_check>1,NA,finbra_desp_saude_san_pcapita),
+         finbra_desp_transporte_share = ifelse(sum_check>1,NA,finbra_desp_transporte_share),
+         finbra_desp_transporte_pcapita = ifelse(sum_check>1,NA,finbra_desp_transporte_pcapita),
+         finbra_desp_educ_cultura_share = ifelse(sum_check>1,NA,finbra_desp_educ_cultura_share),
+         finbra_desp_educ_cultura_pcapita = ifelse(sum_check>1,NA,finbra_desp_educ_cultura_pcapita),
+         finbra_desp_hab_urb_share = ifelse(sum_check>1,NA,finbra_desp_hab_urb_share),
+         finbra_desp_hab_urb_pcapita = ifelse(sum_check>1,NA,finbra_desp_hab_urb_pcapita),
+         finbra_desp_assist_prev_share = ifelse(sum_check>1,NA,finbra_desp_assist_prev_share),
+         finbra_desp_assist_prev_pcapita = ifelse(sum_check>1,NA,finbra_desp_assist_prev_pcapita),
+         finbra_desp_outros_pcapita = ifelse(sum_check>1,NA,finbra_desp_outros_pcapita),
+         finbra_desp_outros_share = ifelse(sum_check>1,NA,finbra_desp_outros_share),
+         finbra_desp_outros_area_pcapita = ifelse(sum_check>1,NA,finbra_desp_outros_area_pcapita),
+         finbra_desp_outros_area_share = ifelse(sum_check>1,NA,finbra_desp_outros_area_share),
+         finbra_reccorr_pcapita = ifelse(sum_check2>1,NA,finbra_reccorr_pcapita),
+         finbra_rectransf_pcapita = ifelse(sum_check2>1,NA,finbra_rectransf_pcapita),
+         finbra_rectransf_share = ifelse(sum_check2>1,NA,finbra_rectransf_share),
+         finbra_rectribut_pcapita = ifelse(sum_check2>1,NA,finbra_rectribut_pcapita),
+         finbra_rectribut_share = ifelse(sum_check2>1,NA,finbra_rectribut_share),
+         finbra_rec_outros_pcapita = ifelse(sum_check2>1,NA,finbra_rec_outros_pcapita),
+         finbra_rec_outros_share = ifelse(sum_check2>1,NA,finbra_rec_outros_share)
+  ) %>% 
+  select(-c("sum_check","sum_check2"))
+
+# 18. saving
 # ==============================================================
 df <- df %>% filter(ano<=2015)
 

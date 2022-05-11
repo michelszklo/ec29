@@ -71,12 +71,12 @@ transform_select <- function(df,treat){
   
   # selecting main variables
   df <- df %>% 
-    select(ano, cod_mun, mun_name, cod_uf, uf_y_fe, all_of(treat),all_of(ln_treat),post_ec29_baseline,post_dist_spending_pc_baseline,post_dist_spending_baseline,all_of(controls),pop)
+    select(ano, cod_mun, mun_name, cod_uf, uf_y_fe, all_of(treat),all_of(yeartreat_dummies),all_of(ln_treat),iv,all_of(controls),pop)
   
   # balanced panel
   # df <- df[complete.cases(df),]
   df <- df[complete.cases(df[,ln_treat]),]
-
+  
 } 
 
 
@@ -146,22 +146,77 @@ table_formatting <- function(df){
 
 # 3. Running regs
 # =================================================================
-df <- df %>% transform_select("finbra_desp_saude_san_pcapita")
-df_below <- df_below %>% transform_select("finbra_desp_saude_san_pcapita")
-df_above <- df_above %>% transform_select("finbra_desp_saude_san_pcapita")
+df <- df %>%
+  filter(ano<=2010) %>%
+  mutate(iv=ifelse(ano==2000 & !is.na(iv),0,iv)) %>%
+  transform_select("finbra_desp_saude_san_pcapita") 
+df_below <- df_below %>%
+  filter(ano<=2010) %>%
+  mutate(iv=ifelse(ano==2000 & !is.na(iv),0,iv)) %>%
+  transform_select("finbra_desp_saude_san_pcapita")
+df_above <- df_above %>%
+  filter(ano<=2010) %>%
+  mutate(iv=ifelse(ano==2000 & !is.na(iv),0,iv)) %>% 
+  transform_select("finbra_desp_saude_san_pcapita")
+
+
 
 iv_first(df,"finbra_desp_saude_san_pcapita",1998,"table_all")
 iv_first(df_below,"finbra_desp_saude_san_pcapita",1998,"table_below")
-iv_first(df_above,"finbra_desp_saude_san_pcapita",1998,"table_above")
+
+if(below!=1){
+  iv_first(df_above,"finbra_desp_saude_san_pcapita",1998,"table_above")
+}
 
 
-# df <- df %>% transform_select("siops_desptotalsaude")
-# df_below <- df_below %>% transform_select("siops_desptotalsaude")
-# df_above <- df_above %>% transform_select("siops_desptotalsaude")
-# 
-# iv_first(df,"siops_desptotalsaude",2000,"table_all")
-# iv_first(df_below,"siops_desptotalsaude",2000,"table_below")
-# iv_first(df_above,"siops_desptotalsaude",2000,"table_above")
+# First stage IV graphs
+
+if (below==1){
+  sample <- "_b"
+} else{
+  sample <- ""
+}
+
+
+if (instrument=="ec29_baseline" | instrument=="ec29_baseline_below"){
+  
+  iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-8,5,1,paste0(instrument,sample,"_full"))
+  iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-8,5,1,paste0(instrument,sample,"_below"))
+  
+  if(below!=1){
+    iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-8,5,1,paste0(instrument,sample,"_above"))
+  }
+  
+  
+}
+
+
+if (instrument=="dist_ec29_baseline" | instrument== "dist_ec29_baseline_below"){
+  
+  iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-5,6,1,paste0(instrument,sample,"_full"))
+  iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-5,6,1,paste0(instrument,sample,"_below"))
+  
+  if(below!=1){
+    iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-5,6,1,paste0(instrument,sample,"_above"))
+  }
+  
+  
+}
+
+
+
+if (instrument=="dist_spending_pc_baseline" | instrument== "dist_spending_pc_baseline_below"){
+  
+  iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-0.004,0.01,0.002,paste0(instrument,sample,"_full"))
+  iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-0.004,0.01,0.002,paste0(instrument,sample,"_below"))
+  
+  if(below!=1){
+    iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-0.004,0.01,0.002,paste0(instrument,sample,"_above"))
+  }
+  
+  
+}
+
 
 
 
@@ -171,17 +226,30 @@ iv_first(df_above,"finbra_desp_saude_san_pcapita",1998,"table_above")
 
 table_all <- table_all %>% table_formatting() %>% mutate(sample = "all")
 table_below <- table_below %>% table_formatting() %>% mutate(sample = "below")
-table_above <- table_above %>% table_formatting() %>% mutate(sample = "above")
 
-tables <- bind_rows(table_all,table_below,table_above)
+if(below!=1){
+  table_above <- table_above %>% table_formatting() %>% mutate(sample = "above")
+}
+
+if(below==1){
+  tables <- bind_rows(table_all,table_below)
+}else{
+  tables <- bind_rows(table_all,table_below,table_above)
+}
+
+
 
 
 
 # 5. exporting
 # =================================================================
 
-
-write.xlsx2(tables, file = paste0(dir,main_folder,output_file) ,sheetName = "first_stage",row.names = F,append = T)
+if(below==1){
+  write.xlsx2(tables, file = paste0(dir,main_folder,output_file) ,sheetName = "first_stage_b",row.names = F,append = T)
+  
+} else{
+  write.xlsx2(tables, file = paste0(dir,main_folder,output_file) ,sheetName = "first_stage",row.names = F,append = T)
+}
 
 
 
