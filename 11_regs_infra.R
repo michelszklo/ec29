@@ -58,18 +58,18 @@ load(paste0(dir,"regs.RData"))
 
 var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community Health Agents'),
                  cbind('eSF_popprop','Population covered (share) by Family Health Agents'),
-                 cbind('siab_regist_pers_pcapita','N. of People Register in the Primary Care System (per capita * 1000)'),
-                 cbind('siab_regist_pers_pacs_pcapita','N. of People Register in the CH Program (per capita * 1000)'),
-                 cbind('siab_regist_pers_psf_pcapita','N. of People Register in the FH Program (per capita * 1000)'),
-                 cbind('siab_accomp_especif_pcapita','N. of People Visited by Primary Care Agents (per capita * 1000)'),
-                 cbind('siab_accomp_especif_pacs_pcapita','N. of People Visited by Community Health Agents (per capita * 1000)'),
-                 cbind('siab_accomp_especif_psf_pcapita','N. of People Visited by Family Health Agents (per capita * 1000)'),
-                 cbind('siab_visit_cha_pcapita','N. of Household Visits (per capita * 1000)'),
-                 cbind('siab_visit_cha_pacs_pcapita','N. of Household Visits by Community Health Agents (per capita * 1000)'),
-                 cbind('siab_visit_cha_psf_pcapita','N. of Household Visits by Family Health Agents (per capita * 1000)'),
-                 cbind('siab_cons_especif_pcapita','N. of Appointments (per capita * 1000)'),
-                 cbind('siab_cons_especif_pacs_pcapita','N. of Appointments from Community Health Program (per capita * 1000)'),
-                 cbind('siab_cons_especif_pcapita','N. of Appointments from Family Health Program (per capita * 1000)')
+                 cbind('siab_regist_pers_pcapita','N. of People Register in the Primary Care System (per capita)'),
+                 cbind('siab_regist_pers_pacs_pcapita','N. of People Register in the CH Program (per capita)'),
+                 cbind('siab_regist_pers_psf_pcapita','N. of People Register in the FH Program (per capita)'),
+                 cbind('siab_accomp_especif_pcapita','N. of People Visited by Primary Care Agents (per capita)'),
+                 cbind('siab_accomp_especif_pacs_pcapita','N. of People Visited by Community Health Agents (per capita)'),
+                 cbind('siab_accomp_especif_psf_pcapita','N. of People Visited by Family Health Agents (per capita)'),
+                 cbind('siab_visit_cha_pcapita','N. of Household Visits (per capita)'),
+                 cbind('siab_visit_cha_pacs_pcapita','N. of Household Visits by Community Health Agents (per capita)'),
+                 cbind('siab_visit_cha_psf_pcapita','N. of Household Visits by Family Health Agents (per capita)'),
+                 cbind('siab_cons_especif_pcapita','N. of Appointments (per capita)'),
+                 cbind('siab_cons_especif_pacs_pcapita','N. of Appointments from Community Health Program (per capita)'),
+                 cbind('siab_cons_especif_pcapita','N. of Appointments from Family Health Program (per capita)')
 )
 
 
