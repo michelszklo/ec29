@@ -65,16 +65,16 @@ running_map <- rbind(
   cbind("regs_outputs/","yearly_reduced_form_dist_spending2_b/","dist_spending_baseline_below",1,"results_dist_spending2_baseline.xlsx")
 )
 
-running_map <- rbind(
-  cbind("regs_outputs/","yearly_reduced_form_dist_ec29/","dist_ec29_baseline",0,"results_dist_ec29_baseline_elect.xlsx")
-  
-)
+# running_map <- rbind(
+#   cbind("regs_outputs/","yearly_reduced_form_dist_ec29/","dist_ec29_baseline",0,"results_dist_ec29_baseline_elect.xlsx")
+#   
+# )
 
 
 # 2. Run all loop
 # =================================================================
 
-for(i in 1){
+for(i in 3){
   # for(i in seq.int(5,nrow(running_map))){
   
   rm(list= ls()[!(ls() %in% c("dir","dir2","running_map","i"))])
