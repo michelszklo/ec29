@@ -249,8 +249,8 @@ elect <- read.csv(paste0(raw,"TSE/run_reelection.csv"), encoding = "UTF-8") %>%
 
 # 11. AMS-CNES merge INFRA data
 # ==============================================================
-ams_cnes <- read.csv(paste0(raw,"AMS_CNES/AMS_CNES_2002_2010.csv"), encoding = "UTF-8")
-names(ams_cnes)[4:20] <- paste("ams_cnes",names(ams_cnes)[4:20], sep = "_")
+ams_cnes <- read.csv(paste0(raw,"AMS_CNES/AMS_CNES_2002_2010.csv"), encoding = "UTF-8") %>% select(-uf)
+names(ams_cnes)[3:19] <- paste("ams_cnes",names(ams_cnes)[3:19], sep = "_")
 
 
 # 12. SIAB HR data
@@ -321,7 +321,7 @@ df <- mun_list %>%
          reelect_sample = ifelse(is.infinite(reelect_sample),0,1)) %>% 
   ungroup() %>% 
   # ams
-  left_join(ams %>% select(-cod_uf), by = c("ano","cod_mun")) %>%
+  left_join(ams, by = c("ano","cod_mun")) %>%
   mutate(hospital_nmun = ifelse(!is.na(hospital_est) & !is.na(hospital_fed),0,NA)) %>%
   mutate(hospital_nmun = hospital_est + hospital_fed) %>% 
   mutate(hr_all = hr_superior + hr_technician + hr_elementary + hr_admin) %>% 
@@ -474,7 +474,7 @@ df <- df %>%
 
 # per capita figures
 infra_vars <- c("ACS_I", "eSF_I")
-sia_vars <- grep("^sia",names(df),value = T)
+sia_vars <- grep("^sia_",names(df),value = T)
 ams_vars <- c(grep("^hospital_",names(df), value = T),
               grep("^unity_",names(df), value = T),
               grep("^therapy_",names(df), value = T),
@@ -496,8 +496,7 @@ vars <- c(siab_vars,ams_cnes_vars)
 vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
 df[vars_new] <- df[vars]
 df <- df %>% 
-  mutate_at(vars_new,`/`,quote(pop)) %>% 
-  mutate_at(vars_new,`*`,1000)
+  mutate_at(vars_new,`/`,quote(pop)) 
 
 # 17. Health spending in the neighboring municipalities
 # ==============================================================
