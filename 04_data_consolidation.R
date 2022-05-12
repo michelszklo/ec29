@@ -247,8 +247,32 @@ elect <- read.csv(paste0(raw,"TSE/run_reelection.csv"), encoding = "UTF-8") %>%
   filter(!(cod_mun==420860 & reelect==1))
 
 
+# 11. AMS-CNES merge INFRA data
+# ==============================================================
+ams_cnes <- read.csv(paste0(raw,"AMS_CNES/AMS_CNES_2002_2010.csv"), encoding = "UTF-8")
+names(ams_cnes)[4:20] <- paste("ams_cnes",names(ams_cnes)[4:20], sep = "_")
 
-# 11. Merging all
+
+# 12. SIAB HR data
+# ==============================================================
+load(paste0(raw,"SIAB/siab_complete_total.RData"))
+siab <- siab_complete_total
+rm(siab_complete_total)
+siab <- siab %>%
+  select(mun_code,year,
+         regist_pers,regist_pers_pacs,regist_pers_psf,
+         accomp_especif,accomp_especif_pacs,accomp_especif_psf,
+         visit_cha,visit_cha_pacs,visit_cha_psf,
+         cons_especif,cons_especif_pacs,cons_especif_psf) %>% 
+  rename(ano = year,
+         cod_mun = mun_code) %>% 
+  mutate(cod_mun = as.numeric(cod_mun))
+
+names(siab)[3:14] <- paste("siab",names(siab)[3:14],sep = "_")
+
+
+
+# 13. Merging all
 # ==============================================================
 
 df <- mun_list %>% 
@@ -297,10 +321,14 @@ df <- mun_list %>%
          reelect_sample = ifelse(is.infinite(reelect_sample),0,1)) %>% 
   ungroup() %>% 
   # ams
-  left_join(ams, by = c("ano","cod_mun")) %>%
+  left_join(ams %>% select(-cod_uf), by = c("ano","cod_mun")) %>%
   mutate(hospital_nmun = ifelse(!is.na(hospital_est) & !is.na(hospital_fed),0,NA)) %>%
   mutate(hospital_nmun = hospital_est + hospital_fed) %>% 
-  mutate(hr_all = hr_superior + hr_technician + hr_elementary + hr_admin)
+  mutate(hr_all = hr_superior + hr_technician + hr_elementary + hr_admin) %>% 
+  # ams + cnes data
+  left_join(ams_cnes,by = c("ano","cod_mun")) %>% 
+  # siab data
+  left_join(siab, by = c("ano","cod_mun"))
 
 # creating dummies for the presence of hospitals
 
@@ -326,7 +354,7 @@ for (v in dummy_vars){
 
 
 
-# 12. Deflating variables
+# 14. Deflating variables
 # ==============================================================
 
 exclude_vars <- grep("siops_pct",names(df), invert = T,value = T)
@@ -357,7 +385,7 @@ df <- df %>%
 
 
 
-# 13. Creating mortality rates
+# 15. Creating mortality rates
 # ==============================================================
 
 
@@ -441,9 +469,10 @@ df <- df %>%
   ungroup()
 
 
-# 14. Creating per capita figurues for specific variables
+# 16. Creating per capita figurues for specific variables
 # ==============================================================
 
+# per capita figures
 infra_vars <- c("ACS_I", "eSF_I")
 sia_vars <- grep("^sia",names(df),value = T)
 ams_vars <- c(grep("^hospital_",names(df), value = T),
@@ -459,9 +488,18 @@ df[vars_new] <- df[vars]
 df <- df %>% 
   mutate_at(vars_new,`/`,quote(pop))
 
+# per capita * 1000 inhabitants figures
+siab_vars <- grep("siab",names(df),value = T)
+ams_cnes_vars <- grep("ams_cnes",names(df),value = T)
 
+vars <- c(siab_vars,ams_cnes_vars)
+vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
+df[vars_new] <- df[vars]
+df <- df %>% 
+  mutate_at(vars_new,`/`,quote(pop)) %>% 
+  mutate_at(vars_new,`*`,1000)
 
-# 15. Health spending in the neighboring municipalities
+# 17. Health spending in the neighboring municipalities
 # ==============================================================
 
 mun_neighbors <- readRDS(paste0(raw,"mun_neighbors.RDS"))
@@ -482,14 +520,14 @@ df_neighbor <- df %>%
 df <- df %>% 
   left_join(df_neighbor, by = c("ano","cod_mun"))
 
-# 16. FISCAL RESPONSABILITY LAW: municipalities must not spend more than 60% of its current net revenue in personnel
+# 18. FISCAL RESPONSABILITY LAW: municipalities must not spend more than 60% of its current net revenue in personnel
 # ==============================================================
 
 df <- df %>% 
   mutate(lrf = ifelse(finbra_desp_pessoal_pcapita/finbra_desp_c_pcapita>0.6,1,0))
 
 
-# 17. Share of spending to total spending (finbra)
+# 19. Share of spending to total spending (finbra)
 # ==============================================================
 
 df <- df %>% 
