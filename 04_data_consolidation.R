@@ -250,7 +250,7 @@ elect <- read.csv(paste0(raw,"TSE/run_reelection.csv"), encoding = "UTF-8") %>%
 # 11. AMS-CNES merge INFRA data
 # ==============================================================
 ams_cnes <- read.csv(paste0(raw,"AMS_CNES/AMS_CNES_2002_2010.csv"), encoding = "UTF-8") %>% select(-uf)
-names(ams_cnes)[3:19] <- paste("ams_cnes",names(ams_cnes)[3:19], sep = "_")
+names(ams_cnes)[3:22] <- paste("ams_cnes",names(ams_cnes)[3:22], sep = "_")
 
 
 # 12. SIAB HR data
@@ -492,11 +492,18 @@ df <- df %>%
 siab_vars <- grep("siab",names(df),value = T)
 ams_cnes_vars <- grep("ams_cnes",names(df),value = T)
 
-vars <- c(siab_vars,ams_cnes_vars)
+vars <- siab_vars
 vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
 df[vars_new] <- df[vars]
 df <- df %>% 
   mutate_at(vars_new,`/`,quote(pop)) 
+
+vars <- ams_cnes_vars
+vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
+df[vars_new] <- df[vars]
+df <- df %>% 
+  mutate_at(vars_new,`/`,quote(pop)) %>% 
+  mutate_at(vars_new,`*`,1000) 
 
 # 17. Health spending in the neighboring municipalities
 # ==============================================================
