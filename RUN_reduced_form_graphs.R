@@ -190,7 +190,19 @@ if (instrument=="dist_spending_pc_baseline_below"){
 # =================================================================
 
 var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community Health Agents'),
-                 cbind('eSF_popprop','Population covered (share) by Family Health Agents')
+                 cbind('eSF_popprop','Population covered (share) by Family Health Agents'),
+                 cbind('siab_regist_pers_pcapita','N. of People Register in the Primary Care System (per capita)'),
+                 cbind('siab_regist_pers_pacs_pcapita','N. of People Register in the CH Program (per capita)'),
+                 cbind('siab_regist_pers_psf_pcapita','N. of People Register in the FH Program (per capita)'),
+                 cbind('siab_accomp_especif_pcapita','N. of People Visited by Primary Care Agents (per capita)'),
+                 cbind('siab_accomp_especif_pacs_pcapita','N. of People Visited by Community Health Agents (per capita)'),
+                 cbind('siab_accomp_especif_psf_pcapita','N. of People Visited by Family Health Agents (per capita)'),
+                 cbind('siab_visit_cha_pcapita','N. of Household Visits (per capita)'),
+                 cbind('siab_visit_cha_pacs_pcapita','N. of Household Visits by Community Health Agents (per capita)'),
+                 cbind('siab_visit_cha_psf_pcapita','N. of Household Visits by Family Health Agents (per capita)'),
+                 cbind('siab_cons_especif_pcapita','N. of Appointments (per capita)'),
+                 cbind('siab_cons_especif_pacs_pcapita','N. of Appointments from Community Health Program (per capita)'),
+                 cbind('siab_cons_especif_pcapita','N. of Appointments from Family Health Program (per capita)')
                  )
 
 if (instrument=="ec29_baseline"){
@@ -215,12 +227,12 @@ if (instrument=="ec29_baseline"){
 }
 
 if (instrument=="dist_ec29_baseline"){
-  for (i in c(1,2)){
+  for (i in seq(1,14,1)){
     var <- var_map[i,1]
     var_name <- var_map[i,2]
     print(var_name)
     
-    reduced_yearly(var,var_name,df,3,1998,-0.5,1,0.1,sample = "full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-2,2.75,0.5,sample = "full",below = below) # ec29baseline
     
   }
   
