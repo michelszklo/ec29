@@ -225,6 +225,12 @@ iv_first_cs <- function(df,treat,year_filter,obj_name){
 }
 
 
+
+
+
+save.image(paste0(dir,"regs_cs_2005.RData"))
+
+
 # running regs
 iv_first_cs(df,"delta_siops_despsaude_pcapita",1998,"table_all")
 iv_first_cs(df_below,"delta_siops_despsaude_pcapita",1998,"table_below")
