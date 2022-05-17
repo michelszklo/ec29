@@ -101,7 +101,7 @@ finbra <- finbra %>%
 rm(vars_correct)
 
 finbra <- finbra %>% 
-  mutate(finbra_desp_outros = finbra_desp_c - (finbra_desp_pessoal + finbra_desp_investimento),
+  mutate(finbra_desp_outros_nature = finbra_desp_o - (finbra_desp_pessoal + finbra_desp_investimento),
          finbra_desp_outros_area =  finbra_desp_o - 
            (finbra_desp_saude_san + finbra_desp_transporte + finbra_desp_educ_cultura + finbra_desp_assist_prev),
          finbra_rec_outros = finbra_reccorr - (finbra_rectribut + finbra_rectransf))
@@ -474,7 +474,7 @@ df <- df %>%
 
 # per capita figures
 infra_vars <- c("ACS_I", "eSF_I")
-sia_vars <- grep("^sia_",names(df),value = T)
+sia_vars <- c("sia",grep("^sia_",names(df),value = T))
 ams_vars <- c(grep("^hospital_",names(df), value = T),
               grep("^unity_",names(df), value = T),
               grep("^therapy_",names(df), value = T),
@@ -530,7 +530,7 @@ df <- df %>%
 # ==============================================================
 
 df <- df %>% 
-  mutate(lrf = ifelse(finbra_desp_pessoal_pcapita/finbra_desp_c_pcapita>0.6,1,0))
+  mutate(lrf = ifelse(finbra_desp_pessoal_pcapita/finbra_desp_o_pcapita>0.6,1,0))
 
 
 # 19. Share of spending to total spending (finbra)
@@ -539,7 +539,7 @@ df <- df %>%
 df <- df %>% 
   mutate(finbra_desp_pessoal_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_pessoal_pcapita / finbra_desp_o_pcapita,0),
          finbra_desp_investimento_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_investimento_pcapita / finbra_desp_o_pcapita,0),
-         finbra_desp_outros_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_outros_pcapita / finbra_desp_o_pcapita,0),
+         finbra_desp_outros_nature_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_outros_nature_pcapita / finbra_desp_o_pcapita,0),
          finbra_desp_adm_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_adm_pcapita / finbra_desp_o_pcapita,0),
          finbra_desp_saude_san_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_saude_san_pcapita / finbra_desp_o_pcapita,0),
          finbra_desp_transporte_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_transporte_pcapita / finbra_desp_o_pcapita,0),
@@ -570,8 +570,8 @@ df <- df %>%
          finbra_desp_hab_urb_pcapita = ifelse(sum_check>1,NA,finbra_desp_hab_urb_pcapita),
          finbra_desp_assist_prev_share = ifelse(sum_check>1,NA,finbra_desp_assist_prev_share),
          finbra_desp_assist_prev_pcapita = ifelse(sum_check>1,NA,finbra_desp_assist_prev_pcapita),
-         finbra_desp_outros_pcapita = ifelse(sum_check>1,NA,finbra_desp_outros_pcapita),
-         finbra_desp_outros_share = ifelse(sum_check>1,NA,finbra_desp_outros_share),
+         finbra_desp_outros_nature_pcapita = ifelse(sum_check>1,NA,finbra_desp_outros_nature_pcapita),
+         finbra_desp_outros_nature_share = ifelse(sum_check>1,NA,finbra_desp_outros_nature_share),
          finbra_desp_outros_area_pcapita = ifelse(sum_check>1,NA,finbra_desp_outros_area_pcapita),
          finbra_desp_outros_area_share = ifelse(sum_check>1,NA,finbra_desp_outros_area_share),
          finbra_reccorr_pcapita = ifelse(sum_check2>1,NA,finbra_reccorr_pcapita),
