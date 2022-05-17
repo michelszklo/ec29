@@ -143,10 +143,9 @@ for(i in 3){
   source(paste0(dir,scripts,"15_regs_amr.R"))
   scripts <- "ec29/"
   dir <- "C:/Users/Michel/Documents/GitHub/"
-  # source(paste0(dir,scripts,"16_regs_imr_lag.R"))
-  # scripts <- "ec29/"
-  # source(paste0(dir,scripts,"17_regs_amr_lag.R"))
-  # scripts <- "ec29/"
   source(paste0(dir,scripts,"18_regs_birth.R"))
+  scripts <- "ec29/"
+  dir <- "C:/Users/Michel/Documents/GitHub/"
+  source(paste0(dir,scripts,"20_regs_cnes_cs.R"))
   
 }
