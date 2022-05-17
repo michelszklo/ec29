@@ -101,7 +101,10 @@ summary_stat <- function(df,baseline_year,obj){
 # 3. Statistic for variables with baseline in 2000
 # =================================================================
 
-var_map <- rbind(cbind('finbra_desp_o_pcapita','Total Spending per capita (2010 R$)'),
+var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spent in Health"),
+                 cbind("dist_ec29_baseline","Distance to the EC29 Target"),
+                 
+                 cbind('finbra_desp_o_pcapita','Total Spending per capita (2010 R$)'),
                  cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita (2010 R$)'),
                  cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (2010 R$)'),
                  cbind('finbra_desp_outros_nature_pcapita','Other Spending per capita (2010 R$)'),
