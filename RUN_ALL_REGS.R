@@ -54,27 +54,27 @@ dir2 <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 # 1. Folder, files and instrument setup
 # =================================================================
 
-running_map <- rbind(
-  cbind("regs_outputs/","yearly_reduced_form_ec29/","ec29_baseline",0,"results_ec29_baseline.xlsx"),
-  cbind("regs_outputs/","yearly_reduced_form_ec29_b/","ec29_baseline_below",1,"results_ec29_baseline.xlsx"),
-  cbind("regs_outputs/","yearly_reduced_form_dist_ec29/","dist_ec29_baseline",0,"results_dist_ec29_baseline.xlsx"),
-  cbind("regs_outputs/","yearly_reduced_form_dist_ec29_b/","dist_ec29_baseline_below",1,"results_dist_ec29_baseline.xlsx"),
-  cbind("regs_outputs/","yearly_reduced_form_dist_spending/","dist_spending_pc_baseline",0,"results_dist_spending_baseline.xlsx"),
-  cbind("regs_outputs/","yearly_reduced_form_dist_spending_b/","dist_spending_pc_baseline_below",1,"results_dist_spending_baseline.xlsx"),
-  cbind("regs_outputs/","yearly_reduced_form_dist_spending2/","dist_spending_baseline",0,"results_dist_spending2_baseline.xlsx"),
-  cbind("regs_outputs/","yearly_reduced_form_dist_spending2_b/","dist_spending_baseline_below",1,"results_dist_spending2_baseline.xlsx")
-)
-
 # running_map <- rbind(
-#   cbind("regs_outputs/","yearly_reduced_form_dist_ec29/","dist_ec29_baseline",0,"results_dist_ec29_baseline_elect.xlsx")
-#   
+#   cbind("regs_outputs/","yearly_reduced_form_ec29/","ec29_baseline",0,"results_ec29_baseline.xlsx"),
+#   cbind("regs_outputs/","yearly_reduced_form_ec29_b/","ec29_baseline_below",1,"results_ec29_baseline.xlsx"),
+#   cbind("regs_outputs/","yearly_reduced_form_dist_ec29/","dist_ec29_baseline",0,"results_dist_ec29_baseline.xlsx"),
+#   cbind("regs_outputs/","yearly_reduced_form_dist_ec29_b/","dist_ec29_baseline_below",1,"results_dist_ec29_baseline.xlsx"),
+#   cbind("regs_outputs/","yearly_reduced_form_dist_spending/","dist_spending_pc_baseline",0,"results_dist_spending_baseline.xlsx"),
+#   cbind("regs_outputs/","yearly_reduced_form_dist_spending_b/","dist_spending_pc_baseline_below",1,"results_dist_spending_baseline.xlsx"),
+#   cbind("regs_outputs/","yearly_reduced_form_dist_spending2/","dist_spending_baseline",0,"results_dist_spending2_baseline.xlsx"),
+#   cbind("regs_outputs/","yearly_reduced_form_dist_spending2_b/","dist_spending_baseline_below",1,"results_dist_spending2_baseline.xlsx")
 # )
+
+running_map <- rbind(
+  cbind("regs_outputs/","yearly_reduced_form_dist_ec29/","dist_ec29_baseline",0,"results_dist_ec29_baseline_elect.xlsx")
+
+)
 
 
 # 2. Run all loop
 # =================================================================
 
-for(i in 3){
+for(i in 1){
   # for(i in seq.int(5,nrow(running_map))){
   
   rm(list= ls()[!(ls() %in% c("dir","dir2","running_map","i"))])
