@@ -69,10 +69,10 @@ df_above <- df_above %>%
 # =================================================================
 
 
-var_map <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita (asinh)'),
+var_map <- rbind(cbind('finbra_desp_o_pcapita','Total Spending per capita (asinh)'),
                  cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita (asinh)'),
                  cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (asinh)'),
-                 cbind('finbra_desp_outros_pcapita','Other Spending per capita (asinh)'),
+                 cbind('finbra_desp_outros_nature_pcapita','Other Spending per capita (asinh)'),
                  cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (asinh)'),
                  cbind('finbra_desp_transporte_pcapita','Transport Spending per capita (asinh)'),
                  cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (asinh)'),
@@ -93,7 +93,7 @@ var_map <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita (asinh
                  
                  cbind('finbra_desp_pessoal_share','Human Resources Spending (% Total Spending)'),
                  cbind('finbra_desp_investimento_share','Investment Spending (% Total Spending)'),
-                 cbind('finbra_desp_outros_share','Other Spending per capita (% Total Spending)'),
+                 cbind('finbra_desp_outros_nature_share','Other Spending per capita (% Total Spending)'),
                  cbind('finbra_desp_saude_san_share','Health and Sanitation Spending (% Total Spending)'),
                  cbind('finbra_desp_transporte_share','Transport Spending (% Total Spending)'),
                  cbind('finbra_desp_educ_cultura_share','Education and Culture Spending (% Total Spending)'),
@@ -783,7 +783,7 @@ if (instrument=="dist_ec29_baseline"){
     var_name <- var_map[i,2]
     print(var_name)
     
-    reduced_yearly(var,var_name,df,3,1998,-0.5,2,0.25,sample = "full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-0.75,2,0.25,sample = "full",below = below) # ec29baseline
     
   }
   
