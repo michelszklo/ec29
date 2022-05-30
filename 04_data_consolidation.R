@@ -241,11 +241,8 @@ censo <- data.frame(read.dta13(paste0(raw,"censo/censo.dta"))) %>%
 
 # 10. Electoral Data
 # ==============================================================
-elect <- read.csv(paste0(raw,"TSE/run_reelection.csv"), encoding = "UTF-8") %>% 
-  distinct(cod_mun, .keep_all = T) %>% 
-  filter(!is.na(cod_mun)) %>% 
-  filter(!(cod_mun==420860 & reelect==1))
-
+second_term <- read.csv(paste0(raw,"TSE/second_term.csv"), encoding = "UTF-8") %>% 
+  distinct(cod_mun, .keep_all = T)
 
 # 11. AMS-CNES merge INFRA data
 # ==============================================================
@@ -315,11 +312,7 @@ df <- mun_list %>%
   # censo
   left_join(censo, by = c("ano","cod_mun")) %>%
   # electoral
-  left_join(elect, by = c("ano","cod_mun")) %>%
-  group_by(cod_mun) %>% 
-  mutate(reelect_sample = max(reelect,na.rm = T),
-         reelect_sample = ifelse(is.infinite(reelect_sample),0,1)) %>% 
-  ungroup() %>% 
+  left_join(second_term, by = c("cod_mun")) %>%
   # ams
   left_join(ams, by = c("ano","cod_mun")) %>%
   mutate(hospital_nmun = ifelse(!is.na(hospital_est) & !is.na(hospital_fed),0,NA)) %>%
