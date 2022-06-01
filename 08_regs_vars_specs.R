@@ -251,14 +251,14 @@ df <- df %>%
   unnest(all_of(yeartreat_dummies))
 
 
-# # converting df_above to sample of municipalities of mayors who ran for reelection
-# df_above <- df %>% 
-#   filter(reelect_sample==1)
+# # # converting df_above to sample of municipalities of mayors who ran for reelection
+# df_above <- df %>%
+#   filter(second_term==1)
 # 
 # # converting df_below to sample of municipalities of mayors who didn't run for reelection
 # 
-# df_below <- df %>% 
-#   filter(reelect_sample==0)
+# df_below <- df %>%
+#   filter(second_term==0)
 
 # 4. regression specifications
 # =================================================================
