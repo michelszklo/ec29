@@ -200,6 +200,10 @@ sim_adt <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_adult.dta")))
 # sia
 sia <- read.csv(paste0(raw,"SIA/SIA_final.csv"), encoding = "UTF-8")
 
+# sia microdata
+sia_nprod <- read.csv(paste0(raw,"SIA_micro/sia_mun.csv"))
+sia_ncnes <- read.csv(paste0(raw,"SIA_micro/sia_ncnes_mun.csv"))
+
 
 ams <- data.frame(read.dta13(paste0(raw,"AMS/ams.dta"))) 
 
@@ -303,6 +307,8 @@ df <- mun_list %>%
   # select(-share40) %>% 
   # datasus - sia
   left_join(sia, by = c("ano","cod_mun")) %>%
+  left_join(sia_ncnes, by = c("ano","cod_mun")) %>%
+  left_join(sia_nprod, by = c("ano","cod_mun")) %>%
   # leitos
   left_join(leitos, by = c("ano","cod_mun")) %>% 
   mutate(leitos_pc = leitos/pop*1000,
@@ -467,13 +473,14 @@ df <- df %>%
 
 # per capita figures
 infra_vars <- c("ACS_I", "eSF_I")
-sia_vars <- c("sia",grep("^sia_",names(df),value = T))
+sia_vars <- c("sia","sia_ab",grep("^sia_nprod",names(df),value = T))
 ams_vars <- c(grep("^hospital_",names(df), value = T),
               grep("^unity_",names(df), value = T),
               grep("^therapy_",names(df), value = T),
               grep("^hr_",names(df), value = T))
+siab_vars <- grep("siab",names(df),value = T)
 
-vars <- c(infra_vars,sia_vars,ams_vars)
+vars <- c(infra_vars,sia_vars,ams_vars,siab_vars)
 vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
 
 df[vars_new] <- df[vars]
@@ -482,16 +489,10 @@ df <- df %>%
   mutate_at(vars_new,`/`,quote(pop))
 
 # per capita * 1000 inhabitants figures
-siab_vars <- grep("siab",names(df),value = T)
 ams_cnes_vars <- grep("ams_cnes",names(df),value = T)
+sia_ncnes_vars <- grep("sia_ncnes",names(df),value = T)
 
-vars <- siab_vars
-vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
-df[vars_new] <- df[vars]
-df <- df %>% 
-  mutate_at(vars_new,`/`,quote(pop)) 
-
-vars <- ams_cnes_vars
+vars <- c(ams_cnes_vars,sia_ncnes_vars)
 vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
 df[vars_new] <- df[vars]
 df <- df %>% 
