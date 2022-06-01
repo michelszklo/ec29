@@ -335,11 +335,31 @@ if (instrument=="dist_spending_pc_baseline_below"){
 # 4. Sia
 # =================================================================
 
-var_map <- rbind(cbind('sia_pcapita','Outpatient procedures per capita'),
-                 cbind('sia_ab_pcapita','PC Outpatient procedures per capita'),
-                 cbind('sia_visita_superior_pcapita','Household visits by college degree personal per capita'),
-                 cbind('sia_visita_medio_pcapita','Household visits by non college degree personal per capita'),
-                 cbind('sia_ativ_grupo_pcapita','Educational activities in group per capita'))
+var_map <- rbind(cbind('sia_ncnes_amb_mun_pcapita','N. of Health Facilities with Ambulatory Service (per capita*1000)'),
+                 cbind('sia_ncnes_amb_lc_mun_pcapita','N. of Health Facilities with Low & Mid Complexity Ambulatory Service (per capita*1000)'),
+                 cbind('sia_ncnes_amb_hc_mun_pcapita','N. of Health Facilities with High Complexity Ambulatory Service (per capita*1000)'),
+                 cbind('sia_ncnes_low_skill_mun_pcapita','N. of Health Facilities with Ambulatory Service by Low Skilled Workers (per capita*1000)'),
+                 cbind('sia_ncnes_med_skill_mun_pcapita','N. of Health Facilities with Ambulatory Service by Mid Skilled Workers (per capita*1000)'),
+                 cbind('sia_ncnes_enf_mun_pcapita','N. of Health Facilities with Ambulatory Service by Nurses (per capita*1000)'),
+                 cbind('sia_ncnes_enfobs_mun_pcapita','N. of Health Facilities with Ambulatory Service by Obstetrical Nurses (per capita*1000)'),
+                 cbind('sia_ncnes_medcom_pcapita','N. of Health Facilities with Ambulatory Service and Community Doctors (per capita*1000)'),
+                 cbind('sia_ncnes_ginobs_mun_pcapita','N. of Health Facilities with Obstetrical/Gyneco. Ambulatory Service (per capita*1000)'),
+                 cbind('sia_ncnes_pediat_mun_pcapita','N. of Health Facilities with Pediatric Ambulatory Service (per capita*1000)'),
+                 cbind('sia_ncnes_medpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Doctors (per capita*1000)'),
+                 cbind('sia_ncnes_enfpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Nurses (per capita*1000)'),
+                 cbind('sia_ncnes_outpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Nursing Assistants (per capita*1000)'),
+                 cbind('sia_ncnes_psf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Teams (per capita*1000)'),
+                 cbind('sia_ncnes_acs_pcapita','N. of Health Facilities with Ambulatory Service and ACS Teams (per capita*1000)'),
+                 cbind('sia_ncnes_enfacs_pcapita','N. of Health Facilities with Ambulatory Service and ACS Nurses (per capita*1000)'),
+                 cbind('sia_pcapita','N. Outpatient Procedures (per capita)'),
+                 cbind('sia_ab_pcapita','N. Primary Care Outpatient Procedures (per capita)'),
+                 cbind('sia_nprod_amb_lc_mun_pcapita','N. Low & Mid Complexity Outpatient Procedures (per capita)'),
+                 cbind('sia_nprod_amb_hc_mun_pcapita','N. High Complexity Outpatient Procedures (per capita)'),
+                 cbind('sia_nprod_low_skill_mun_pcapita','N. Outpatient Procedures by Low Skilled Workers (per capita)'),
+                 cbind('sia_nprod_med_skill_mun_pcapita','N. Outpatient procedures by Mid Skilled Workers (per capita)')
+                 
+)
+
 
 if (instrument=="ec29_baseline"){
   for (i in seq(1,7,1)){
@@ -355,7 +375,7 @@ if (instrument=="ec29_baseline"){
 
 
 if (instrument=="dist_ec29_baseline"){
-  for (i in seq(1,2,1)){
+  for (i in seq(17,22,1)){
     var <- var_map[i,1]
     var_name <- var_map[i,2]
     print(var_name)
@@ -364,12 +384,12 @@ if (instrument=="dist_ec29_baseline"){
     
   }
   
-  for (i in seq(3,5,1)){
+  for (i in seq(1,16,1)){
     var <- var_map[i,1]
     var_name <- var_map[i,2]
     print(var_name)
     
-    reduced_yearly(var,var_name,df,3,1998,-4,4,1,sample = "full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-.6,.4,0.2,sample = "full",below = below) # ec29baseline
     
   }
   
