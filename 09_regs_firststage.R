@@ -171,17 +171,11 @@ if(below!=1){
 
 # First stage IV graphs
 
-if (below==1){
-  sample <- "_b"
-} else{
-  sample <- ""
-}
-
 
 if (instrument=="ec29_baseline" | instrument=="ec29_baseline_below"){
   
-  iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-8,5,1,paste0(instrument,sample,"_full"))
-  iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-8,5,1,paste0(instrument,sample,"_below"))
+  iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-8,5,1,paste0(instrument,"_full"))
+  iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-8,5,1,paste0(instrument,"_below"))
   
   if(below!=1){
     iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-8,5,1,paste0(instrument,sample,"_above"))
@@ -193,11 +187,11 @@ if (instrument=="ec29_baseline" | instrument=="ec29_baseline_below"){
 
 if (instrument=="dist_ec29_baseline" | instrument== "dist_ec29_baseline_below"){
   
-  iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-5,6,1,paste0(instrument,sample,"_full"))
-  iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-5,6,1,paste0(instrument,sample,"_below"))
+  iv_first_yearly(df,"finbra_desp_saude_san_pcapita",1998,-5,6,1,paste0(instrument,"_full"))
+  iv_first_yearly(df_below,"finbra_desp_saude_san_pcapita",1998,-5,6,1,paste0(instrument,"_below"))
   
   if(below!=1){
-    iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-5,6,1,paste0(instrument,sample,"_above"))
+    iv_first_yearly(df_above,"finbra_desp_saude_san_pcapita",1998,-5,6,1,paste0(instrument,"_above"))
   }
   
   

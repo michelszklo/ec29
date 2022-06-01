@@ -302,9 +302,16 @@ spec_instrument_yearly <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")
 # Reduce form specification and first stage - yearly
 # ------------------------------------------------
 
+# spec1_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
+# spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+# spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+
+# changing the order that controls and fixed effects are added to the specifications
 spec1_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
-spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
 spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+
+
 
 
 # Reduced form specifications and first stage
@@ -664,38 +671,37 @@ iv_first_yearly <- function(df,treat,year_filter,y0,yf,ys,graph_name){
     
   }
   
-  color_graph <- pal_lancet("lanonc")(9)
+  
+  shapes <-  c(17,15,19)
+  # color_graph <- pal_lancet("lanonc")(9)
   
   graph <- table %>%
-    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub,color = spec,group=spec))+
+    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub,shape = spec,group=spec))+
     geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
     geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6)) +
+    geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color="grey13") +
     scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
     scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
-    scale_colour_manual(values = color_graph) +
-    theme_light() +
+    # scale_colour_manual(values = color_graph) +
+    scale_shape_manual(values = shapes) +
+        theme_light() +
     labs(y = "Health and Sanitation Spending per capita (log)",
          color = "Specification") +
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           plot.title = element_text(size = 10, face = "bold"),
-          axis.title = element_text(size=10),
+          axis.title.x = element_text(size=12),
+          axis.title.y = element_text(size=8),
           legend.position="bottom")
   
-  if(below==1){
-    sample <- "_belowvar"
-  }else{
-    sample <- "_fullvar"
-  }
+
   
-  
-  ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",graph_name,"_",sample),".png"),
+  ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",graph_name),".png"),
          plot = graph,
          device = "png",
          width = 7, height = 5,
          units = "in")
-  ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",graph_name,"_",sample),".pdf"),
+  ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",graph_name),".pdf"),
          plot = graph,
          device = "pdf",
          width = 7, height = 5,
@@ -849,38 +855,36 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   
   
   
-  
-  color_graph <- pal_lancet("lanonc")(9)
+  shapes <-  c(17,15,19)
+  # color_graph <- pal_lancet("lanonc")(9)
   
   graph <- table %>%
-    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = spec,group=spec))+
+    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
     geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
     geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6)) +
+    geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
     scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
     scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
-    scale_colour_manual(values = color_graph) +
+    # scale_colour_manual(values = color_graph) +
+    scale_shape_manual(values = shapes) +
     theme_light() +
     labs(y = var_name,
          color = "Specification") +
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           plot.title = element_text(size = 10, face = "bold"),
-          axis.title = element_text(size=10),
+          axis.title.x = element_text(size=12),
+          axis.title.y = element_text(size=8),
           legend.position="bottom")
   
-  if(below==1){
-    iv <- "_belowvar"
-  }else{
-    iv <- "_fullvar"
-  }
   
-  ggsave(paste0(dir,main_folder,yearly_folder,ln_outcome,"_",instrument,"_",iv,"_",sample,".png"),
+  
+  ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
          plot = graph,
          device = "png",
          width = 7, height = 5,
          units = "in")
-  ggsave(paste0(dir,main_folder,yearly_folder,ln_outcome,"_",instrument,"_",iv,"_",sample,".pdf"),
+  ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
          plot = graph,
          device = "pdf",
          width = 7, height = 5,
