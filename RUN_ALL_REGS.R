@@ -72,7 +72,12 @@ running_map <- rbind(
 )
 
 # running_map <- rbind(
-#   cbind("regs_outputs/","yearly_reduced_form_dist_ec29/","dist_ec29_baseline",0,"results_dist_ec29_baseline_elect.xlsx")
+#   cbind("regs_outputs/","yearly_reduced_form_dist_ec29_elect/","dist_ec29_baseline",0,"results_dist_ec29_baseline_elect.xlsx")
+# 
+# )
+
+# running_map <- rbind(
+#   cbind("regs_outputs/","yearly_reduced_form_dist_ec29_governance/","dist_ec29_baseline",0,"results_dist_ec29_baseline_governance.xlsx")
 # 
 # )
 
