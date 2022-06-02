@@ -260,6 +260,17 @@ df <- df %>%
 # df_below <- df %>%
 #   filter(second_term==0)
 
+
+# # # converting df_above to sample of municipalities with high and low fiscal governance
+# df_above <- df %>%
+#   filter(firjan_above==1)
+# 
+# # converting df_below to sample of municipalities of mayors who didn't run for reelection
+# 
+# df_below <- df %>%
+#   filter(firjan_above==0)
+
+
 # 4. regression specifications
 # =================================================================
 
@@ -684,7 +695,7 @@ iv_first_yearly <- function(df,treat,year_filter,y0,yf,ys,graph_name){
     scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
     # scale_colour_manual(values = color_graph) +
     scale_shape_manual(values = shapes) +
-        theme_light() +
+    theme_light() +
     labs(y = "Health and Sanitation Spending per capita (log)",
          color = "Specification") +
     theme(panel.grid.major = element_blank(),
@@ -694,7 +705,7 @@ iv_first_yearly <- function(df,treat,year_filter,y0,yf,ys,graph_name){
           axis.title.y = element_text(size=8),
           legend.position="bottom")
   
-
+  
   
   ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",graph_name),".png"),
          plot = graph,
