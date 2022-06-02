@@ -272,8 +272,13 @@ siab <- siab %>%
 names(siab)[3:14] <- paste("siab",names(siab)[3:14],sep = "_")
 
 
+# 14. Firjan Fiscal Index
+# ==============================================================
 
-# 13. Merging all
+firjan <- read.csv(paste0(raw,"firjan_index_build/firjan.csv")) %>% select(-X)
+
+
+# 15. Merging all
 # ==============================================================
 
 df <- mun_list %>% 
@@ -327,7 +332,8 @@ df <- mun_list %>%
   # ams + cnes data
   left_join(ams_cnes,by = c("ano","cod_mun")) %>% 
   # siab data
-  left_join(siab, by = c("ano","cod_mun"))
+  left_join(siab, by = c("ano","cod_mun")) %>% 
+  left_join(firjan, by = "cod_mun")
 
 # creating dummies for the presence of hospitals
 
@@ -353,7 +359,7 @@ for (v in dummy_vars){
 
 
 
-# 14. Deflating variables
+# 16. Deflating variables
 # ==============================================================
 
 exclude_vars <- grep("siops_pct",names(df), invert = T,value = T)
@@ -384,7 +390,7 @@ df <- df %>%
 
 
 
-# 15. Creating mortality rates
+# 17. Creating mortality rates
 # ==============================================================
 
 
@@ -468,7 +474,7 @@ df <- df %>%
   ungroup()
 
 
-# 16. Creating per capita figurues for specific variables
+# 18. Creating per capita figurues for specific variables
 # ==============================================================
 
 # per capita figures
@@ -499,7 +505,7 @@ df <- df %>%
   mutate_at(vars_new,`/`,quote(pop)) %>% 
   mutate_at(vars_new,`*`,1000) 
 
-# 17. Health spending in the neighboring municipalities
+# 19. Health spending in the neighboring municipalities
 # ==============================================================
 
 mun_neighbors <- readRDS(paste0(raw,"mun_neighbors.RDS"))
@@ -520,14 +526,14 @@ df_neighbor <- df %>%
 df <- df %>% 
   left_join(df_neighbor, by = c("ano","cod_mun"))
 
-# 18. FISCAL RESPONSABILITY LAW: municipalities must not spend more than 60% of its current net revenue in personnel
+# 20. FISCAL RESPONSABILITY LAW: municipalities must not spend more than 60% of its current net revenue in personnel
 # ==============================================================
 
 df <- df %>% 
   mutate(lrf = ifelse(finbra_desp_pessoal_pcapita/finbra_desp_o_pcapita>0.6,1,0))
 
 
-# 19. Share of spending to total spending (finbra)
+# 21. Share of spending to total spending (finbra)
 # ==============================================================
 
 df <- df %>% 
@@ -578,7 +584,7 @@ df <- df %>%
   ) %>% 
   select(-c("sum_check","sum_check2"))
 
-# 18. saving
+# 22. saving
 # ==============================================================
 df <- df %>% filter(ano<=2015)
 
