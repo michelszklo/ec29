@@ -251,7 +251,7 @@ df <- df %>%
   unnest(all_of(yeartreat_dummies))
 
 
-# # # converting df_above to sample of municipalities of mayors who ran for reelection
+# # converting df_above to sample of municipalities of mayors who ran for reelection
 # df_above <- df %>%
 #   filter(second_term==1)
 # 
@@ -261,11 +261,11 @@ df <- df %>%
 #   filter(second_term==0)
 
 
-# # # converting df_above to sample of municipalities with high and low fiscal governance
+# # # converting df_above to sample of municipalities with high fiscal governance
 # df_above <- df %>%
 #   filter(firjan_above==1)
 # 
-# # converting df_below to sample of municipalities of mayors who didn't run for reelection
+# # converting df_above to sample of municipalities with low fiscal governance
 # 
 # df_below <- df %>%
 #   filter(firjan_above==0)
