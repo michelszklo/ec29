@@ -156,8 +156,8 @@ for(i in 1){
   scripts <- "ec29/"
   dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"18_regs_birth.R"))
-  scripts <- "ec29/"
-  dir <- "C:/Users/Michel/Documents/GitHub/"
-  source(paste0(dir,scripts,"20_regs_cnes_cs.R"))
+  # scripts <- "ec29/"
+  # dir <- "C:/Users/Michel/Documents/GitHub/"
+  # source(paste0(dir,scripts,"20_regs_cnes_cs.R"))
   
 }
