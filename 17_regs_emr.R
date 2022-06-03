@@ -2,7 +2,7 @@
 # Author: Michel Szklo
 # April 2021
 # 
-# This scripts runs regressions for public Infant Mortality rates - LAGGED EFFECTS
+# This scripts runs regressions for public Elderly Mortality rates
 #
 #
 #######################################################################################################
@@ -56,22 +56,19 @@ load(paste0(dir,"regs.RData"))
 # 2. Define outcomes output name and output functions
 # =================================================================
 
-var_map <-  rbind(cbind('tx_mi_l1','Infant Mortality Rate (log) - 1y lag'),
-                  cbind('tx_mi_l2','Infant Mortality Rate (log) - 2y lag'),
-                  cbind('tx_mi_l3','Infant Mortality Rate (log) - 3y lag'),
-                  cbind('tx_mi_l4','Infant Mortality Rate (log) - 4y lag'),
-                  cbind('tx_mi_l5','Infant Mortality Rate (log) - 5y lag'),
-                  cbind('tx_mi_icsap_l1','Infant Mortality Rate - APC (log) - 1y lag'),
-                  cbind('tx_mi_icsap_l2','Infant Mortality Rate - APC (log) - 2y lag'),
-                  cbind('tx_mi_icsap_l3','Infant Mortality Rate - APC (log) - 3y lag'),
-                  cbind('tx_mi_icsap_l4','Infant Mortality Rate - APC (log) - 4y lag'),
-                  cbind('tx_mi_icsap_l5','Infant Mortality Rate - APC (log) - 5y lag'),
-                  cbind('tx_mi_nicsap_l1','Infant Mortality Rate - non-APC (log) - 1y lag'),
-                  cbind('tx_mi_nicsap_l2','Infant Mortality Rate - non-APC (log) - 2y lag'),
-                  cbind('tx_mi_nicsap_l3','Infant Mortality Rate - non-APC (log) - 3y lag'),
-                  cbind('tx_mi_nicsap_l4','Infant Mortality Rate - non-APC (log) - 4y lag'),
-                  cbind('tx_mi_nicsap_l4','Infant Mortality Rate - non-APC (log) - 5y lag')
-                  )
+var_map <-  rbind(cbind('tx_me','Elderly Mortality Rate'), 
+                  cbind('tx_me_icsap','Elderly Mortality Rate - APC'), 
+                  cbind('tx_me_nicsap','Elderly Mortality Rate - non-APC'), 
+                  cbind('tx_me_circ','Elderly Mortality Rate - Circulatory'), 
+                  cbind('tx_me_neop','Elderly Mortality Rate - Neoplasm'), 
+                  cbind('tx_me_resp','Elderly Mortality Rate - Respiratory'), 
+                  cbind('tx_me_endoc','Elderly Mortality Rate - Endocrine'), 
+                  cbind('tx_me_dig','Elderly Mortality Rate - Digestive'), 
+                  cbind('tx_me_illdef','Elderly Mortality Rate - Ill-Defined'),
+                  cbind('tx_me_out','Elderly Mortality Rate - Other'), 
+                  cbind('tx_me_diab','Elderly Mortality Rate - Diabetes'),
+                  cbind('tx_me_hyper','Elderly Mortality Rate - Hypertension') 
+)
 
 
 
@@ -363,7 +360,6 @@ regress_output_below <- function(var,var_name,transform,year_filter){
 }  # runs regressions and output objects
 
 
-
 # 3. Run and ouput
 # =================================================================
 
@@ -375,18 +371,18 @@ df_below <- df_below %>%
   mutate(iv=ifelse(ano==2000,0,iv)) 
 df_above <- df_above %>%
   filter(ano<=2010) %>%
-  mutate(iv=ifelse(ano==2000,0,iv)) 
+  mutate(iv=ifelse(ano==2000,0,iv))  
 
 
 
-for (i in seq(1,15,1)){
+for (i in seq(1,12,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   
   if(below==1){
     
-    regress_output_below(var,var_name,1,1998)
+    regress_output_below(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){
@@ -401,7 +397,7 @@ for (i in seq(1,15,1)){
     }
     
   }else{
-    regress_output(var,var_name,1,1998)
+    regress_output(var,var_name,3,1998)
     
     
     if(exists("df_table_all")){
@@ -426,209 +422,13 @@ for (i in seq(1,15,1)){
 # ---------------------
 
 if(below==1){
-  write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName = "imr_lag_b",row.names = F,append = T)
+  write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName = "emr_b",row.names = F,append = T)
   
 }else{
   
-  write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName = "imr_lag",row.names = F,append = T)
+  write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName = "emr",row.names = F,append = T)
 }
 
 
 
 
-
-
-# 
-# # 5. Specifications graph
-# # =================================================================
-# 
-# scale_f <- -7
-# scale_l <- 7
-# scale_s <- 1
-# 
-# color_graph <- pal_lancet("lanonc")(9)
-# 
-# graph <- df_graph_all %>% 
-#   mutate(spec = as.factor(spec)) %>%
-#   mutate(spec = ifelse(spec=="1","1. municipality + time FE",spec),
-#          spec = ifelse(spec=="2", "2. municipality + state-time FE",spec),
-#          spec = ifelse(spec=="3", "3. municipality + state-time FE, with controls",spec)) %>% 
-#   mutate(term = as.factor(term)) %>% 
-#   mutate(term = fct_relevel(term,
-#                             var_map[15,2],
-#                             var_map[14,2],
-#                             var_map[13,2],
-#                             var_map[12,2],
-#                             var_map[11,2],
-#                             var_map[10,2],
-#                             var_map[9,2],
-#                             var_map[8,2],
-#                             var_map[7,2],
-#                             var_map[6,2],
-#                             var_map[5,2],
-#                             var_map[4,2],
-#                             var_map[3,2],
-#                             var_map[2,2],
-#                             var_map[1,2])) %>%  
-#   ggplot(aes(color = spec)) +
-#   geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
-#   geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
-#   geom_errorbar(aes(x= term, ymin = lb, ymax = ub, width = 0.4),
-#                 size = 0.7,
-#                 alpha = 0.7,
-#                 position = position_dodge(width=0.6)) +
-#   geom_point(aes(y = estimate, x = term),position = position_dodge(width=0.6), size = 3, alpha = 0.7) +
-#   scale_x_discrete() +
-#   scale_y_continuous(breaks = seq(scale_f,scale_l,scale_s), limits = c(scale_f,scale_l))+
-#   scale_colour_manual(values = color_graph) +
-#   coord_flip() +
-#   labs(x = "") +
-#   theme_light() +
-#   theme(panel.grid.major = element_blank(), 
-#         panel.grid.minor = element_blank(),
-#         legend.position="bottom", legend.box = "horizontal",
-#         # legend.title = element_blank(),
-#         plot.title = element_text(size = 10),
-#         plot.subtitle = element_text(size = 8),
-#         legend.text = element_text(size = 12),
-#         axis.title = element_text(size=12),
-#         axis.text = element_text(size=10)) +
-#   guides(color=guide_legend(ncol=1,byrow=T, title = "Specification",title.position="top"))
-# 
-# 
-# 
-# ggsave(paste0(dir,main_folder,robust_folder,"imr_lag_all.png"),
-#        plot = graph,
-#        device = "png",
-#        width = 10, height = 12,
-#        units = "in")
-# ggsave(paste0(dir,main_folder,robust_folder,"imr_lag_all.pdf"),
-#        plot = graph,
-#        device = "pdf",
-#        width = 10, height = 12,
-#        units = "in")
-# 
-# 
-# 
-# graph <- df_graph_below %>% 
-#   mutate(spec = as.factor(spec)) %>%
-#   mutate(spec = ifelse(spec=="1","1. municipality + time FE",spec),
-#          spec = ifelse(spec=="2", "2. municipality + state-time FE",spec),
-#          spec = ifelse(spec=="3", "3. municipality + state-time FE, with controls",spec)) %>% 
-#   mutate(term = as.factor(term)) %>% 
-#   mutate(term = fct_relevel(term,
-#                             var_map[15,2],
-#                             var_map[14,2],
-#                             var_map[13,2],
-#                             var_map[12,2],
-#                             var_map[11,2],
-#                             var_map[10,2],
-#                             var_map[9,2],
-#                             var_map[8,2],
-#                             var_map[7,2],
-#                             var_map[6,2],
-#                             var_map[5,2],
-#                             var_map[4,2],
-#                             var_map[3,2],
-#                             var_map[2,2],
-#                             var_map[1,2])) %>%  
-#   ggplot(aes(color = spec)) +
-#   geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
-#   geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
-#   geom_errorbar(aes(x= term, ymin = lb, ymax = ub, width = 0.4),
-#                 size = 0.7,
-#                 alpha = 0.7,
-#                 position = position_dodge(width=0.6)) +
-#   geom_point(aes(y = estimate, x = term),position = position_dodge(width=0.6), size = 3, alpha = 0.7) +
-#   scale_x_discrete() +
-#   scale_y_continuous(breaks = seq(scale_f,scale_l,scale_s), limits = c(scale_f,scale_l))+
-#   scale_colour_manual(values = color_graph) +
-#   coord_flip() +
-#   labs(x = "") +
-#   theme_light() +
-#   theme(panel.grid.major = element_blank(), 
-#         panel.grid.minor = element_blank(),
-#         legend.position="bottom", legend.box = "horizontal",
-#         # legend.title = element_blank(),
-#         plot.title = element_text(size = 10),
-#         plot.subtitle = element_text(size = 8),
-#         legend.text = element_text(size = 12),
-#         axis.title = element_text(size=12),
-#         axis.text = element_text(size=10)) +
-#   guides(color=guide_legend(ncol=1,byrow=T, title = "Specification",title.position="top"))
-# 
-# 
-# 
-# ggsave(paste0(dir,main_folder,robust_folder,"imr_lag_below.png"),
-#        plot = graph,
-#        device = "png",
-#        width = 10, height = 12,
-#        units = "in")
-# ggsave(paste0(dir,main_folder,robust_folder,"imr_lag_below.pdf"),
-#        plot = graph,
-#        device = "pdf",
-#        width = 10, height = 12,
-#        units = "in")
-# 
-# 
-# graph <- df_graph_above %>% 
-#   mutate(spec = as.factor(spec)) %>%
-#   mutate(spec = ifelse(spec=="1","1. municipality + time FE",spec),
-#          spec = ifelse(spec=="2", "2. municipality + state-time FE",spec),
-#          spec = ifelse(spec=="3", "3. municipality + state-time FE, with controls",spec)) %>% 
-#   mutate(term = as.factor(term)) %>% 
-#   mutate(term = fct_relevel(term,
-#                             var_map[15,2],
-#                             var_map[14,2],
-#                             var_map[13,2],
-#                             var_map[12,2],
-#                             var_map[11,2],
-#                             var_map[10,2],
-#                             var_map[9,2],
-#                             var_map[8,2],
-#                             var_map[7,2],
-#                             var_map[6,2],
-#                             var_map[5,2],
-#                             var_map[4,2],
-#                             var_map[3,2],
-#                             var_map[2,2],
-#                             var_map[1,2])) %>%  
-#   ggplot(aes(color = spec)) +
-#   geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
-#   geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.35, alpha = 1, linetype = "dotted") +
-#   geom_errorbar(aes(x= term, ymin = lb, ymax = ub, width = 0.4),
-#                 size = 0.7,
-#                 alpha = 0.7,
-#                 position = position_dodge(width=0.6)) +
-#   geom_point(aes(y = estimate, x = term),position = position_dodge(width=0.6), size = 3, alpha = 0.7) +
-#   scale_x_discrete() +
-#   scale_y_continuous(breaks = seq(scale_f,scale_l,scale_s), limits = c(scale_f,scale_l))+
-#   scale_colour_manual(values = color_graph) +
-#   coord_flip() +
-#   labs(x = "") +
-#   theme_light() +
-#   theme(panel.grid.major = element_blank(), 
-#         panel.grid.minor = element_blank(),
-#         legend.position="bottom", legend.box = "horizontal",
-#         # legend.title = element_blank(),
-#         plot.title = element_text(size = 10),
-#         plot.subtitle = element_text(size = 8),
-#         legend.text = element_text(size = 12),
-#         axis.title = element_text(size=12),
-#         axis.text = element_text(size=10)) +
-#   guides(color=guide_legend(ncol=1,byrow=T, title = "Specification",title.position="top"))
-# 
-# 
-# 
-# ggsave(paste0(dir,main_folder,robust_folder,"imr_lag_above.png"),
-#        plot = graph,
-#        device = "png",
-#        width = 10, height = 12,
-#        units = "in")
-# ggsave(paste0(dir,main_folder,robust_folder,"imr_lag_above.pdf"),
-#        plot = graph,
-#        device = "pdf",
-#        width = 10, height = 12,
-#        units = "in")
-# 
-# 

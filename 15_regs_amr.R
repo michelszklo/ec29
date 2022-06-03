@@ -57,20 +57,50 @@ load(paste0(dir,"regs.RData"))
 # =================================================================
 
 var_map <-  rbind(cbind('tx_ma','Adult Mortality Rate'),
+                  cbind('tx_ma_icsap','Adult Mortality Rate - APC'),
+                  cbind('tx_ma_nicsap','Adult Mortality Rate - non-APC'),
                   cbind('tx_ma_circ','Adult Mortality Rate - Circulatory'),
                   cbind('tx_ma_neop','Adult Mortality Rate - Neoplasm'),
                   cbind('tx_ma_resp','Adult Mortality Rate - Respiratory'),
-                  cbind('tx_ma_endoc','Adult Mortality Rate - Endocrine'),
+                  cbind('tx_ma_infec','Adult Mortality Rate - Infectious'),
                   cbind('tx_ma_ext','Adult Mortality Rate - External'),
-                  cbind('tx_ma_nut','Adult Mortality Rate - Nutritional'),
+                  cbind('tx_ma_dig','Adult Mortality Rate - Digestive'),
                   cbind('tx_ma_illdef','Adult Mortality Rate - Ill-Defined'),
-                  cbind('tx_ma_out','Adult Mortality Rate - Other'),
+                  cbind('tx_ma_out','Adult Mortality Rate - Other'), #
                   cbind('tx_ma_diab','Adult Mortality Rate - Diabetes'),
                   cbind('tx_ma_hyper','Adult Mortality Rate - Hypertension'),
-                  cbind('tx_ma_icsap','Adult Mortality Rate - APC'),
-                  cbind('tx_ma_nicsap','Adult Mortality Rate - non-APC'))
+                  
+                  cbind('tx_ma1','15-39y Mortality Rate'),
+                  cbind('tx_ma1_icsap','15-39y Mortality Rate - APC'),
+                  cbind('tx_ma1_nicsap','15-39y Mortality Rate - non-APC'),
+                  cbind('tx_ma1_circ','15-39y Mortality Rate - Circulatory'),
+                  cbind('tx_ma1_neop','15-39y Mortality Rate - Neoplasm'),
+                  cbind('tx_ma1_resp','15-39y Mortality Rate - Respiratory'),
+                  cbind('tx_ma1_infec','15-39y Mortality Rate - Infectious'),
+                  cbind('tx_ma1_ext','15-39y Mortality Rate - External'),
+                  cbind('tx_ma1_dig','15-39y Mortality Rate - Digestive'),
+                  cbind('tx_ma1_illdef','15-39y Mortality Rate - Ill-Defined'),
+                  cbind('tx_ma1_out','15-39y Mortality Rate - Other'), #
+                  cbind('tx_ma1_diab','15-39y Mortality Rate - Diabetes'),
+                  cbind('tx_ma1_hyper','15-39y Mortality Rate - Hypertension'),
+                  
+                  cbind('tx_ma2','40-59y Mortality Rate'),
+                  cbind('tx_ma2_icsap','40-59y Mortality Rate - APC'),
+                  cbind('tx_ma2_nicsap','40-59y Mortality Rate - non-APC'),
+                  cbind('tx_ma2_circ','40-59y Mortality Rate - Circulatory'),
+                  cbind('tx_ma2_neop','40-59y Mortality Rate - Neoplasm'),
+                  cbind('tx_ma2_resp','40-59y Mortality Rate - Respiratory'),
+                  cbind('tx_ma2_infec','40-59y Mortality Rate - Infectious'),
+                  cbind('tx_ma2_ext','40-59y Mortality Rate - External'),
+                  cbind('tx_ma2_dig','40-59y Mortality Rate - Digestive'),
+                  cbind('tx_ma2_illdef','40-59y Mortality Rate - Ill-Defined'),
+                  cbind('tx_ma2_out','40-59y Mortality Rate - Other'), #
+                  cbind('tx_ma2_diab','40-59y Mortality Rate - Diabetes'),
+                  cbind('tx_ma2_hyper','40-59y Mortality Rate - Hypertension')
 
+                  )
 
+# infec dig
 
 table_formating <- function(df,s){
   df <- df %>% 
@@ -375,7 +405,7 @@ df_above <- df_above %>%
   mutate(iv=ifelse(ano==2000,0,iv)) 
 
 
-for (i in seq(1,13,1)){
+for (i in seq(1,39,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)

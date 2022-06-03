@@ -104,16 +104,39 @@ summary_stat <- function(df,baseline_year,obj){
 var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spent in Health"),
                  cbind("dist_ec29_baseline","Distance to the EC29 Target"),
                  
+                 cbind('finbra_reccorr_pcapita','Total Revenue per capita (2010 R$)'),
+                 cbind('finbra_rectribut_pcapita','Tax Revenue per capita (2010 R$)'),
+                 cbind('finbra_rectransf_pcapita','Transfers Revenue per capita (2010 R$)'),
+                 cbind('finbra_rec_outros_pcapita','Other Revenues per capita (2010 R$)'),
+                 
+                 cbind('finbra_rectribut_share','Tax Revenue (% Total Revenue)'),
+                 cbind('finbra_rectransf_share','Transfers Revenue (% Total Revenue)'),
+                 cbind('finbra_rec_outros_share','Other Revenues (% Total Revenue)'),
+                 
                  cbind('finbra_desp_o_pcapita','Total Spending per capita (2010 R$)'),
                  cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita (2010 R$)'),
                  cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (2010 R$)'),
                  cbind('finbra_desp_outros_nature_pcapita','Other Spending per capita (2010 R$)'),
+                 
+                 cbind('finbra_desp_pessoal_share','Human Resources Spending (% Total Spending)'),
+                 cbind('finbra_desp_investimento_share','Investment Spending (% Total Spending)'),
+                 cbind('finbra_desp_outros_nature_share','Other Spending per capita (% Total Spending)'),
+                 
                  cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (2010 R$)'),
                  cbind('finbra_desp_transporte_pcapita','Transport Spending per capita (2010 R$)'),
                  cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (2010 R$)'),
                  cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (2010 R$)'),
                  cbind('finbra_desp_assist_prev_pcapita','Social Assistance Spending per capita (2010 R$)'),
                  cbind('finbra_desp_outros_area_pcapita','Other Areas Spending per capita (2010 R$)'),
+                 
+                 cbind('finbra_desp_saude_san_share','Health and Sanitation Spending (% Total Spending)'),
+                 cbind('finbra_desp_transporte_share','Transport Spending (% Total Spending)'),
+                 cbind('finbra_desp_educ_cultura_share','Education and Culture Spending (% Total Spending)'),
+                 cbind('finbra_desp_hab_urb_share','Housing and Urban Spending (% Total Spending)'),
+                 cbind('finbra_desp_assist_prev_share','Social Assistance Spending (% Total Spending)'),
+                 cbind('finbra_desp_outros_area_share','Other Areas Spending (% Total Spending)'),
+                 
+                 
                  cbind('siops_despsaude_pcapita','Health Spending per capita - Total (2010 R$)'),
                  cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (2010 R$)'),
                  cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Transfers (2010 R$)'),
@@ -121,23 +144,8 @@ var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spe
                  cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (2010 R$)'),
                  cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (2010 R$)'),
                  cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (2010 R$)'),
-                 cbind('finbra_reccorr_pcapita','Total Revenue per capita (2010 R$)'),
-                 cbind('finbra_rectribut_pcapita','Tax Revenue per capita (2010 R$)'),
-                 cbind('finbra_rectransf_pcapita','Transfers Revenue per capita (2010 R$)'),
-                 cbind('finbra_rec_outros_pcapita','Other Revenues per capita (2010 R$)'),
                  
-                 cbind('finbra_desp_pessoal_share','Human Resources Spending (% Total Spending)'),
-                 cbind('finbra_desp_investimento_share','Investment Spending (% Total Spending)'),
-                 cbind('finbra_desp_outros_nature_share','Other Spending per capita (% Total Spending)'),
-                 cbind('finbra_desp_saude_san_share','Health and Sanitation Spending (% Total Spending)'),
-                 cbind('finbra_desp_transporte_share','Transport Spending (% Total Spending)'),
-                 cbind('finbra_desp_educ_cultura_share','Education and Culture Spending (% Total Spending)'),
-                 cbind('finbra_desp_hab_urb_share','Housing and Urban Spending (% Total Spending)'),
-                 cbind('finbra_desp_assist_prev_share','Social Assistance Spending (% Total Spending)'),
-                 cbind('finbra_desp_outros_area_share','Other Areas Spending (% Total Spending)'),
-                 cbind('finbra_rectribut_share','Tax Revenue (% Total Revenue)'),
-                 cbind('finbra_rectransf_share','Transfers Revenue (% Total Revenue)'),
-                 cbind('finbra_rec_outros_share','Other Revenues (% Total Revenue)'),
+                 
                  cbind('siops_desprecpropriosaude_share','Health Spending - Own Resources (% Health Spending)'),
                  cbind('siops_despexrecproprio_share','Health Spending - Transfers (% Health Spending)'),
                  cbind('siops_desppessoal_share','Health Spending - Human Resources (% Health Spending)'),
@@ -161,79 +169,50 @@ var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spe
                  cbind('siab_cons_especif_pacs_pcapita','N. of Appointments from Community Health Program (per capita)'),
                  cbind('siab_cons_especif_psf_pcapita','N. of Appointments from Family Health Program (per capita)'),
                  
-                 cbind('sia_pcapita','Outpatient Procedures (per capita)'),
-                 cbind('sia_ab_pcapita','PC Outpatient Procedures (per capita)'),
-                 cbind('sia_nprod_amb_lc_pcapita','Low & Mid Complexity Outpatient Procedures (per capita)'),
-                 cbind('sia_nprod_amb_lc_mun_pcapita','Municipal Low & Mid Complexity Outpatient Procedures (per capita)'),
-                 cbind('sia_nprod_amb_lc_pub_pcapita','Public Low & Mid Complexity Outpatient Procedures (per capita)'),
-                 cbind('sia_nprod_amb_lc_pvt_pcapita','Private Low & Mid Complexity Outpatient Procedures (per capita)'),
-                 cbind('sia_nprod_amb_hc_pcapita','High Complexity Outpatient Procedures (per capita)'),
-                 cbind('sia_nprod_amb_hc_mun_pcapita','Municipal High Complexity Outpatient Procedures (per capita)'),
-                 cbind('sia_nprod_amb_hc_pub_pcapita','Public High Complexity Outpatient Procedures (per capita)'),
-                 cbind('sia_nprod_amb_hc_pvt_pcapita','Private High Complexity Outpatient Procedures (per capita)'),
-                 cbind('sia_nprod_low_skill_pcapita','Outpatient Procedures by Low Skilled Workers (per capita)'),
-                 cbind('sia_nprod_low_skill_mun_pcapita','Municipal Outpatient Procedures by Low Skilled Workers (per capita)'),
-                 cbind('sia_nprod_low_skill_pub_pcapita','Public Outpatient Procedures by Low Skilled Workers (per capita)'),
-                 cbind('sia_nprod_low_skill_pvt_pcapita','Private Outpatient Procedures by Low Skilled Workers (per capita)'),
-                 cbind('sia_nprod_med_skill_pcapita','Outpatient Procedures by Mid Skilled Workers (per capita)'),
-                 cbind('sia_nprod_med_skill_mun_pcapita','Municipal Outpatient procedures by Mid Skilled Workers (per capita)'),
-                 cbind('sia_nprod_med_skill_pub_pcapita','Public Outpatient procedures by Mid Skilled Workers (per capita)'),
-                 cbind('sia_nprod_med_skill_pvt_pcapita','Private Outpatient procedures by Mid Skilled Workers (per capita)'),
-                 cbind('sia_nprod_high_skill_pcapita','Outpatient Procedures by High Skilled Workers (per capita)'),
-                 cbind('sia_nprod_high_skill_mun_pcapita','Municipal Outpatient Procedures by High Skilled Workers (per capita)'),
-                 cbind('sia_nprod_high_skill_pub_pcapita','Public Outpatient Procedures by High Skilled Workers (per capita)'),
-                 cbind('sia_nprod_high_skill_pvt_pcapita','Private Outpatient Procedures by High Skilled Workers (per capita)'),
-                 cbind('sia_ncnes_amb_pcapita','N. of Health Facilities with Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_amb_mun_pcapita','N. of Municipal Health Facilities with Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_amb_pub_pcapita','N. of Public Health Facilities with Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_amb_pvt_pcapita','N. of Private Health Facilities with Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_amb_lc_pcapita','N. of Health Facilities with Low & Mid Complexity Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_amb_lc_mun_pcapita','N. of Municipal Health Facilities with Low & Mid Complexity Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_amb_lc_pub_pcapita','N. of Public Health Facilities with Low & Mid Complexity Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_amb_lc_pvt_pcapita','N. of Private Health Facilities with Low & Mid Complexity Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_amb_hc_pcapita','N. of Health Facilities with High Complexity Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_amb_hc_mun_pcapita','N. of Municipal Health Facilities with High Complexity Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_amb_hc_pub_pcapita','N. of Public Health Facilities with High Complexity Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_amb_hc_pvt_pcapita','N. of Private Health Facilities with High Complexity Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_low_skill_pcapita','N. of Health Facilities with Ambulatory Service by Low Skilled Workers (per capita*1000)'),
-                 cbind('sia_ncnes_low_skill_mun_pcapita','N. of Municipal Health Facilities with Ambulatory Service by Low Skilled Workers (per capita*1000)'),
-                 cbind('sia_ncnes_low_skill_pub_pcapita','N. of Public Health Facilities with Ambulatory Service by Low Skilled Workers (per capita*1000)'),
-                 cbind('sia_ncnes_low_skill_pvt_pcapita','N. of Private Health Facilities with Ambulatory Service by Low Skilled Workers (per capita*1000)'),
-                 cbind('sia_ncnes_med_skill_pcapita','N. of Health Facilities with Ambulatory Service by Mid Skilled Workers (per capita*1000)'),
-                 cbind('sia_ncnes_med_skill_mun_pcapita','N. of Municipal Health Facilities with Ambulatory Service by Mid Skilled Workers (per capita*1000)'),
-                 cbind('sia_ncnes_med_skill_pub_pcapita','N. of Public Health Facilities with Ambulatory Service by Mid Skilled Workers (per capita*1000)'),
-                 cbind('sia_ncnes_med_skill_pvt_pcapita','N. of Private Health Facilities with Ambulatory Service by Mid Skilled Workers (per capita*1000)'),
-                 cbind('sia_ncnes_high_skill_pcapita','N. of Health Facilities with Ambulatory Service by High Skilled Workers (per capita*1000)'),
-                 cbind('sia_ncnes_high_skill_mun_pcapita','N. of Municipal Health Facilities with Ambulatory Service by High Skilled Workers (per capita*1000)'),
-                 cbind('sia_ncnes_high_skill_pub_pcapita','N. of Public Health Facilities with Ambulatory Service by High Skilled Workers (per capita*1000)'),
-                 cbind('sia_ncnes_high_skill_pvt_pcapita','N. of Private Health Facilities with Ambulatory Service by High Skilled Workers (per capita*1000)'),
-                 cbind('sia_ncnes_enf_pcapita','N. of Health Facilities with Ambulatory Service by Nurses (per capita*1000)'),
-                 cbind('sia_ncnes_enf_mun_pcapita','N. of Municipal Health Facilities with Ambulatory Service by Nurses (per capita*1000)'),
-                 cbind('sia_ncnes_enf_pub_pcapita','N. of Public Health Facilities with Ambulatory Service and with Nurses (per capita*1000)'),
-                 cbind('sia_ncnes_enf_pvt_pcapita','N. of Private Health Facilities with Ambulatory Service and with Nurses (per capita*1000)'),
-                 cbind('sia_ncnes_enfobs_pcapita','N. of Health Facilities with Ambulatory Service by Obstetrical Nurses (per capita*1000)'),
-                 cbind('sia_ncnes_enfobs_mun_pcapita','N. of Municipal Health Facilities with Ambulatory Service by Obstetrical Nurses (per capita*1000)'),
-                 cbind('sia_ncnes_enfobs_pub_pcapita','N. of Public Health Facilities with Ambulatory Service by Obstetrical Nurses (per capita*1000)'),
-                 cbind('sia_ncnes_enfobs_pvt_pcapita','N. of Private Health Facilities with Ambulatory Service by Obstetrical Nurses (per capita*1000)'),
-                 cbind('sia_ncnes_ginobs_pcapita','N. of Health Facilities with Obstetrical/Gyneco. Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_ginobs_mun_pcapita','N. of Municipal Health Facilities with Obstetrical/Gyneco. Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_ginobs_pub_pcapita','N. of Public Health Facilities with Obstetrical/Gyneco. Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_ginobs_pvt_pcapita','N. of Private Health Facilities with Obstetrical/Gyneco. Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_pediat_pcapita','N. of Health Facilities with Pediatric Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_pediat_mun_pcapita','N. of Municipal Health Facilities with Pediatric Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_pediat_pub_pcapita','N. of Public Health Facilities with Pediatric Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_pediat_pvt_pcapita','N. of Private Health Facilities with Pediatric Ambulatory Service (per capita*1000)'),
+                 cbind('sia_ncnes_amb_mun_pcapita','N. of Health Facilities with Ambulatory Service (per capita*1000)'),
+                 cbind('sia_ncnes_amb_lc_mun_pcapita','N. of Health Facilities with Low & Mid Complexity Ambulatory Service (per capita*1000)'),
+                 cbind('sia_ncnes_amb_hc_mun_pcapita','N. of Health Facilities with High Complexity Ambulatory Service (per capita*1000)'),
+                 cbind('sia_ncnes_low_skill_mun_pcapita','N. of Health Facilities with Ambulatory Service by Low Skilled Workers (per capita*1000)'),
+                 cbind('sia_ncnes_med_skill_mun_pcapita','N. of Health Facilities with Ambulatory Service by Mid Skilled Workers (per capita*1000)'),
+                 cbind('sia_ncnes_enf_mun_pcapita','N. of Health Facilities with Ambulatory Service by Nurses (per capita*1000)'),
+                 cbind('sia_ncnes_enfobs_mun_pcapita','N. of Health Facilities with Ambulatory Service by Obstetrical Nurses (per capita*1000)'),
                  cbind('sia_ncnes_medcom_pcapita','N. of Health Facilities with Ambulatory Service and Community Doctors (per capita*1000)'),
+                 cbind('sia_ncnes_ginobs_mun_pcapita','N. of Health Facilities with Obstetrical/Gyneco. Ambulatory Service (per capita*1000)'),
+                 cbind('sia_ncnes_pediat_mun_pcapita','N. of Health Facilities with Pediatric Ambulatory Service (per capita*1000)'),
                  cbind('sia_ncnes_medpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Doctors (per capita*1000)'),
                  cbind('sia_ncnes_enfpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Nurses (per capita*1000)'),
                  cbind('sia_ncnes_outpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Nursing Assistants (per capita*1000)'),
                  cbind('sia_ncnes_psf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Teams (per capita*1000)'),
                  cbind('sia_ncnes_acs_pcapita','N. of Health Facilities with Ambulatory Service and ACS Teams (per capita*1000)'),
                  cbind('sia_ncnes_enfacs_pcapita','N. of Health Facilities with Ambulatory Service and ACS Nurses (per capita*1000)'),
+                 cbind('sia_pcapita','N. Outpatient Procedures (per capita)'),
+                 cbind('sia_ab_pcapita','N. Primary Care Outpatient Procedures (per capita)'),
+                 cbind('sia_nprod_amb_lc_mun_pcapita','N. Low & Mid Complexity Outpatient Procedures (per capita)'),
+                 cbind('sia_nprod_amb_hc_mun_pcapita','N. High Complexity Outpatient Procedures (per capita)'),
+                 cbind('sia_nprod_low_skill_mun_pcapita','N. Outpatient Procedures by Low Skilled Workers (per capita)'),
+                 cbind('sia_nprod_med_skill_mun_pcapita','N. Outpatient procedures by Mid Skilled Workers (per capita)'),
+                 
+                 
+                 cbind('birth_c_sections','Share of C-Section'),
+                 cbind('birth_hospital','Birth at Hospital'),
+                 cbind('birth_prenat_0','Prenatal Visits None'),
+                 cbind('birth_prenat_1_6','Prenatal Visits 1-6'),
+                 cbind('birth_prenat_7_plus','Prenatal Visits 7+'),
+                 
+                 
+                 cbind('birth_apgar1','Apgar 1'),
+                 cbind('birth_apgar5','Apgar 5'),
+                 cbind('birth_low_weight_2500g','Low Birth Weight (<2.5k)'),
+                 cbind('birth_gest_37plus','Gestation Weeks 37+'),
+                 
                  
                  cbind('tx_mi','Infant Mortality Rate'),
                  cbind('tx_mi_icsap','Infant Mortality Rate - APC'),
                  cbind('tx_mi_nicsap','Infant Mortality Rate - non-APC'),
+                 cbind('tx_mi_fet','Infant Mortality Rate - Fetal'),
+                 cbind('tx_mi_24h','Infant Mortality Rate - Within 24h'),
+                 cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days'),
+                 cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year'),
                  cbind('tx_mi_infec','Infant Mortality Rate - Infectious'),
                  cbind('tx_mi_resp','Infant Mortality Rate - Respiratory'),
                  cbind('tx_mi_perinat','Infant Mortality Rate - Perinatal'),
@@ -242,64 +221,115 @@ var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spe
                  cbind('tx_mi_nut','Infant Mortality Rate - Nutritional'),
                  cbind('tx_mi_out','Infant Mortality Rate - Other'),
                  cbind('tx_mi_illdef','Infant Mortality Rate - Ill-Defined'),
-                 cbind('tx_mi_fet','Infant Mortality Rate - Fetal'),
-                 cbind('tx_mi_24h','Infant Mortality Rate - Within 24h'),
-                 cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days'),
-                 cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year'),
+                 cbind('tx_mm',"Maternal Mortality Rate"),
+                 
                  
                  cbind('tx_ma','Adult Mortality Rate'),
+                 cbind('tx_ma_icsap','Adult Mortality Rate - APC'),
+                 cbind('tx_ma_nicsap','Adult Mortality Rate - non-APC'),
                  cbind('tx_ma_circ','Adult Mortality Rate - Circulatory'),
                  cbind('tx_ma_neop','Adult Mortality Rate - Neoplasm'),
                  cbind('tx_ma_resp','Adult Mortality Rate - Respiratory'),
-                 cbind('tx_ma_endoc','Adult Mortality Rate - Endocrine'),
+                 cbind('tx_ma_infec','Adult Mortality Rate - Infectious'),
                  cbind('tx_ma_ext','Adult Mortality Rate - External'),
-                 cbind('tx_ma_nut','Adult Mortality Rate - Nutritional'),
+                 cbind('tx_ma_dig','Adult Mortality Rate - Digestive'),
                  cbind('tx_ma_illdef','Adult Mortality Rate - Ill-Defined'),
-                 cbind('tx_ma_out','Adult Mortality Rate - Other'),
+                 cbind('tx_ma_out','Adult Mortality Rate - Other'), #
                  cbind('tx_ma_diab','Adult Mortality Rate - Diabetes'),
                  cbind('tx_ma_hyper','Adult Mortality Rate - Hypertension'),
-                 cbind('tx_ma_icsap','Adult Mortality Rate - APC'),
-                 cbind('tx_ma_nicsap','Adult Mortality Rate - non-APC'),
                  
-                 cbind('birth_apgar1','Apgar 1'),
-                 cbind('birth_apgar5','Apgar 5'),
-                 cbind('birth_c_sections','Share of C-Section'),
-                 cbind('birth_gest_37plus','Gestation Weeks 37+'),
-                 cbind('birth_hospital','Birth at Hospital'),
-                 cbind('birth_low_weight_2500g','Low Birth Weight (<2.5k)'),
-                 cbind('birth_prenat_0','Prenatal Visits None'),
-                 cbind('birth_prenat_1_6','Prenatal Visits 1-6'),
-                 cbind('birth_prenat_7_plus','Prenatal Visits 7+')
+                 cbind('tx_ma1','15-39y Mortality Rate'),
+                 cbind('tx_ma1_icsap','15-39y Mortality Rate - APC'),
+                 cbind('tx_ma1_nicsap','15-39y Mortality Rate - non-APC'),
+                 cbind('tx_ma1_circ','15-39y Mortality Rate - Circulatory'),
+                 cbind('tx_ma1_neop','15-39y Mortality Rate - Neoplasm'),
+                 cbind('tx_ma1_resp','15-39y Mortality Rate - Respiratory'),
+                 cbind('tx_ma1_infec','15-39y Mortality Rate - Infectious'),
+                 cbind('tx_ma1_ext','15-39y Mortality Rate - External'),
+                 cbind('tx_ma1_dig','15-39y Mortality Rate - Digestive'),
+                 cbind('tx_ma1_illdef','15-39y Mortality Rate - Ill-Defined'),
+                 cbind('tx_ma1_out','15-39y Mortality Rate - Other'), #
+                 cbind('tx_ma1_diab','15-39y Mortality Rate - Diabetes'),
+                 cbind('tx_ma1_hyper','15-39y Mortality Rate - Hypertension'),
+                 
+                 cbind('tx_ma2','40-59y Mortality Rate'),
+                 cbind('tx_ma2_icsap','40-59y Mortality Rate - APC'),
+                 cbind('tx_ma2_nicsap','40-59y Mortality Rate - non-APC'),
+                 cbind('tx_ma2_circ','40-59y Mortality Rate - Circulatory'),
+                 cbind('tx_ma2_neop','40-59y Mortality Rate - Neoplasm'),
+                 cbind('tx_ma2_resp','40-59y Mortality Rate - Respiratory'),
+                 cbind('tx_ma2_infec','40-59y Mortality Rate - Infectious'),
+                 cbind('tx_ma2_ext','40-59y Mortality Rate - External'),
+                 cbind('tx_ma2_dig','40-59y Mortality Rate - Digestive'),
+                 cbind('tx_ma2_illdef','40-59y Mortality Rate - Ill-Defined'),
+                 cbind('tx_ma2_out','40-59y Mortality Rate - Other'), #
+                 cbind('tx_ma2_diab','40-59y Mortality Rate - Diabetes'),
+                 cbind('tx_ma2_hyper','40-59y Mortality Rate - Hypertension'),
+                 
+                 
+                 cbind('tx_mc','Child Mortality Rate'),
+                 cbind('tx_mc_icsap','Child Mortality Rate - APC'),
+                 cbind('tx_mc_nicsap','Child Mortality Rate - non-APC'),
+                 cbind('tx_mc_infec','Child Mortality Rate - Infectious'),
+                 cbind('tx_mc_resp','Child Mortality Rate - Respiratory'), 
+                 cbind('tx_mc_neop','Child Mortality Rate - Neoplasm'),
+                 cbind('tx_mc_cong','Child Mortality Rate - Congenital'), 
+                 cbind('tx_mc_ext','Child Mortality Rate - External'),
+                 cbind('tx_mc_nerv','Child Mortality Rate - Nervous System'),
+                 cbind('tx_mc_out','Child Mortality Rate - Other'),
+                 cbind('tx_mc_illdef','Child Mortality Rate - Ill-Defined'),
+                 
+                 cbind('tx_me','Elderly Mortality Rate'), 
+                 cbind('tx_me_icsap','Elderly Mortality Rate - APC'), 
+                 cbind('tx_me_nicsap','Elderly Mortality Rate - non-APC'), 
+                 cbind('tx_me_circ','Elderly Mortality Rate - Circulatory'), 
+                 cbind('tx_me_neop','Elderly Mortality Rate - Neoplasm'), 
+                 cbind('tx_me_resp','Elderly Mortality Rate - Respiratory'), 
+                 cbind('tx_me_endoc','Elderly Mortality Rate - Endocrine'), 
+                 cbind('tx_me_dig','Elderly Mortality Rate - Digestive'), 
+                 cbind('tx_me_illdef','Elderly Mortality Rate - Ill-Defined'),
+                 cbind('tx_me_out','Elderly Mortality Rate - Other'), 
+                 cbind('tx_me_diab','Elderly Mortality Rate - Diabetes'),
+                 cbind('tx_me_hyper','Elderly Mortality Rate - Hypertension') 
+                 
+                 
+                 
                  
 )
 
 summary_stat(df,2000,"stats_2000")
+summary_stat(df %>% filter(second_term==1),2000,"stats_2000_second")
+summary_stat(df %>% filter(second_term==0),2000,"stats_2000_first")
+summary_stat(df %>% filter(firjan_above==1),2000,"stats_2000_high")
+summary_stat(df %>% filter(firjan_above==0),2000,"stats_2000_low")
+
+
 
 
 # 4. Statistic for variables with baseline in 2002
 # =================================================================
 
-var_map <- rbind(cbind('ams_cnes_bed_sur_total_pcapita','Surgical Public Beds (per capita * 1000)'),
-                 cbind('ams_cnes_bed_clin_total_pcapita','Clinical Public Beds (per capita * 1000)'),
-                 cbind('ams_cnes_bed_obs_total_pcapita','Obstetric Public Beds (per capita * 1000)'),
-                 cbind('ams_cnes_bed_ped_total_pcapita','Pediatric Public Beds (per capita * 1000)'),
-                 cbind('ams_cnes_bed_sus_priv_pcapita','Total Number of Beds, Public and Private (per capita * 1000)'),
-                 cbind('ams_cnes_bed_total_pcapita','Number of Public of Beds (per capita * 1000)'),
-                 cbind('ams_cnes_itubed_total_pcapita','Number of Public ITU Beds (per capita * 1000)'),
-                 cbind('ams_cnes_ad_itubed_total_pcapita','Number of Public Adult ITU Beds (per capita * 1000)'),
-                 cbind('ams_cnes_hpp_count_pcapita','Number of Small Facilities with Hospital Services (per capita * 1000)'),
-                 cbind('ams_cnes_hpp_bed_count_pcapita','Number of Beds in Small Facilities (per capita * 1000)'),
-                 cbind('ams_cnes_hmp_count_pcapita','Number of Medium Facilities with Hospital Services (per capita * 1000)'),
-                 cbind('ams_cnes_hmp_bed_count_pcapita','Number of Beds in Medium Facilities (per capita * 1000)'),
-                 cbind('ams_cnes_hgp_count_pcapita','Number of Large Facilities with Hospital Services (per capita * 1000)'),
-                 cbind('ams_cnes_hgp_bed_count_pcapita','Number of Beds in Large Facilities (per capita * 1000)'),
-                 cbind('ams_cnes_n_estab_emg_pcapita','Number of Facilities with Emergency Services (per capita * 1000)'),
-                 cbind('ams_cnes_n_estab_amb_pcapita','Number of Facilities with Ambulatorial Services (per capita * 1000)'),
-                 cbind('ams_cnes_n_estab_pcapita','Number of Facilities (per capita * 1000)')
-)
-
-
-summary_stat(df,2002,"stats_2002")
+# var_map <- rbind(cbind('ams_cnes_bed_sur_total_pcapita','Surgical Public Beds (per capita * 1000)'),
+#                  cbind('ams_cnes_bed_clin_total_pcapita','Clinical Public Beds (per capita * 1000)'),
+#                  cbind('ams_cnes_bed_obs_total_pcapita','Obstetric Public Beds (per capita * 1000)'),
+#                  cbind('ams_cnes_bed_ped_total_pcapita','Pediatric Public Beds (per capita * 1000)'),
+#                  cbind('ams_cnes_bed_sus_priv_pcapita','Total Number of Beds, Public and Private (per capita * 1000)'),
+#                  cbind('ams_cnes_bed_total_pcapita','Number of Public of Beds (per capita * 1000)'),
+#                  cbind('ams_cnes_itubed_total_pcapita','Number of Public ITU Beds (per capita * 1000)'),
+#                  cbind('ams_cnes_ad_itubed_total_pcapita','Number of Public Adult ITU Beds (per capita * 1000)'),
+#                  cbind('ams_cnes_hpp_count_pcapita','Number of Small Facilities with Hospital Services (per capita * 1000)'),
+#                  cbind('ams_cnes_hpp_bed_count_pcapita','Number of Beds in Small Facilities (per capita * 1000)'),
+#                  cbind('ams_cnes_hmp_count_pcapita','Number of Medium Facilities with Hospital Services (per capita * 1000)'),
+#                  cbind('ams_cnes_hmp_bed_count_pcapita','Number of Beds in Medium Facilities (per capita * 1000)'),
+#                  cbind('ams_cnes_hgp_count_pcapita','Number of Large Facilities with Hospital Services (per capita * 1000)'),
+#                  cbind('ams_cnes_hgp_bed_count_pcapita','Number of Beds in Large Facilities (per capita * 1000)'),
+#                  cbind('ams_cnes_n_estab_emg_pcapita','Number of Facilities with Emergency Services (per capita * 1000)'),
+#                  cbind('ams_cnes_n_estab_amb_pcapita','Number of Facilities with Ambulatorial Services (per capita * 1000)'),
+#                  cbind('ams_cnes_n_estab_pcapita','Number of Facilities (per capita * 1000)')
+# )
+# 
+# 
+# summary_stat(df,2002,"stats_2002")
 
 
 
@@ -309,31 +339,31 @@ summary_stat(df,2002,"stats_2002")
 load(paste0(dir,"regs_cs_2005.RData"))
 
 
-
-var_map <- rbind(cbind('cnes_st_all_mun_pcapita','Municipal Health Facilities (per capita * 1mi)'),
-                 cbind('cnes_st_posto_mun_pcapita','Municipal Health Center (per capita * 1mi)'),
-                 cbind('cnes_st_consultorio_mun_pcapita','Municipal Consulting Rooms (per capita * 1mi)'),
-                 cbind('cnes_st_clinicaesp_mun_pcapita','Municipal Specialized Health Clinics (per capita * 1mi)'),
-                 cbind('cnes_st_diagnos_mun_pcapita','Municipal Diagnostic Center (per capita * 1mi)'),
-                 cbind('cnes_st_all_private_pcapita','Private Health Facilities (per capita * 1mi)'),
-                 cbind('cnes_st_posto_private_pcapita','Private Health Center (per capita * 1mi)'),
-                 cbind('cnes_st_consultorio_private_pcapita','Private Consulting Rooms (per capita * 1mi)'),
-                 cbind('cnes_st_clinicaesp_private_pcapita','Private Specialized Health Clinics (per capita * 1mi)'),
-                 cbind('cnes_st_diagnos_private_pcapita','Private Diagnostic Center (per capita * 1mi)'),
-                 cbind('cnes_st_all_public_pcapita','Public Health Facilities (per capita * 1mi)'),
-                 cbind('cnes_st_posto_public_pcapita','Public Health Center (per capita * 1mi)'),
-                 cbind('cnes_st_consultorio_public_pcapita','Public Consulting Rooms (per capita * 1mi)'),
-                 cbind('cnes_st_clinicaesp_public_pcapita','Public Specialized Health Clinics (per capita * 1mi)'),
-                 cbind('cnes_st_diagnos_public_pcapita','Public Diagnostic Center (per capita * 1mi)'),
-                 cbind('cnes_lt_private_sus_funded_pcapita','Private Hospital Beds funded by SUS (per capita * 1mi)'),
-                 cbind('cnes_lt_mun_pcapita','Municipal Hospital Beds (per capita * 1mi)'),
-                 cbind('cnes_lt_public_pcapita','Public Hospital Beds (per capita * 1mi)'),
-                 cbind('cnes_eq_mun_pcapita','Municipal Health Equipments (per capita * 1mi)'),
-                 cbind('cnes_eq_private_pcapita','Private Health Equipments (per capita * 1mi)'),
-                 cbind('cnes_eq_public_pcapita','Public Health Equipments (per capita * 1mi)'))
-
-
-summary_stat(df,2005,"stats_2005")
+# 
+# var_map <- rbind(cbind('cnes_st_all_mun_pcapita','Municipal Health Facilities (per capita * 1mi)'),
+#                  cbind('cnes_st_posto_mun_pcapita','Municipal Health Center (per capita * 1mi)'),
+#                  cbind('cnes_st_consultorio_mun_pcapita','Municipal Consulting Rooms (per capita * 1mi)'),
+#                  cbind('cnes_st_clinicaesp_mun_pcapita','Municipal Specialized Health Clinics (per capita * 1mi)'),
+#                  cbind('cnes_st_diagnos_mun_pcapita','Municipal Diagnostic Center (per capita * 1mi)'),
+#                  cbind('cnes_st_all_private_pcapita','Private Health Facilities (per capita * 1mi)'),
+#                  cbind('cnes_st_posto_private_pcapita','Private Health Center (per capita * 1mi)'),
+#                  cbind('cnes_st_consultorio_private_pcapita','Private Consulting Rooms (per capita * 1mi)'),
+#                  cbind('cnes_st_clinicaesp_private_pcapita','Private Specialized Health Clinics (per capita * 1mi)'),
+#                  cbind('cnes_st_diagnos_private_pcapita','Private Diagnostic Center (per capita * 1mi)'),
+#                  cbind('cnes_st_all_public_pcapita','Public Health Facilities (per capita * 1mi)'),
+#                  cbind('cnes_st_posto_public_pcapita','Public Health Center (per capita * 1mi)'),
+#                  cbind('cnes_st_consultorio_public_pcapita','Public Consulting Rooms (per capita * 1mi)'),
+#                  cbind('cnes_st_clinicaesp_public_pcapita','Public Specialized Health Clinics (per capita * 1mi)'),
+#                  cbind('cnes_st_diagnos_public_pcapita','Public Diagnostic Center (per capita * 1mi)'),
+#                  cbind('cnes_lt_private_sus_funded_pcapita','Private Hospital Beds funded by SUS (per capita * 1mi)'),
+#                  cbind('cnes_lt_mun_pcapita','Municipal Hospital Beds (per capita * 1mi)'),
+#                  cbind('cnes_lt_public_pcapita','Public Hospital Beds (per capita * 1mi)'),
+#                  cbind('cnes_eq_mun_pcapita','Municipal Health Equipments (per capita * 1mi)'),
+#                  cbind('cnes_eq_private_pcapita','Private Health Equipments (per capita * 1mi)'),
+#                  cbind('cnes_eq_public_pcapita','Public Health Equipments (per capita * 1mi)'))
+# 
+# 
+# summary_stat(df,2005,"stats_2005")
 
 
 
@@ -341,11 +371,35 @@ summary_stat(df,2005,"stats_2005")
 # 6. final table and export
 # =================================================================
 
-stats <- rbind.data.frame(stats_2000,stats_2002,stats_2005) %>% 
+# stats <- rbind.data.frame(stats_2000,stats_2002,stats_2005) %>% 
+#   mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3))
+
+
+stats <-stats_2000 %>% 
+  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3))
+
+stats_first <-stats_2000_first %>% 
+  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3))
+
+stats_second <-stats_2000_second %>% 
+  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3))
+
+stats_high <-stats_2000_high %>% 
+  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3))
+
+stats_low <-stats_2000_low %>% 
   mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3))
 
 
 write.xlsx2(stats, file = paste0(dir,main_folder,output_file),sheetName = "descriptive",row.names = F,append = T)
+
+write.xlsx2(stats_first, file = paste0(dir,main_folder,"results_dist_ec29_baseline_elect.xlsx"),sheetName = "descriptive_first",row.names = F,append = T)
+
+write.xlsx2(stats_second, file = paste0(dir,main_folder,"results_dist_ec29_baseline_elect.xlsx"),sheetName = "descriptive_second",row.names = F,append = T)
+
+write.xlsx2(stats_high, file = paste0(dir,main_folder,"results_dist_ec29_baseline_governance.xlsx"),sheetName = "descriptive_high",row.names = F,append = T)
+
+write.xlsx2(stats_low, file = paste0(dir,main_folder,"results_dist_ec29_baseline_governance.xlsx"),sheetName = "descriptive_low",row.names = F,append = T)
 
 
 
