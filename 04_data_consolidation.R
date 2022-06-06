@@ -199,6 +199,8 @@ sim_ma_1 <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_adult_1.dta")))
 
 sim_ma_2 <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_adult_2.dta")))
 
+sim_ma_3 <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_adult_3.dta")))
+
 sim_me <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_elderly.dta")))
 
 # population
@@ -235,6 +237,9 @@ import_treat_tabnet_pop(paste0(raw,"SIM/pop_1_4.csv"),"pop_1_4",1998,2012,"pop_1
 
 # pop 15-59 years
 import_treat_tabnet_pop(paste0(raw,"SIM/pop_15_59.csv"),"pop_15_59",1998,2012,"pop_15_59",4)
+
+# pop 25-59 years
+import_treat_tabnet_pop(paste0(raw,"SIM/pop_25_59.csv"),"pop_25_59",1998,2012,"pop_25_59",4)
 
 # pop 15-39 years
 import_treat_tabnet_pop(paste0(raw,"SIM/pop_15_39.csv"),"pop_15_39",1998,2012,"pop_15_39",4)
@@ -358,10 +363,12 @@ df <- mun_list %>%
   left_join(sim_ma, by = c("ano","cod_mun")) %>%
   left_join(sim_ma_1, by = c("ano","cod_mun")) %>%
   left_join(sim_ma_2, by = c("ano","cod_mun")) %>%
+  left_join(sim_ma_3, by = c("ano","cod_mun")) %>%
   left_join(sim_me, by = c("ano","cod_mun")) %>%
   mutate(mm = ifelse(is.na(mm),0,mm)) %>% 
   left_join(pop_1_4, by = c("ano","cod_mun")) %>% 
   left_join(pop_15_59, by = c("ano","cod_mun")) %>% 
+  left_join(pop_25_59, by = c("ano","cod_mun")) %>% 
   left_join(pop_15_39, by = c("ano","cod_mun")) %>%
   left_join(pop_40_59, by = c("ano","cod_mun")) %>%
   left_join(pop_60, by = c("ano","cod_mun")) %>%
@@ -530,6 +537,19 @@ df[sim_vars_new] <- df[sim_vars]
 
 df <- df %>% 
   mutate_at(sim_vars_new, `/`, quote(pop_40_59)) %>% 
+  mutate_at(sim_vars_new, `*`, quote(1000))
+
+df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x),0))
+
+
+# Adult Mortality 3 (25-59)
+sim_vars <- grep("^ma3",names(df), value = T)
+
+sim_vars_new <- sapply(sim_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F)
+df[sim_vars_new] <- df[sim_vars]
+
+df <- df %>% 
+  mutate_at(sim_vars_new, `/`, quote(pop_25_59)) %>% 
   mutate_at(sim_vars_new, `*`, quote(1000))
 
 df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x),0))
