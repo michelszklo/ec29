@@ -593,7 +593,7 @@ df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x
 # 18. Creating per capita figurues for specific variables
 # ==============================================================
 
-# per capita figures
+# vars
 infra_vars <- c("ACS_I", "eSF_I")
 sia_vars <- c("sia","sia_ab",grep("^sia_nprod",names(df),value = T))
 ams_vars <- c(grep("^hospital_",names(df), value = T),
@@ -602,6 +602,13 @@ ams_vars <- c(grep("^hospital_",names(df), value = T),
               grep("^hr_",names(df), value = T))
 siab_vars <- grep("siab",names(df),value = T)
 
+
+# SIA 0 adj: transforming NA into 0
+df <- df %>% 
+  mutate_at(sia_vars, ~ if_else(is.na(.), 0, .))
+
+
+# per capita figures
 vars <- c(infra_vars,sia_vars,ams_vars,siab_vars)
 vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
 
