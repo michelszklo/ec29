@@ -69,27 +69,27 @@ df_above <- df_above %>%
 # =================================================================
 
 
-var_map <- rbind(cbind('finbra_desp_o_pcapita','Total Spending per capita (asinh)'),
-                 cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita (asinh)'),
-                 cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (asinh)'),
-                 cbind('finbra_desp_outros_nature_pcapita','Other Spending per capita (asinh)'),
-                 cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (asinh)'),
-                 cbind('finbra_desp_transporte_pcapita','Transport Spending per capita (asinh)'),
-                 cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (asinh)'),
-                 cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (asinh)'),
-                 cbind('finbra_desp_assist_prev_pcapita','Social Assistance Spending per capita (asinh)'),
-                 cbind('finbra_desp_outros_area_pcapita','Other Areas Spending per capita (asinh)'),
-                 cbind('siops_despsaude_pcapita','Health Spending per capita - Total (asinh)'),
-                 cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (asinh)'),
-                 cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Transfers (asinh)'),
-                 cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources (asinh)'),
-                 cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (asinh)'),
-                 cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (asinh)'),
-                 cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (asinh)'),
-                 cbind('finbra_reccorr_pcapita','Total Revenue per capita (asinh)'),
-                 cbind('finbra_rectribut_pcapita','Tax Revenue per capita (asinh)'),
-                 cbind('finbra_rectransf_pcapita','Transfers Revenue per capita (asinh)'),
-                 cbind('finbra_rec_outros_pcapita','Other Revenues per capita (asinh)'),
+var_map <- rbind(cbind('finbra_desp_o_pcapita','Total Spending per capita'),
+                 cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita'),
+                 cbind('finbra_desp_investimento_pcapita','Investment Spending per capita'),
+                 cbind('finbra_desp_outros_nature_pcapita','Other Spending per capita'),
+                 cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita'),
+                 cbind('finbra_desp_transporte_pcapita','Transport Spending per capita'),
+                 cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita'),
+                 cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita'),
+                 cbind('finbra_desp_assist_prev_pcapita','Social Assistance Spending per capita'),
+                 cbind('finbra_desp_outros_area_pcapita','Other Areas Spending per capita'),
+                 cbind('siops_despsaude_pcapita','Health Spending per capita - Total'),
+                 cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources'),
+                 cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Transfers'),
+                 cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources'),
+                 cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment'),
+                 cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services'),
+                 cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures'),
+                 cbind('finbra_reccorr_pcapita','Total Revenue per capita'),
+                 cbind('finbra_rectribut_pcapita','Tax Revenue per capita'),
+                 cbind('finbra_rectransf_pcapita','Transfers Revenue per capita'),
+                 cbind('finbra_rec_outros_pcapita','Other Revenues per capita'),
                  
                  cbind('finbra_desp_pessoal_share','Human Resources Spending (% Total Spending)'),
                  cbind('finbra_desp_investimento_share','Investment Spending (% Total Spending)'),
@@ -122,14 +122,52 @@ if (instrument=="ec29_baseline"){
 }
 
 if (instrument=="dist_ec29_baseline"){
-  for (i in seq(1,21,1)){
+  for (i in seq(1,4,1)){
     var <- var_map[i,1]
     var_name <- var_map[i,2]
     print(var_name)
-    reduced_yearly(var,var_name,df,2,1998,-4,10,1,"full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-1500,2000,250,"full",below = below) # ec29baseline
     # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
   }
-  for (i in seq(22,39,1)){
+  
+  for (i in seq(5,10,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    reduced_yearly(var,var_name,df,3,1998,-1000,1000,250,"full",below = below) # ec29baseline
+    # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
+  }
+  
+  for (i in seq(11,17,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    reduced_yearly(var,var_name,df,3,1998,-400,1000,100,"full",below = below) # ec29baseline
+    # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
+  }
+  
+  for (i in seq(18,21,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    reduced_yearly(var,var_name,df,3,1998,-2000,1200,200,"full",below = below) # ec29baseline
+    # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
+  }
+  
+
+  
+  
+  
+  
+  for (i in seq(22,33,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    reduced_yearly(var,var_name,df,3,1998,-0.6,0.6,0.1,"full",below = below) # ec29baseline
+    # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
+  }
+  
+  for (i in seq(34,39,1)){
     var <- var_map[i,1]
     var_name <- var_map[i,2]
     print(var_name)
@@ -540,7 +578,7 @@ if (instrument=="ec29_baseline"){
 
 
 if (instrument=="dist_ec29_baseline"){
-  for (i in seq(1,15,1)){
+  for (i in seq(1,3,1)){
     var <- var_map[i,1]
     var_name <- var_map[i,2]
     print(var_name)
@@ -549,6 +587,17 @@ if (instrument=="dist_ec29_baseline"){
     
     
   }
+  
+  for (i in seq(4,15,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    
+    reduced_yearly(var,var_name,df,3,1998,-30,10,5,sample = "full",below = below) # ec29baseline
+    
+    
+  }
+  
 }
 
 
@@ -609,19 +658,51 @@ if (instrument=="dist_spending_pc_baseline_below"){
 # =================================================================
 
 
-var_map <-  rbind(cbind('tx_ma','Adult Mortality Rate'),
-                  cbind('tx_ma_circ','Adult Mortality Rate - Circulatory'),
-                  cbind('tx_ma_neop','Adult Mortality Rate - Neoplasm'),
-                  cbind('tx_ma_resp','Adult Mortality Rate - Respiratory'),
-                  cbind('tx_ma_endoc','Adult Mortality Rate - Endocrine'),
-                  cbind('tx_ma_ext','Adult Mortality Rate - External'),
-                  cbind('tx_ma_nut','Adult Mortality Rate - Nutritional'),
-                  cbind('tx_ma_illdef','Adult Mortality Rate - Ill-Defined'),
-                  cbind('tx_ma_out','Adult Mortality Rate - Other'),
-                  cbind('tx_ma_diab','Adult Mortality Rate - Diabetes'),
-                  cbind('tx_ma_hyper','Adult Mortality Rate - Hypertension'),
-                  cbind('tx_ma_icsap','Adult Mortality Rate - APC'),
-                  cbind('tx_ma_nicsap','Adult Mortality Rate - non-APC'))
+var_map <-  rbind(
+  cbind('tx_ma3','25-59y Mortality Rate'),
+  cbind('tx_ma3_icsap','25-59y Mortality Rate - APC'),
+  cbind('tx_ma3_nicsap','25-59y Mortality Rate - non-APC'),
+  cbind('tx_ma3_circ','25-59y Mortality Rate - Circulatory'),
+  cbind('tx_ma3_neop','25-59y Mortality Rate - Neoplasm'),
+  cbind('tx_ma3_resp','25-59y Mortality Rate - Respiratory'),
+  cbind('tx_ma3_infec','25-59y Mortality Rate - Infectious'),
+  cbind('tx_ma3_ext','25-59y Mortality Rate - External'),
+  cbind('tx_ma3_dig','25-59y Mortality Rate - Digestive'),
+  cbind('tx_ma3_illdef','25-59y Mortality Rate - Ill-Defined'),
+  cbind('tx_ma3_out','25-59y Mortality Rate - Other'), #
+  cbind('tx_ma3_diab','25-59y Mortality Rate - Diabetes'),
+  cbind('tx_ma3_hyper','25-59y Mortality Rate - Hypertension'),
+  
+  cbind('tx_ma4','25-39y Mortality Rate'),
+  cbind('tx_ma4_icsap','25-39y Mortality Rate - APC'),
+  cbind('tx_ma4_nicsap','25-39y Mortality Rate - non-APC'),
+  cbind('tx_ma4_circ','25-39y Mortality Rate - Circulatory'),
+  cbind('tx_ma4_neop','25-39y Mortality Rate - Neoplasm'),
+  cbind('tx_ma4_resp','25-39y Mortality Rate - Respiratory'),
+  cbind('tx_ma4_infec','25-39y Mortality Rate - Infectious'),
+  cbind('tx_ma4_ext','25-39y Mortality Rate - External'),
+  cbind('tx_ma4_dig','25-39y Mortality Rate - Digestive'),
+  cbind('tx_ma4_illdef','25-39y Mortality Rate - Ill-Defined'),
+  cbind('tx_ma4_out','25-39y Mortality Rate - Other'), #
+  cbind('tx_ma4_diab','25-39y Mortality Rate - Diabetes'),
+  cbind('tx_ma4_hyper','25-39y Mortality Rate - Hypertension'),
+  
+  cbind('tx_ma2','40-59y Mortality Rate'),
+  cbind('tx_ma2_icsap','40-59y Mortality Rate - APC'),
+  cbind('tx_ma2_nicsap','40-59y Mortality Rate - non-APC'),
+  cbind('tx_ma2_circ','40-59y Mortality Rate - Circulatory'),
+  cbind('tx_ma2_neop','40-59y Mortality Rate - Neoplasm'),
+  cbind('tx_ma2_resp','40-59y Mortality Rate - Respiratory'),
+  cbind('tx_ma2_infec','40-59y Mortality Rate - Infectious'),
+  cbind('tx_ma2_ext','40-59y Mortality Rate - External'),
+  cbind('tx_ma2_dig','40-59y Mortality Rate - Digestive'),
+  cbind('tx_ma2_illdef','40-59y Mortality Rate - Ill-Defined'),
+  cbind('tx_ma2_out','40-59y Mortality Rate - Other'), #
+  cbind('tx_ma2_diab','40-59y Mortality Rate - Diabetes'),
+  cbind('tx_ma2_hyper','40-59y Mortality Rate - Hypertension')
+  
+)
+
 
 if (instrument=="ec29_baseline"){
   for (i in seq(1,13,1)){
@@ -637,15 +718,71 @@ if (instrument=="ec29_baseline"){
 
 
 if (instrument=="dist_ec29_baseline"){
-  for (i in seq(1,13,1)){
+  for (i in seq(1,3,1)){
     var <- var_map[i,1]
     var_name <- var_map[i,2]
     print(var_name)
     
-    reduced_yearly(var,var_name,df,3,1998,-20,10,5,sample = "full",below = below)  # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-6,3,1,sample = "full",below = below)  # ec29baseline
     
     
   }
+  
+  for (i in seq(4,13,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    
+    reduced_yearly(var,var_name,df,3,1998,-1.5,1.5,0.5,sample = "full",below = below)  # ec29baseline
+    
+    
+  }
+  
+  
+  
+  for (i in seq(14,16,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    
+    reduced_yearly(var,var_name,df,3,1998,-4,3,1,sample = "full",below = below)  # ec29baseline
+    
+    
+  }
+  
+  for (i in seq(17,26,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    
+    reduced_yearly(var,var_name,df,3,1998,-2,2,0.5,sample = "full",below = below)  # ec29baseline
+    
+    
+  }
+  
+  for (i in seq(27,29,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    
+    reduced_yearly(var,var_name,df,3,1998,-9,3,1,sample = "full",below = below)  # ec29baseline
+    
+    
+  }
+  
+  for (i in seq(30,39,1)){
+    var <- var_map[i,1]
+    var_name <- var_map[i,2]
+    print(var_name)
+    
+    reduced_yearly(var,var_name,df,3,1998,-3,1.5,0.5,sample = "full",below = below)  # ec29baseline
+    
+    
+  }
+  
+  
+  
+  
 }
 
 
