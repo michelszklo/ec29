@@ -451,13 +451,13 @@ regress_output_below <- function(var,var_name,transform,year_filter){
 
 df <- df %>%
   filter(ano<=2010) %>%
-  mutate(iv=ifelse(ano==2000,0,iv)) 
+  mutate(iv=ifelse(ano<=2000,0,iv)) 
 df_below <- df_below %>%
   filter(ano<=2010) %>%
-  mutate(iv=ifelse(ano==2000,0,iv)) 
+  mutate(iv=ifelse(ano<=2000,0,iv)) 
 df_above <- df_above %>%
   filter(ano<=2010) %>%
-  mutate(iv=ifelse(ano==2000,0,iv)) 
+  mutate(iv=ifelse(ano<=2000,0,iv)) 
 
 
 
