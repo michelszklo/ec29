@@ -135,9 +135,11 @@ for(i in 1){
   scripts <- "ec29/"
   dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"08_regs_vars_specs.R"))
+  print("specs script: ok")
   scripts <- "ec29/"
   dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"09_regs_firststage.R"))
+  print("first stage: ok")
   scripts <- "ec29/"
   dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"10_regs_spending.R"))
@@ -155,8 +157,14 @@ for(i in 1){
   source(paste0(dir,scripts,"15_regs_amr.R"))
   scripts <- "ec29/"
   dir <- "C:/Users/Michel/Documents/GitHub/"
+  source(paste0(dir,scripts,"16_regs_cmr.R"))
+  scripts <- "ec29/"
+  dir <- "C:/Users/Michel/Documents/GitHub/"
+  source(paste0(dir,scripts,"17_regs_emr.R"))
+  scripts <- "ec29/"
+  dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"18_regs_birth.R"))
-  # scripts <- "ec29/"
+  # scripts <- "ec29/"=
   # dir <- "C:/Users/Michel/Documents/GitHub/"
   # source(paste0(dir,scripts,"20_regs_cnes_cs.R"))
   
