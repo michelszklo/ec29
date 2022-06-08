@@ -250,25 +250,11 @@ df <- df %>%
   mutate_at(yeartreat_dummies, `*`,quote(iv)) %>% 
   unnest(all_of(yeartreat_dummies))
 
+# interacted instruments
+df <- df %>% 
+  mutate(iv_elect = iv * (1-second_term),
+         iv_gov = iv * firjan_index)
 
-# # converting df_above to sample of municipalities of mayors who ran for reelection
-# df_above <- df %>%
-#   filter(second_term==1)
-# 
-# # converting df_below to sample of municipalities of mayors who didn't run for reelection
-# 
-# df_below <- df %>%
-#   filter(second_term==0)
-
-
-# # # converting df_above to sample of municipalities with high fiscal governance
-# df_above <- df %>%
-#   filter(firjan_above==1)
-# 
-# # converting df_above to sample of municipalities with low fiscal governance
-# 
-# df_below <- df %>%
-#   filter(firjan_above==0)
 
 
 # 4. regression specifications
@@ -296,20 +282,6 @@ controls <- c(grep("^ano_1998_", names(df), value = T),
 
 
 
-
-
-# IV specifications
-# ------------------------------------------------
-
-spec1_iv <- paste(" ~ 0","| cod_mun + ano | (")
-spec2_iv <- paste(" ~ 0","| cod_mun + uf_y_fe | (")
-spec3_iv <- paste(" ~ ", " + ",paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | (")
-
-spec_instrument <- paste(" ~ iv)"," | cod_mun")
-
-spec_instrument_yearly <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + "),")"," | cod_mun")
-
-
 # Reduce form specification and first stage - yearly
 # ------------------------------------------------
 
@@ -325,400 +297,24 @@ spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", pa
 
 
 
-# Reduced form specifications and first stage
+# Reduced form specifications
 # ------------------------------------------------
-
-# spending in per capita figures
 spec1_post <- paste(" ~ ","iv"," | cod_mun + ano | 0 | cod_mun")
 spec2_post <- paste(" ~ ","iv"," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec3_post <- paste(" ~ ","iv"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
-
-# OLS specifications
+# Reduced form specifications + electoral term interaction
 # ------------------------------------------------
+spec1_post_elect <- paste(" ~ ","iv + iv_elect"," | cod_mun + ano | 0 | cod_mun")
+spec2_post_elect <- paste(" ~ ","iv + iv_elect"," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post_elect <- paste(" ~ ","iv + iv_elect"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
-spec1 <- paste(" | cod_mun + ano | 0 | cod_mun")
-spec2 <- paste(" | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3 <- paste(" + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+# Reduced form specifications + fiscal governance interaction
+# ------------------------------------------------
+spec1_post_gov <- paste(" ~ ","iv + iv_gov"," | cod_mun + ano | 0 | cod_mun")
+spec2_post_gov <- paste(" ~ ","iv + iv_gov"," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post_gov <- paste(" ~ ","iv + iv_gov"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
-
-
-# 5. 2 stages least squares function with bootstraps to estimate second stage SE
-# =================================================================
-
-
-iv <- function(outcome,treat,df,regression_output,transform,year_filter){
-  
-  
-  
-  df_reg <- df
-  
-  
-  # log of treatment variable
-  ln_treat <- paste0("ln_",treat)
-  # df_reg[ln_treat] <- sapply(df_reg[treat], function(x) ifelse(x==0,x+0.000001,x))
-  df_reg[ln_treat] <- df_reg[treat]
-  df_reg <- df_reg %>% 
-    mutate_at(ln_treat,log)
-  
-  
-  # outcome variable transformation
-  
-  if(transform==1){
-    # log
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,log)
-    
-    
-    
-  } else if(transform==2){
-    # inverse hyperbolic sign
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,asinh)
-  } else {
-    # level
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-  }
-  
-  # filtering regression variables
-  df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),iv,all_of(controls),pop) %>% 
-    filter(ano>=year_filter)
-  
-  df_reg <- df_reg[complete.cases(df_reg),]
-  df_reg <- df_reg[complete.cases(df_reg[,ln_treat]),]
-  df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
-  
-  
-  
-  # Regressions
-  # ------------------------------------
-  
-  # for (spec in c(1)){
-  for (spec in c(1,2,3)){
-    
-    # regression specs
-    spec_reg <-get(paste0("spec",spec,"_iv"))
-    regformula <- as.formula(paste(ln_outcome,spec_reg,ln_treat,spec_instrument))
-    
-    # regression model
-    fit <- felm(regformula, data = df_reg, weights = df_reg$pop ,exactDOF = T)
-    
-    # output
-    out <- cbind(fit %>% broom::tidy() %>% slice_tail(),fit %>% broom::glance() %>% select(nobs))
-    
-    out <- cbind(out,spec)
-    
-    if(spec==1){
-      table <- out
-    }
-    else{
-      table <- rbind(table,out)
-    }
-    
-    
-    
-  }
-  
-  table <- table %>% mutate(term = ln_outcome)
-  
-  assign(regression_output,table, envir = .GlobalEnv)
-  
-  
-  
-  
-}
-
-iv_yearly <- function(outcome,var_name,treat,df,transform,year_filter,y0,yf,ys){
-  
-  df_reg <- df %>% filter(ano>=year_filter)
-  
-  # log of treatment variable
-  ln_treat <- paste0("ln_",treat)
-  # df_reg[ln_treat] <- sapply(df_reg[treat], function(x) ifelse(x==0,x+0.000001,x))
-  df_reg[ln_treat] <- df_reg[treat]
-  df_reg <- df_reg %>% 
-    mutate_at(ln_treat,log)
-  
-  # outcome variable transformation
-  
-  if(transform==1){
-    # log
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,log)
-    
-    
-    
-  } else if(transform==2){
-    # inverse hyperbolic sign
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,asinh)
-  } else {
-    # level
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-  }
-  
-  # filtering regression variables
-  df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),all_of(yeartreat_dummies),iv,all_of(controls),pop) %>% 
-    filter(ano>=year_filter)
-  
-  df_reg <- df_reg[complete.cases(df_reg),]
-  df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
-  
-  
-  # Regressions
-  # ------------------------------------
-  
-  spec_reg<- get(paste0("spec",3,"_iv"))
-  
-  # second stage regression
-  # ------------------------------
-  regformula <- as.formula(paste(ln_outcome,spec_reg,ln_treat,spec_instrument_yearly))
-  fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
-  
-  table <- fit %>% 
-    broom::tidy() %>%
-    slice(1:13) %>%
-    select(term,estimate,std.error) %>% 
-    mutate(estimate = ifelse(term=="post_00_dist_spending_pc_baseline",0,estimate)) %>% 
-    mutate(lb = estimate - 1.96 * std.error,
-           ub = estimate + 1.96 * std.error,
-           year = seq.int(year_filter,2010))
-  
-  graph <- table %>%
-    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub))+
-    geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_pointrange(size = 0.5, alpha = 0.8) +
-    scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
-    scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
-    theme_light() +
-    labs(y = var_name) +
-    theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          plot.title = element_text(size = 10, face = "bold"),
-          axis.title = element_text(size=10),
-          legend.position="bottom")
-  
-  ggsave(paste0(dir,main_folder,yearly_folder_iv,ln_outcome,".png"),
-         plot = graph,
-         device = "png",
-         width = 7, height = 5,
-         units = "in")
-  ggsave(paste0(dir,main_folder,yearly_folder_iv,ln_outcome,".pdf"),
-         plot = graph,
-         device = "pdf",
-         width = 7, height = 5,
-         units = "in")
-  
-  
-}
-
-
-# 6. OLS
-# =================================================================
-
-
-ols <- function(outcome,treat,df,regression_output,transform,year_filter){
-  
-  
-  
-  df_reg <- df
-  
-  
-  # log of treatment variable
-  ln_treat <- paste0("ln_",treat)
-  # df_reg[ln_treat] <- sapply(df_reg[treat], function(x) ifelse(x==0,x+0.000001,x))
-  df_reg[ln_treat] <- df_reg[treat]
-  df_reg <- df_reg %>% 
-    mutate_at(ln_treat,log)
-  
-  
-  
-  
-  # outcome variable transformation
-  
-  if(transform==1){
-    # log
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,log)
-    
-    
-    
-  } else if(transform==2){
-    # inverse hyperbolic sign
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,asinh)
-  } else {
-    # level
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-  }
-  
-  # filtering regression variables
-  df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),iv,all_of(controls),pop) %>% 
-    filter(ano>=year_filter)
-  
-  df_reg <- df_reg[complete.cases(df_reg),]
-  df_reg <- df_reg[complete.cases(df_reg[,ln_treat]),]
-  df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
-  
-  
-  # Regressions
-  # ------------------------------------
-  
-  # for (spec in c(1)){
-  for (spec in c(1,2,3)){
-    
-    spec_ols<- get(paste0("spec",spec))
-    
-    # second stage regression
-    # ------------------------------
-    
-    regformula <- as.formula(paste(ln_outcome," ~ ",ln_treat,spec_ols))
-    fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
-    
-    out <- cbind(fit %>% broom::tidy() %>% slice(1),fit %>% broom::glance() %>% select(nobs))
-    
-    
-    out <- cbind(out,spec)
-    
-    if(spec==1){
-      table <- out
-    }
-    else{
-      table <- rbind(table,out)
-    }
-    
-    
-    
-  }
-  
-  table <- table %>% mutate(term = ln_outcome)
-  
-  assign(regression_output,table, envir = .GlobalEnv)
-  
-  
-  
-  
-}
-
-
-# 7. IV regression first stage
-# =================================================================
-# IV regression first stage
-iv_first <- function(df,treat,year_filter,obj_name){
-  
-  df_reg <- df %>% filter(ano>=year_filter)
-  ln_treat <- paste0("ln_",treat)
-  
-  for (spec in c(1,2,3)){
-    
-    spec_first <-get( paste0("spec",spec,"_post"))
-    
-    regformula1 <- as.formula(paste(ln_treat,spec_first))
-    
-    fit <- felm(regformula1, data = df_reg, weights = df_reg$pop,exactDOF = T)
-    
-    out <- cbind(fit %>% broom::tidy() %>% slice(1), fit %>% broom::glance() %>% select(statistic,nobs) %>% rename(f_statistic = statistic))
-    out <- out %>% mutate(spec=spec)
-    
-    if(spec==1){
-      table <- out
-    } else{
-      table <- rbind(table,out)
-    }
-    
-    assign(obj_name,table,envir = .GlobalEnv)
-    
-  }
-  
-}
-
-
-iv_first_yearly <- function(df,treat,year_filter,y0,yf,ys,graph_name){
-  df_reg <- df %>% filter(ano>=year_filter)
-  ln_treat <- paste0("ln_",treat)
-  
-  for (spec in c(1,2,3)){
-    
-    spec_first <-get( paste0("spec",spec,"_post_y"))
-    regformula1 <- as.formula(paste(ln_treat,spec_first))
-    
-    fit <- felm(regformula1, data = df_reg, weights = df_reg$pop,exactDOF = T)
-    
-    out <- fit %>% 
-      broom::tidy() %>%
-      slice(1:13) %>%
-      select(term,estimate,std.error) %>% 
-      mutate(estimate = ifelse(term==paste0("post_00_",instrument),0,estimate)) %>% 
-      mutate(lb = estimate - 1.96 * std.error,
-             ub = estimate + 1.96 * std.error,
-             year = seq.int(year_filter,2010),
-             spec = as.character(spec))
-    
-    if(spec==1){
-      table <- out
-    }
-    else{
-      table <- rbind(table,out)
-    }
-    
-  }
-  
-  
-  shapes <-  c(17,15,19)
-  # color_graph <- pal_lancet("lanonc")(9)
-  
-  graph <- table %>%
-    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub,shape = spec,group=spec))+
-    geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color="grey13") +
-    scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
-    scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
-    # scale_colour_manual(values = color_graph) +
-    scale_shape_manual(values = shapes) +
-    theme_light() +
-    labs(y = "Health and Sanitation Spending per capita (log)",
-         color = "Specification") +
-    theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          plot.title = element_text(size = 10, face = "bold"),
-          axis.title.x = element_text(size=12),
-          axis.title.y = element_text(size=8),
-          legend.position="bottom")
-  
-  
-  
-  ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",graph_name),".png"),
-         plot = graph,
-         device = "png",
-         width = 7, height = 5,
-         units = "in")
-  ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",graph_name),".pdf"),
-         plot = graph,
-         device = "pdf",
-         width = 7, height = 5,
-         units = "in")
-  
-}
 
 
 # 8. Reduced Form
@@ -775,6 +371,153 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
     fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
     
     out <- cbind(fit %>% broom::tidy() %>% slice(1),fit %>% broom::glance() %>% select(nobs))
+    
+    
+    out <- cbind(out,spec)
+    
+    if(spec==1){
+      table <- out
+    }
+    else{
+      table <- rbind(table,out)
+    }
+    
+    
+    
+  }
+  
+  table <- table %>% mutate(term = ln_outcome)
+  
+  assign(regression_output,table, envir = .GlobalEnv)
+  
+  
+}
+
+reduced_elect <- function(outcome,var_name,df,regression_output,transform,year_filter){
+  
+  df_reg <- df
+  
+  
+  # outcome variable transformation
+  
+  if(transform==1){
+    # log
+    ln_outcome <- paste0("ln_",outcome)
+    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
+    df_reg <- df_reg %>% 
+      mutate_at(ln_outcome,log)
+    
+    
+    
+  } else if(transform==2){
+    # inverse hyperbolic sign
+    ln_outcome <- paste0("ln_",outcome)
+    df_reg[ln_outcome] <- df_reg[outcome]
+    df_reg <- df_reg %>% 
+      mutate_at(ln_outcome,asinh)
+  } else {
+    # level
+    ln_outcome <- paste0("ln_",outcome)
+    df_reg[ln_outcome] <- df_reg[outcome]
+  }
+  
+  # filtering regression variables
+  df_reg <- df_reg %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_elect,iv_gov,all_of(controls),pop) %>% 
+    filter(ano>=year_filter)
+  
+  df_reg <- df_reg[complete.cases(df_reg),]
+  df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
+  
+  
+  # Regressions
+  # ------------------------------------
+  
+  # for (spec in c(1)){
+  for (spec in c(1,2,3)){
+    
+    spec_reduced<- get(paste0("spec",spec,"_post_elect"))
+    
+    # second stage regression
+    # ------------------------------
+    
+    regformula <- as.formula(paste(ln_outcome,spec_reduced))
+    fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
+    
+    out <- cbind(fit %>% broom::tidy() %>% slice(2),fit %>% broom::glance() %>% select(nobs))
+    
+    
+    out <- cbind(out,spec)
+    
+    if(spec==1){
+      table <- out
+    }
+    else{
+      table <- rbind(table,out)
+    }
+    
+    
+    
+  }
+  
+  table <- table %>% mutate(term = ln_outcome)
+  
+  assign(regression_output,table, envir = .GlobalEnv)
+  
+  
+}
+
+reduced_gov <- function(outcome,var_name,df,regression_output,transform,year_filter){
+  
+  df_reg <- df
+  
+  # outcome variable transformation
+  
+  if(transform==1){
+    # log
+    ln_outcome <- paste0("ln_",outcome)
+    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
+    df_reg <- df_reg %>% 
+      mutate_at(ln_outcome,log)
+    
+    
+    
+  } else if(transform==2){
+    # inverse hyperbolic sign
+    ln_outcome <- paste0("ln_",outcome)
+    df_reg[ln_outcome] <- df_reg[outcome]
+    df_reg <- df_reg %>% 
+      mutate_at(ln_outcome,asinh)
+  } else {
+    # level
+    ln_outcome <- paste0("ln_",outcome)
+    df_reg[ln_outcome] <- df_reg[outcome]
+  }
+  
+  # filtering regression variables
+  df_reg <- df_reg %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_elect,iv_gov,all_of(controls),pop) %>% 
+    filter(ano>=year_filter)
+  
+  df_reg <- df_reg[complete.cases(df_reg),]
+  df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
+  
+  
+  # Regressions
+  # ------------------------------------
+  
+  # for (spec in c(1)){
+  for (spec in c(1,2,3)){
+    
+    spec_reduced<- get(paste0("spec",spec,"_post_gov"))
+    
+    # second stage regression
+    # ------------------------------
+    
+    regformula <- as.formula(paste(ln_outcome,spec_reduced))
+    fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
+    
+    out <- cbind(fit %>% broom::tidy() %>% slice(2),fit %>% broom::glance() %>% select(nobs))
     
     
     out <- cbind(out,spec)
