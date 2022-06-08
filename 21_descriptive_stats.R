@@ -224,73 +224,22 @@ var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spe
                  cbind('tx_mm',"Maternal Mortality Rate"),
                  
                  
-                 cbind('tx_ma','Adult Mortality Rate'),
-                 cbind('tx_ma_icsap','Adult Mortality Rate - APC'),
-                 cbind('tx_ma_nicsap','Adult Mortality Rate - non-APC'),
-                 cbind('tx_ma_circ','Adult Mortality Rate - Circulatory'),
-                 cbind('tx_ma_neop','Adult Mortality Rate - Neoplasm'),
-                 cbind('tx_ma_resp','Adult Mortality Rate - Respiratory'),
-                 cbind('tx_ma_infec','Adult Mortality Rate - Infectious'),
-                 cbind('tx_ma_ext','Adult Mortality Rate - External'),
-                 cbind('tx_ma_dig','Adult Mortality Rate - Digestive'),
-                 cbind('tx_ma_illdef','Adult Mortality Rate - Ill-Defined'),
-                 cbind('tx_ma_out','Adult Mortality Rate - Other'), #
-                 cbind('tx_ma_diab','Adult Mortality Rate - Diabetes'),
-                 cbind('tx_ma_hyper','Adult Mortality Rate - Hypertension'),
-                 
-                 cbind('tx_ma1','15-39y Mortality Rate'),
-                 cbind('tx_ma1_icsap','15-39y Mortality Rate - APC'),
-                 cbind('tx_ma1_nicsap','15-39y Mortality Rate - non-APC'),
-                 cbind('tx_ma1_circ','15-39y Mortality Rate - Circulatory'),
-                 cbind('tx_ma1_neop','15-39y Mortality Rate - Neoplasm'),
-                 cbind('tx_ma1_resp','15-39y Mortality Rate - Respiratory'),
-                 cbind('tx_ma1_infec','15-39y Mortality Rate - Infectious'),
-                 cbind('tx_ma1_ext','15-39y Mortality Rate - External'),
-                 cbind('tx_ma1_dig','15-39y Mortality Rate - Digestive'),
-                 cbind('tx_ma1_illdef','15-39y Mortality Rate - Ill-Defined'),
-                 cbind('tx_ma1_out','15-39y Mortality Rate - Other'), #
-                 cbind('tx_ma1_diab','15-39y Mortality Rate - Diabetes'),
-                 cbind('tx_ma1_hyper','15-39y Mortality Rate - Hypertension'),
-                 
-                 cbind('tx_ma2','40-59y Mortality Rate'),
-                 cbind('tx_ma2_icsap','40-59y Mortality Rate - APC'),
-                 cbind('tx_ma2_nicsap','40-59y Mortality Rate - non-APC'),
-                 cbind('tx_ma2_circ','40-59y Mortality Rate - Circulatory'),
-                 cbind('tx_ma2_neop','40-59y Mortality Rate - Neoplasm'),
-                 cbind('tx_ma2_resp','40-59y Mortality Rate - Respiratory'),
-                 cbind('tx_ma2_infec','40-59y Mortality Rate - Infectious'),
-                 cbind('tx_ma2_ext','40-59y Mortality Rate - External'),
-                 cbind('tx_ma2_dig','40-59y Mortality Rate - Digestive'),
-                 cbind('tx_ma2_illdef','40-59y Mortality Rate - Ill-Defined'),
-                 cbind('tx_ma2_out','40-59y Mortality Rate - Other'), #
-                 cbind('tx_ma2_diab','40-59y Mortality Rate - Diabetes'),
-                 cbind('tx_ma2_hyper','40-59y Mortality Rate - Hypertension'),
+                 cbind('tx_ma3','25-59y Mortality Rate'),
+                 cbind('tx_ma3_icsap','25-59y Mortality Rate - APC'),
+                 cbind('tx_ma3_nicsap','25-59y Mortality Rate - non-APC'),
+                 cbind('tx_ma3_circ','25-59y Mortality Rate - Circulatory'),
+                 cbind('tx_ma3_neop','25-59y Mortality Rate - Neoplasm'),
+                 cbind('tx_ma3_resp','25-59y Mortality Rate - Respiratory'),
+                 cbind('tx_ma3_infec','25-59y Mortality Rate - Infectious'),
+                 cbind('tx_ma3_ext','25-59y Mortality Rate - External'),
+                 cbind('tx_ma3_dig','25-59y Mortality Rate - Digestive'),
+                 cbind('tx_ma3_illdef','25-59y Mortality Rate - Ill-Defined'),
+                 cbind('tx_ma3_out','25-59y Mortality Rate - Other'), #
+                 cbind('tx_ma3_diab','25-59y Mortality Rate - Diabetes'),
+                 cbind('tx_ma3_hyper','25-59y Mortality Rate - Hypertension')
                  
                  
-                 cbind('tx_mc','Child Mortality Rate'),
-                 cbind('tx_mc_icsap','Child Mortality Rate - APC'),
-                 cbind('tx_mc_nicsap','Child Mortality Rate - non-APC'),
-                 cbind('tx_mc_infec','Child Mortality Rate - Infectious'),
-                 cbind('tx_mc_resp','Child Mortality Rate - Respiratory'), 
-                 cbind('tx_mc_neop','Child Mortality Rate - Neoplasm'),
-                 cbind('tx_mc_cong','Child Mortality Rate - Congenital'), 
-                 cbind('tx_mc_ext','Child Mortality Rate - External'),
-                 cbind('tx_mc_nerv','Child Mortality Rate - Nervous System'),
-                 cbind('tx_mc_out','Child Mortality Rate - Other'),
-                 cbind('tx_mc_illdef','Child Mortality Rate - Ill-Defined'),
                  
-                 cbind('tx_me','Elderly Mortality Rate'), 
-                 cbind('tx_me_icsap','Elderly Mortality Rate - APC'), 
-                 cbind('tx_me_nicsap','Elderly Mortality Rate - non-APC'), 
-                 cbind('tx_me_circ','Elderly Mortality Rate - Circulatory'), 
-                 cbind('tx_me_neop','Elderly Mortality Rate - Neoplasm'), 
-                 cbind('tx_me_resp','Elderly Mortality Rate - Respiratory'), 
-                 cbind('tx_me_endoc','Elderly Mortality Rate - Endocrine'), 
-                 cbind('tx_me_dig','Elderly Mortality Rate - Digestive'), 
-                 cbind('tx_me_illdef','Elderly Mortality Rate - Ill-Defined'),
-                 cbind('tx_me_out','Elderly Mortality Rate - Other'), 
-                 cbind('tx_me_diab','Elderly Mortality Rate - Diabetes'),
-                 cbind('tx_me_hyper','Elderly Mortality Rate - Hypertension') 
                  
                  
                  
