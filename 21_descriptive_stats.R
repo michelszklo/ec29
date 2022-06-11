@@ -31,7 +31,8 @@ packages<-c('readr',
             'boot',
             'broom',
             'modelsummary',
-            'ggsci')
+            'ggsci',
+            'gtools')
 to_install<-packages[!(packages %in% installed.packages()[,"Package"])]
 if(length(to_install)>0) install.packages(to_install)
 
@@ -246,13 +247,28 @@ var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spe
                  
 )
 
+
+# generating df of top and bottom quartile of the distance to ec29 in the baseline
+
+df <- df %>%
+  group_by(ano) %>% 
+  mutate(quantile = ifelse(ano==2000,quantcut(ec29_baseline,4),NA)) %>% 
+  ungroup() %>% 
+  group_by(cod_mun) %>% 
+  mutate(quantile = mean(quantile, na.rm = T)) %>% 
+  ungroup() %>% 
+  mutate(quantile = as.character(quantile)) %>% 
+  filter(quantile != 'NaN')
+
+df_top <- df %>% filter(quantile=="4") %>% select(quantile,dist_ec29_baseline,everything())
+df_bottom <- df %>% filter(quantile=="1") %>% select(quantile,dist_ec29_baseline,everything())
+  
+
 summary_stat(df,2000,"stats_2000")
+summary_stat(df_top,2000,"stats_2000_top")
+summary_stat(df_bottom,2000,"stats_2000_bottom")
 summary_stat(df %>% filter(second_term==1),2000,"stats_2000_second")
 summary_stat(df %>% filter(second_term==0),2000,"stats_2000_first")
-summary_stat(df %>% filter(firjan_above==1),2000,"stats_2000_high")
-summary_stat(df %>% filter(firjan_above==0),2000,"stats_2000_low")
-
-
 
 
 # 4. Statistic for variables with baseline in 2002
@@ -285,7 +301,7 @@ summary_stat(df %>% filter(firjan_above==0),2000,"stats_2000_low")
 # 5. Statistic for variables with baseline in 2005
 # =================================================================
 
-load(paste0(dir,"regs_cs_2005.RData"))
+# load(paste0(dir,"regs_cs_2005.RData"))
 
 
 # 
@@ -324,19 +340,21 @@ load(paste0(dir,"regs_cs_2005.RData"))
 #   mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3))
 
 
-stats <-stats_2000 %>% 
-  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3))
+stats <- cbind(
+  stats_2000 %>% 
+  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)),
+  stats_2000_top %>% 
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
+    select(-Variable),
+  stats_2000_bottom %>% 
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
+    select(-Variable))
+  
 
 stats_first <-stats_2000_first %>% 
   mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3))
 
 stats_second <-stats_2000_second %>% 
-  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3))
-
-stats_high <-stats_2000_high %>% 
-  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3))
-
-stats_low <-stats_2000_low %>% 
   mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3))
 
 
