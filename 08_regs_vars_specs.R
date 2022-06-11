@@ -186,21 +186,18 @@ df <- df %>%
   mutate_at(controlsvar_baseline, function(x) mean(x,na.rm = T)) %>% 
   ungroup()
 
+# generating time variable
 df <- df %>% 
-  # creating year dummies
-  dummy_cols(select_columns = "ano", ignore_na = TRUE)
+  group_by(cod_mun) %>% 
+  mutate(t = seq(-2,15,1)) %>% 
+  ungroup()
 
-# interacting year dummies with controls
-yeardummies <- grep("^ano_",names(df),value = T)
 
-for(i in seq.int(1,length(controlsvar_baseline))){
-  var <- as.symbol(controlsvar_baseline[i])
-  interact_vars <- sapply(yeardummies, function(x) paste0(x,"_",var), simplify = "array", USE.NAMES = F)
-  df[interact_vars] <- df[yeardummies]
-  df <- df %>% 
-    mutate_at(interact_vars,`*`,quote(df[var])) %>% 
-    mutate_at(interact_vars, function(x) unlist(x))
-}
+# creating t * baseline controls
+interact_vars <- sapply(controlsvar_baseline, function(x) paste0("t_",x), simplify = "array", USE.NAMES = F)
+df[interact_vars] <- df[controlsvar_baseline]
+df <- df %>% 
+  mutate_at(interact_vars,`*`,quote(t))
 
 
 # 3. Setting regression samples
@@ -274,28 +271,7 @@ df <- df %>%
 # 4. regression specifications
 # =================================================================
 
-controls <- c(grep("^ano_1998_", names(df), value = T),
-              grep("^ano_1999_", names(df), value = T),
-              # grep("^ano_2000_", names(df), value = T),
-              grep("^ano_2001_", names(df), value = T),
-              grep("^ano_2002_", names(df), value = T),
-              grep("^ano_2003_", names(df), value = T),
-              grep("^ano_2004_", names(df), value = T),
-              grep("^ano_2005_", names(df), value = T),
-              grep("^ano_2006_", names(df), value = T),
-              grep("^ano_2007_", names(df), value = T),
-              grep("^ano_2008_", names(df), value = T),
-              grep("^ano_2009_", names(df), value = T),
-              grep("^ano_2010_", names(df), value = T),
-              # grep("^ano_2011_", names(df), value = T),
-              # grep("^ano_2012_", names(df), value = T),
-              # grep("^ano_2013_", names(df), value = T),
-              # grep("^ano_2014_", names(df), value = T),
-              # grep("^ano_2015_", names(df), value = T),
-              "finbra_desp_saude_san_pcapita_neighbor","lrf")
-
-
-
+controls <- c(grep("^t_", names(df), value = T),"finbra_desp_saude_san_pcapita_neighbor","lrf")
 
 
 # IV specifications
@@ -860,7 +836,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
              spec = ifelse(spec=="3","+ State-Year FE",spec)) %>% 
       mutate(spec = as.factor(spec)) 
     
- out$spec <- factor(out$spec,levels = c("Baseline","+ Controls","+ State-Year FE"))  
+    out$spec <- factor(out$spec,levels = c("Baseline","+ Controls","+ State-Year FE"))  
     
     if(spec==1){
       table <- out
