@@ -854,7 +854,13 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
       mutate(lb = estimate - 1.96 * std.error,
              ub = estimate + 1.96 * std.error,
              year = seq.int(year_filter,2010),
-             spec = as.character(spec))
+             spec = as.character(spec)) %>% 
+      mutate(spec = ifelse(spec=="1","Baseline",spec),
+             spec = ifelse(spec=="2","+ Controls",spec),
+             spec = ifelse(spec=="3","+ State-Year FE",spec)) %>% 
+      mutate(spec = as.factor(spec)) 
+    
+ out$spec <- factor(out$spec,levels = c("Baseline","+ Controls","+ State-Year FE"))  
     
     if(spec==1){
       table <- out
@@ -880,7 +886,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
     scale_shape_manual(values = shapes) +
     theme_light() +
     labs(y = var_name,
-         color = "Specification") +
+         shape = "Specification") +
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           plot.title = element_text(size = 10, face = "bold"),
