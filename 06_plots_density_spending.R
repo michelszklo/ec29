@@ -35,7 +35,7 @@ if(length(to_install)>0) install.packages(to_install)
 
 lapply(packages,require,character.only=TRUE)
 
-output <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/ec29/outputs/density_plots/"
+output <- "C:/Users/Michel/Documents/GitHub/ec29/outputs/density_plots/"
 
 
 
@@ -48,14 +48,13 @@ SIOPS <- readRDS("C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/
 # =================================================================
 
 
-SIOPS_temp <- SIOPS %>% filter(ano<=2004) %>% mutate(ano  = as.factor(ano))
+SIOPS_temp <- SIOPS %>% filter(ano<=2005) %>% mutate(ano  = as.factor(ano))
 
 color_graph <- c("#7F3C8D","#11A579","#3969AC","#E73F74","#E68310","#008695","#CF1C90","#f97b72","#4b4b8f","#A5AA99")
-color_graph <- c("#E68310","#E73F74","#3969AC","#11A579","#7F3C8D")
+color_graph <- c("#008695","#E68310","#E73F74","#3969AC","#11A579","#7F3C8D")
 
 hist_ec29 <- SIOPS_temp %>% ggplot(aes(x = pct_recproprios_ec29, color = ano, fill = ano)) +
   geom_density(binwidth = 2, alpha = 0.1) + 
-  geom_vline(xintercept = 7, linetype = "dotted", size = 0.6, color = "grey63") +
   geom_vline(xintercept = 15, linetype = "dashed", size = 0.6, color = "grey43") +
   scale_x_continuous(breaks = seq(-5,45,5), limits = c(-5,45)) +
   scale_color_manual(values = color_graph) +
@@ -67,7 +66,8 @@ hist_ec29 <- SIOPS_temp %>% ggplot(aes(x = pct_recproprios_ec29, color = ano, fi
         panel.grid.minor = element_blank(),
         legend.title = element_blank(),
         axis.title = element_text(size=12),
-        legend.position="bottom", legend.box = "horizontal")
+        legend.position="bottom", legend.box = "horizontal") +
+  guides(color=guide_legend(nrow=1,byrow=TRUE))
 
 
 filePNG <- paste0(output,"hist_ec29.png")
@@ -91,13 +91,13 @@ ggsave(filepdf,
 
 deflator <- read.csv("C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/deflator/deflator.csv")
 
-SIOPS_temp <- SIOPS %>% filter(ano<=2004) %>%  
+SIOPS_temp <- SIOPS %>% filter(ano<=2005) %>%  
   left_join(deflator,by = "ano") %>% 
   mutate(ano  = as.factor(ano)) %>%
   mutate(despsaude_pcapita = despsaude_pcapita/deflator_saude)
 
 color_graph <- c("#7F3C8D","#11A579","#3969AC","#E73F74","#E68310","#008695","#CF1C90","#f97b72","#4b4b8f","#A5AA99")
-color_graph <- c("#E68310","#E73F74","#3969AC","#11A579","#7F3C8D")
+color_graph <- c("#008695","#E68310","#E73F74","#3969AC","#11A579","#7F3C8D")
 
 
 hist_pc <- SIOPS_temp %>% ggplot(aes(x = despsaude_pcapita, color = ano, fill = ano)) +
@@ -112,7 +112,8 @@ hist_pc <- SIOPS_temp %>% ggplot(aes(x = despsaude_pcapita, color = ano, fill = 
         panel.grid.minor = element_blank(),
         legend.title = element_blank(),
         axis.title = element_text(size=12),
-        legend.position="bottom", legend.box = "horizontal")
+        legend.position="bottom", legend.box = "horizontal") +
+  guides(color=guide_legend(nrow=1,byrow=TRUE))
 
 
 
