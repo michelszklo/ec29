@@ -295,14 +295,14 @@ spec_instrument_yearly <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")
 # Reduce form specification and first stage - yearly
 # ------------------------------------------------
 
-# spec1_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
-# spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
-# spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
-
-# changing the order that controls and fixed effects are added to the specifications
 spec1_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
-spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
+spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+
+# # changing the order that controls and fixed effects are added to the specifications
+# spec1_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
+# spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
+# spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 
@@ -842,7 +842,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
              spec = ifelse(spec=="3","+ State-Year FE",spec)) %>% 
       mutate(spec = as.factor(spec)) 
     
-    out$spec <- factor(out$spec,levels = c("Baseline","+ Controls","+ State-Year FE"))  
+    out$spec <- factor(out$spec,levels = c("Baseline","+ State-Year FE","+ Controls"))  
     
     if(spec==1){
       table <- out
