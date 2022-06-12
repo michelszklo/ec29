@@ -154,7 +154,7 @@ if (instrument=="dist_ec29_baseline"){
     # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
   }
   
-
+  
   
   
   
@@ -241,7 +241,7 @@ var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community He
                  cbind('siab_cons_especif_pcapita','N. of Appointments (per capita)'),
                  cbind('siab_cons_especif_pacs_pcapita','N. of Appointments from Community Health Program (per capita)'),
                  cbind('siab_cons_especif_pcapita','N. of Appointments from Family Health Program (per capita)')
-                 )
+)
 
 if (instrument=="ec29_baseline"){
   for (i in c(1,2,4)){
@@ -593,7 +593,7 @@ if (instrument=="dist_ec29_baseline"){
     var_name <- var_map[i,2]
     print(var_name)
     
-    reduced_yearly(var,var_name,df,3,1998,-30,10,5,sample = "full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-30,15,5,sample = "full",below = below) # ec29baseline
     
     
   }
