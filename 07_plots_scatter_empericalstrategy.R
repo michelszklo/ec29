@@ -56,7 +56,7 @@ for (i in seq(1,10,1)){
   varname1 <- paste0("change0",i,"_","finbra_desp_saude_san_pcapita")
   varname2 <- paste0("change0",i,"_","siops_despsaude_pcapita")
   varname3 <- paste0("change0",i,"_","siops_desprecpropriosaude_pcapita")
-
+  
   df_plot <- df_plot %>% 
     group_by(cod_mun) %>% 
     mutate(!!varname1 := dplyr::lead(finbra_desp_saude_san_pcapita,i) - finbra_desp_saude_san_pcapita,
@@ -85,22 +85,22 @@ corr(df_plot %>%
 
 
 scatter <- ggplot(df_plot %>% 
-                      filter(change05_siops_despsaude_pcapita<1000) %>% 
-                      filter(dist_ec29_baseline>-0.5)
-                    ,
-                    aes(x = dist_ec29_baseline, y = change05_siops_despsaude_pcapita)) +
+                    filter(change05_siops_despsaude_pcapita<1000) %>% 
+                    filter(dist_ec29_baseline>-0.5)
+                  ,
+                  aes(x = dist_ec29_baseline, y = change05_siops_despsaude_pcapita)) +
   geom_point(color = "steelblue4", size = 0.7, alpha = 0.5) +
-  geom_smooth(method='lm', color = "sienna2",fill = "sienna2", alpha = 0.1, se = F, size = 0.5)+
+  # geom_smooth(method='lm', color = "sienna2",fill = "sienna2", alpha = 0.1, se = F, size = 0.5)+
   scale_y_continuous(limits = c(-400,950), breaks = seq(-400,900,100)) +
   scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
   labs(y = "Change in Health Spending per capita 2000-2005",
        x = "Distance to the EC29 target") +
   theme_light() +
   theme(panel.grid.major = element_blank(), 
-    panel.grid.minor = element_blank(),
-    axis.title = element_text(size=12),
-    legend.position="bottom", legend.box = "horizontal",
-    legend.title = element_blank())
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=12),
+        legend.position="bottom", legend.box = "horizontal",
+        legend.title = element_blank())
 
 
 
