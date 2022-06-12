@@ -200,6 +200,12 @@ df <- df %>%
   mutate_at(interact_vars,`*`,quote(t))
 
 
+# creating year dummies
+dummy_cols(select_columns = "ano", ignore_na = TRUE)
+
+yeardummies <- grep("^ano_",names(df),value = T)
+
+
 # 3. Setting regression samples
 # =================================================================
 
@@ -272,7 +278,7 @@ df <- df %>%
 # =================================================================
 
 controls <- c(grep("^t_", names(df), value = T),"finbra_desp_saude_san_pcapita_neighbor","lrf")
-
+controls <- controls[3:length(controls)]
 
 # IV specifications
 # ------------------------------------------------
