@@ -104,7 +104,7 @@ summary_stat <- function(df,baseline_year,obj){
 
 var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spent in Health"),
                  cbind("dist_ec29_baseline","Distance to the EC29 Target"),
-                 
+  
                  cbind('finbra_reccorr_pcapita','Total Revenue per capita (2010 R$)'),
                  cbind('finbra_rectribut_pcapita','Tax Revenue per capita (2010 R$)'),
                  cbind('finbra_rectransf_pcapita','Transfers Revenue per capita (2010 R$)'),
@@ -237,12 +237,22 @@ var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spe
                  cbind('tx_ma3_illdef','25-59y Mortality Rate - Ill-Defined'),
                  cbind('tx_ma3_out','25-59y Mortality Rate - Other'), #
                  cbind('tx_ma3_diab','25-59y Mortality Rate - Diabetes'),
-                 cbind('tx_ma3_hyper','25-59y Mortality Rate - Hypertension')
+                 cbind('tx_ma3_hyper','25-59y Mortality Rate - Hypertension'),
                  
-                 
-                 
-                 
-                 
+                 cbind('pop','Population'),
+                 cbind('espvida_baseline','Life Expectancy'),
+                 cbind('e_anosestudo_baseline','Expected Years of Study'),
+                 cbind('t_analf18m_baseline','Iliteracy Rate (above 18y old)'),
+                 cbind('rdpc_baseline','Income per capita'),
+                 cbind('pmpob_baseline','Share of Population Below Poverty Line'),
+                 cbind('gini_baseline','Gini Coefficient'),
+                 cbind('sewage_gen_network_baseline','Access to Sewage Network'),
+                 cbind('garbage_coll_service_baseline','Access to Garbage Collection Service'),
+                 cbind('water_gen_network_baseline','Access to Water Network'),
+                 cbind('elect_access_baseline','Access to Electricity'),
+                 cbind('urb_baseline','Urbanization Rate'),
+                 cbind('finbra_desp_saude_san_pcapita_neighbor','Average Neighbors Spending Health Spending per capita'),
+                 cbind('lrf',"Municipality's Spending in Human Resources (% of Total Spending)")
                  
                  
 )
@@ -264,11 +274,11 @@ df_top <- df %>% filter(quantile=="4") %>% select(quantile,dist_ec29_baseline,ev
 df_bottom <- df %>% filter(quantile=="1") %>% select(quantile,dist_ec29_baseline,everything())
   
 
-summary_stat(df,2000,"stats_2000")
-summary_stat(df_top,2000,"stats_2000_top")
-summary_stat(df_bottom,2000,"stats_2000_bottom")
-summary_stat(df %>% filter(second_term==1),2000,"stats_2000_second")
-summary_stat(df %>% filter(second_term==0),2000,"stats_2000_first")
+summary_stat(df %>% mutate(pop = pop/1000),2000,"stats_2000")
+summary_stat(df_top %>% mutate(pop = pop/1000),2000,"stats_2000_top")
+summary_stat(df_bottom %>% mutate(pop = pop/1000),2000,"stats_2000_bottom")
+summary_stat(df %>% mutate(pop = pop/1000) %>% filter(second_term==1),2000,"stats_2000_second")
+summary_stat(df %>% mutate(pop = pop/1000) %>% filter(second_term==0),2000,"stats_2000_first")
 
 
 # 4. Statistic for variables with baseline in 2002
@@ -351,22 +361,21 @@ stats <- cbind(
     select(-Variable))
   
 
-stats_first <-stats_2000_first %>% 
-  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3))
+stats_elect <-cbind(
+  stats_2000_first %>% 
+  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)),
+  stats_second <-stats_2000_second %>% 
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
+    select(-Variable)
+)
 
-stats_second <-stats_2000_second %>% 
-  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3))
+
 
 
 write.xlsx2(stats, file = paste0(dir,main_folder,output_file),sheetName = "descriptive",row.names = F,append = T)
 
-write.xlsx2(stats_first, file = paste0(dir,main_folder,"results_dist_ec29_baseline_elect.xlsx"),sheetName = "descriptive_first",row.names = F,append = T)
+write.xlsx2(stats_elect, file = paste0(dir,main_folder,"results_dist_ec29_baseline_elect.xlsx"),sheetName = "descriptive",row.names = F,append = T)
 
-write.xlsx2(stats_second, file = paste0(dir,main_folder,"results_dist_ec29_baseline_elect.xlsx"),sheetName = "descriptive_second",row.names = F,append = T)
-
-write.xlsx2(stats_high, file = paste0(dir,main_folder,"results_dist_ec29_baseline_governance.xlsx"),sheetName = "descriptive_high",row.names = F,append = T)
-
-write.xlsx2(stats_low, file = paste0(dir,main_folder,"results_dist_ec29_baseline_governance.xlsx"),sheetName = "descriptive_low",row.names = F,append = T)
 
 
 
