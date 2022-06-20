@@ -31,13 +31,14 @@ packages<-c('readr',
             'mapview',
             'stringdist',
             'gtools',
-            'gridExtra')
+            'gridExtra',
+            'ggsci')
 to_install<-packages[!(packages %in% installed.packages()[,"Package"])]
 if(length(to_install)>0) install.packages(to_install)
 
 lapply(packages,require,character.only=TRUE)
 
-output <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/ec29/outputs/time_trends/"
+output <- "C:/Users/Michel/Documents/GitHub/ec29/outputs/time_trends/"
 
 
 SIOPS <- readRDS("C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/data/SIOPS/SIOPS.rds")
@@ -785,7 +786,7 @@ ggsave(filepdf,
 var_map <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita'),
                  cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita'),
                  cbind('finbra_desp_investimento_pcapita','Investment Spending per capita'),
-                 cbind('finbra_desp_outros_pcapita','Other Spending per capita'),
+                 cbind('finbra_desp_outros_nature_pcapita','Other Spending per capita'),
                  cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita'),
                  cbind('finbra_desp_transporte_pcapita','Transport Spending per capita'),
                  cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita'),
@@ -1108,8 +1109,7 @@ ggsave(filepdf,
 # Siops source graph
 # --------------------------------------------------
 
-color_graph <- pal_lancet("lanonc")(9)
-
+color_graph <- c("#a50026","#313695")
 
 plot22 <- df_plot_siops %>%
   filter(category == "Health Spending per capita - Own Resources" |
@@ -1139,8 +1139,7 @@ plot23 <- df_plot_siops_top %>%
   scale_x_continuous(breaks = seq(2000,2010,1), limits = c(1999.5,2010.5)) +
   scale_y_continuous(breaks = seq(0,300,50), limits = c(0,300)) +
   labs(x = "Year",
-       y = "Spending Per Capita",
-       title = "Top Quartile of EC29") +
+       y = "Spending Per Capita") +
   theme_light() +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
@@ -1160,8 +1159,7 @@ plot24 <- df_plot_siops_bottom %>%
   scale_x_continuous(breaks = seq(2000,2010,1), limits = c(1999.5,2010.5)) +
   scale_y_continuous(breaks = seq(0,300,50), limits = c(0,300)) +
   labs(x = "Year",
-       y = "Spending Per Capita",
-       title = "Bottom Quartile of EC29") +
+       y = "Spending Per Capita") +
   theme_light() +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
@@ -1177,12 +1175,12 @@ filepdf <- paste0(output,"plot_siops_level_source.pdf")
 ggsave(filePNG,
        plot = plot22,
        device = "png",
-       width = 6, height = 5,
+       width = 12, height = 5,
        units = "in")
 ggsave(filepdf,
        plot = plot22,
        device = "pdf",
-       width = 6, height = 5,
+       width = 12, height = 5,
        units = "in")
 
 
