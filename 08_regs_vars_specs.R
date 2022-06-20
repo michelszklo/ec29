@@ -201,7 +201,8 @@ df <- df %>%
 
 
 # creating year dummies
-dummy_cols(select_columns = "ano", ignore_na = TRUE)
+df <- df %>% 
+  dummy_cols(select_columns = "ano", ignore_na = TRUE)
 
 yeardummies <- grep("^ano_",names(df),value = T)
 
