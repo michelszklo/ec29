@@ -192,7 +192,6 @@ df <- df %>%
   mutate(t = seq(-2,15,1)) %>% 
   ungroup()
 
-
 # creating t * baseline controls
 interact_vars <- sapply(controlsvar_baseline, function(x) paste0("t_",x), simplify = "array", USE.NAMES = F)
 df[interact_vars] <- df[controlsvar_baseline]
@@ -205,6 +204,8 @@ df <- df %>%
   dummy_cols(select_columns = "ano", ignore_na = TRUE)
 
 yeardummies <- grep("^ano_",names(df),value = T)
+
+
 
 
 # 3. Setting regression samples
@@ -254,6 +255,13 @@ df <- df %>%
   mutate_at(yeartreat_dummies, `*`,quote(iv)) %>% 
   unnest(all_of(yeartreat_dummies))
 
+# Instrument interacted with first term dummy
+df <- df %>% 
+  mutate(firstterm = (1-second_term),
+         iv_firstterm = iv * firstterm) %>%
+  # baseline first term * time
+  mutate(t_firstterm = t * firstterm)
+
 
 
 # 4. regression specifications
@@ -261,11 +269,6 @@ df <- df %>%
 
 controls <- c(grep("^t_", names(df), value = T),"finbra_desp_saude_san_pcapita_neighbor","lrf")
 controls <- controls[3:length(controls)]
-
-# Instrument interacted with incumbent
-df <- df %>% 
-  mutate(iv_firstterm = iv * (1-second_term),
-         firstterm = (1-second_term))
 
 
 # Reduce form specification - yearly
@@ -285,9 +288,9 @@ spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", pa
 # ------------------------------------------------
 
 # spending in per capita figures
-spec1_post <- paste(" ~ ","iv + iv_firstterm + firstterm"," | cod_mun + ano | 0 | cod_mun")
-spec2_post <- paste(" ~ ","iv + iv_firstterm + firstterm"," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3_post <- paste(" ~ ","iv + iv_firstterm + firstterm"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec1_post <- paste(" ~ ","iv + iv_firstterm + t_firstterm"," | cod_mun + ano | 0 | cod_mun")
+spec2_post <- paste(" ~ ","iv + iv_firstterm + t_firstterm"," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post <- paste(" ~ ","iv + iv_firstterm + t_firstterm"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 
@@ -323,7 +326,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_firstterm,firstterm,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_firstterm,t_firstterm,all_of(controls),pop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]

@@ -95,29 +95,25 @@ table_formating <- function(df,s){
            estimate = paste0(round(estimate,digits = 3),sig))
   
   df <- bind_rows(df %>%
-                    select(term,estimate,coeff) %>% filter(coeff=="iv") %>% mutate(item="b"),
+                    select(term,estimate,coeff,nobs) %>% filter(coeff=="iv") %>% mutate(item="b"),
                   df %>% 
-                    select(term,std.error,coeff) %>% filter(coeff=="iv") %>% rename(estimate = std.error)%>% mutate(item="se"),
+                    select(term,std.error,coeff,nobs) %>% filter(coeff=="iv") %>% rename(estimate = std.error)%>% mutate(item="se"),
                   df %>%
-                    select(term,estimate,coeff) %>% filter(coeff=="iv_firstterm") %>% mutate(item="b"),
+                    select(term,estimate,coeff,nobs) %>% filter(coeff=="iv_firstterm") %>% mutate(item="b"),
                   df %>% 
-                    select(term,std.error,coeff) %>% filter(coeff=="iv_firstterm") %>% rename(estimate = std.error) %>% mutate(item="se"),
+                    select(term,std.error,coeff,nobs) %>% filter(coeff=="iv_firstterm") %>% rename(estimate = std.error) %>% mutate(item="se"),
                   df %>%
-                    select(term,estimate,coeff) %>% filter(coeff=="firstterm") %>% mutate(item="b"),
+                    select(term,estimate,coeff,nobs) %>% filter(coeff=="t_firstterm") %>% mutate(item="b"),
                   df %>% 
-                    select(term,std.error,coeff) %>% filter(coeff=="firstterm") %>% rename(estimate = std.error) %>% mutate(item="se"),
+                    select(term,std.error,coeff,nobs) %>% filter(coeff=="t_firstterm") %>% rename(estimate = std.error) %>% mutate(item="se"),
                   
   ) %>% 
-    pivot_wider(id_cols = c("item","term"),
+    pivot_wider(id_cols = c("item","term","nobs"),
                 names_from = "coeff",
-                values_from = "estimate") 
+                values_from = "estimate") %>% 
+    select(item,term,iv,iv_firstterm,t_firstterm,everything())
 }  # formats regression outputs into article format
 
-
-var <- var_map[1,1]
-var_name <- var_map[1,2]
-transform <- 3
-year_filter <- 1998
 
 regress_output <- function(var,var_name,transform,year_filter){
   
@@ -189,6 +185,6 @@ for (i in 1:14){
 # exporting results
 # ---------------------
 
-write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName = "infra",row.names = F,append = T)
+write.xlsx2(df_table_all %>% as.data.frame(), file = paste0(dir,main_folder,output_file),sheetName = "infra",row.names = F,append = T)
 
 
