@@ -754,7 +754,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
     # ------------------------------
     
     regformula <- as.formula(paste(ln_outcome,spec_reduced))
-    fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
+    fit <- felm(regformula, data = df_reg,exactDOF = T)
     
     out <- cbind(fit %>% broom::tidy() %>% slice(1),fit %>% broom::glance() %>% select(nobs))
     
@@ -989,8 +989,31 @@ dict <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita'),
               cbind('tx_ma_nicsap_l4','Adult Mortality Rate - non-APC - 5y lag'))
 
 
-# 9. Saving
+# 9. Population cap
 # =================================================================
+
+cap_pop <- function(df,npop){
+  df <- df %>% 
+    mutate(pop_baseline = ifelse(ano==2000,pop,NA)) %>% 
+    group_by(cod_mun) %>% 
+    mutate(pop_baseline = mean(pop_baseline, na.rm = T)) %>% 
+    ungroup() %>% 
+    filter(pop <= npop)
+}
+
+# df <- df %>% 
+#   cap_pop(30000)
+# 
+# df_above <- df_above %>% 
+#   cap_pop(30000)
+# 
+# df_below <- df_below %>% 
+#   cap_pop(30000)
+
+
+# 10. Saving
+# =================================================================
+
 rm(raw)
 
 save.image(paste0(dir,"regs.RData"))
