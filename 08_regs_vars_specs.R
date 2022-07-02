@@ -162,7 +162,15 @@ df <- df %>%
   mutate(post_07 = ifelse(ano==2007,1,0)) %>% 
   mutate(post_08 = ifelse(ano==2008,1,0)) %>% 
   mutate(post_09 = ifelse(ano==2009,1,0)) %>% 
-  mutate(post_10 = ifelse(ano==2010,1,0)) # %>% 
+  mutate(post_10 = ifelse(ano==2010,1,0)) %>% 
+  # weights
+  mutate(peso_eq = 1) %>% 
+  group_by(cod_mun) %>% 
+  mutate(peso_b = mean(birth_nasc_vivos, na.rm = T),
+         peso_a = mean(pop_25_59, na.rm = T),
+         peso_a1 = mean(pop_25_39, na.rm = T),
+         peso_a2 = mean(pop_40_59, na.rm = T)) %>% 
+  ungroup()
 # mutate(post_11 = ifelse(ano==2011,1,0)) %>% 
 # mutate(post_12 = ifelse(ano==2012,1,0)) %>% 
 # mutate(post_13 = ifelse(ano==2013,1,0)) %>% 
