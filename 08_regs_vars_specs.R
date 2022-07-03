@@ -162,7 +162,16 @@ df <- df %>%
   mutate(post_07 = ifelse(ano==2007,1,0)) %>% 
   mutate(post_08 = ifelse(ano==2008,1,0)) %>% 
   mutate(post_09 = ifelse(ano==2009,1,0)) %>% 
-  mutate(post_10 = ifelse(ano==2010,1,0)) # %>% 
+  mutate(post_10 = ifelse(ano==2010,1,0)) %>%
+  # weights
+  mutate(peso_eq = 1) %>% 
+  group_by(cod_mun) %>% 
+  mutate(peso_b = mean(birth_nasc_vivos, na.rm = T),
+         peso_a = mean(pop_25_59, na.rm = T),
+         peso_a1 = mean(pop_25_39, na.rm = T),
+         peso_a2 = mean(pop_40_59, na.rm = T),
+         peso_r = mean(finbra_reccorr_pcapita,na.rm = T)) %>% 
+  ungroup()
 # mutate(post_11 = ifelse(ano==2011,1,0)) %>% 
 # mutate(post_12 = ifelse(ano==2012,1,0)) %>% 
 # mutate(post_13 = ifelse(ano==2013,1,0)) %>% 
@@ -297,7 +306,7 @@ spec3_post <- paste(" ~ ","iv + iv_firstterm + t_firstterm"," + ", paste(control
 # 8. Reduced Form
 # =================================================================
 
-reduced <- function(outcome,var_name,df,regression_output,transform,year_filter){
+reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,weight){
   
   df_reg <- df
   
@@ -326,7 +335,8 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_firstterm,t_firstterm,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_firstterm,t_firstterm,all_of(controls),pop,
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -341,11 +351,13 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
     
     spec_reduced<- get(paste0("spec",spec,"_post"))
     
+    weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
+    
     # second stage regression
     # ------------------------------
     
     regformula <- as.formula(paste(ln_outcome,spec_reduced))
-    fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
+    fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
     
     out <- cbind(fit %>% broom::tidy() %>% slice(1:3),fit %>% broom::glance() %>% select(nobs))
     
@@ -372,7 +384,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
   
 }
 
-reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below){
+reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below,weight){
   
   # first term sample
   # ----------------------------------------------------------------
@@ -403,7 +415,8 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -417,11 +430,14 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
     
     spec_reduced<- get(paste0("spec",spec,"_post_y"))
     
+    weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
+    
+    
     # second stage regression
     # ------------------------------
     
     regformula <- as.formula(paste(ln_outcome,spec_reduced))
-    fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
+    fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
     
     out <- fit %>% 
       broom::tidy() %>%
@@ -478,7 +494,8 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -492,11 +509,14 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
     
     spec_reduced<- get(paste0("spec",spec,"_post_y"))
     
+    weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
+    
+    
     # second stage regression
     # ------------------------------
     
     regformula <- as.formula(paste(ln_outcome,spec_reduced))
-    fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
+    fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
     
     out <- fit %>% 
       broom::tidy() %>%
