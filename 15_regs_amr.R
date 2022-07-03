@@ -179,13 +179,13 @@ df <- df %>%
 
 
 
-for (i in seq(1,39,1)){
+for (i in seq(1,13,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   
   
-  regress_output(var,var_name,3,1998)
+  regress_output(var,var_name,3,1998,"peso_a")
   
   
   if(exists("df_table_all")){
@@ -196,11 +196,49 @@ for (i in seq(1,39,1)){
     df_table_all <- table_all
 
   }
-    
-  
   
 }
 
+for (i in seq(14,26,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  
+  
+  regress_output(var,var_name,3,1998,"peso_a1")
+  
+  
+  if(exists("df_table_all")){
+    df_table_all <- rbind(df_table_all,table_all)
+    
+  } else {
+    
+    df_table_all <- table_all
+    
+  }
+  
+}
+
+
+for (i in seq(27,39,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  
+  
+  regress_output(var,var_name,3,1998,"peso_a2")
+  
+  
+  if(exists("df_table_all")){
+    df_table_all <- rbind(df_table_all,table_all)
+    
+  } else {
+    
+    df_table_all <- table_all
+    
+  }
+  
+}
 
 
 # exporting results

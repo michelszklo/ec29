@@ -591,99 +591,75 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
 
 
 
-# 10. Variables labels dictionary
+# 7. Output functions
 # =================================================================
 
-dict <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita'),
-              cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita'),
-              cbind('finbra_desp_investimento_pcapita','Investment Spending per capita'),
-              cbind('finbra_desp_adm_pcapita','Administrative Spending per capita'),
-              cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita'),
-              cbind('finbra_desp_transporte_pcapita','Trasnport Spending per capita - Total'),
-              cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita'),
-              cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita'),
-              cbind('finbra_desp_assist_prev_pcapita','Social Security Spending per capita'),
-              cbind('siops_despsaude_pcapita','Health Spending per capita - Total'),
-              cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources'),
-              cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Transfers'),
-              cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources'),
-              cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment'),
-              cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services'),
-              cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures'),
-              cbind('ACS_popprop','Population covered (share) by Community Health Agents'),
-              cbind('eSF_popprop','Population covered (share) by Family Health Agents'),
-              cbind('hospital','Presence of Municipal Hospital'),
-              cbind('unity_mun_pcapita','Municipal Outpatient Facilities per 1000 population'),
-              cbind('leitos_pc','Hospital Beds per capita'),
-              cbind('sia_pcapita','Outpatient procedures per capita'),
-              cbind('sia_ab_nsuperior_pcapita','PC outpatient proced college degree personal per capita'),
-              cbind('sia_ab_enfermagem_pcapita','PC outpatient proced non college degree personal per capita'),
-              cbind('sia_visita_superior_pcapita','Household visits by college degree personal per capita'),
-              cbind('sia_visita_medio_pcapita','Household visits by non college degree personal per capita'),
-              cbind('sia_ativ_grupo_pcapita','Educational activities in group per capita'),
-              cbind('hr_all_pcapita','Total Health workers per 1000 population'),
-              cbind('hr_superior_pcapita','Doctors per 1000 population'),
-              cbind('hr_technician_pcapita','Health Technicians per 1000 population'),
-              cbind('hr_elementary_pcapita','Elementary Health workers per 1000 population'),
-              cbind('hr_admin_pcapita','Administrative workers per 1000 population'),
-              cbind('tx_mi','Infant Mortality Rate'),
-              cbind('tx_mi_icsap','Infant Mortality Rate - APC'),
-              cbind('tx_mi_nicsap','Infant Mortality Rate - non-APC'),
-              cbind('tx_mi_infec','Infant Mortality Rate - Infectious'),
-              cbind('tx_mi_resp','Infant Mortality Rate - Respiratory'),
-              cbind('tx_mi_perinat','Infant Mortality Rate - Perinatal'),
-              cbind('tx_mi_cong','Infant Mortality Rate - Congenital'),
-              cbind('tx_mi_ext','Infant Mortality Rate - External'),
-              cbind('tx_mi_nut','Infant Mortality Rate - Nutritional'),
-              cbind('tx_mi_out','Infant Mortality Rate - Other'),
-              cbind('tx_mi_illdef','Infant Mortality Rate - Ill-Defined'),
-              cbind('tx_mi_fet','Infant Mortality Rate - Fetal'),
-              cbind('tx_mi_24h','Infant Mortality Rate - Within 24h'),
-              cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days'),
-              cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year'),
-              cbind('tx_ma','Adult Mortality Rate'),
-              cbind('tx_ma_circ','Adult Mortality Rate - Circulatory'),
-              cbind('tx_ma_neop','Adult Mortality Rate - Neoplasm'),
-              cbind('tx_ma_resp','Adult Mortality Rate - Respiratory'),
-              cbind('tx_ma_endoc','Adult Mortality Rate - Endocrine'),
-              cbind('tx_ma_ext','Adult Mortality Rate - External'),
-              cbind('tx_ma_nut','Adult Mortality Rate - Nutritional'),
-              cbind('tx_ma_illdef','Adult Mortality Rate - Ill-Defined'),
-              cbind('tx_ma_out','Adult Mortality Rate - Other'),
-              cbind('tx_ma_diab','Adult Mortality Rate - Diabetes'),
-              cbind('tx_ma_hyper','Adult Mortality Rate - Hypertension'),
-              cbind('tx_ma_icsap','Adult Mortality Rate - APC'),
-              cbind('tx_ma_nicsap','Adult Mortality Rate - non-APC'),
-              cbind('tx_mi_l1','Infant Mortality Rate - 1y lag'),
-              cbind('tx_mi_l2','Infant Mortality Rate - 2y lag'),
-              cbind('tx_mi_l3','Infant Mortality Rate - 3y lag'),
-              cbind('tx_mi_l4','Infant Mortality Rate - 4y lag'),
-              cbind('tx_mi_l5','Infant Mortality Rate - 5y lag'),
-              cbind('tx_mi_icsap_l1','Infant Mortality Rate - APC - 1y lag'),
-              cbind('tx_mi_icsap_l2','Infant Mortality Rate - APC - 2y lag'),
-              cbind('tx_mi_icsap_l3','Infant Mortality Rate - APC - 3y lag'),
-              cbind('tx_mi_icsap_l4','Infant Mortality Rate - APC - 4y lag'),
-              cbind('tx_mi_icsap_l5','Infant Mortality Rate - APC - 5y lag'),
-              cbind('tx_mi_nicsap_l1','Infant Mortality Rate - non-APC - 1y lag'),
-              cbind('tx_mi_nicsap_l2','Infant Mortality Rate - non-APC - 2y lag'),
-              cbind('tx_mi_nicsap_l3','Infant Mortality Rate - non-APC - 3y lag'),
-              cbind('tx_mi_nicsap_l4','Infant Mortality Rate - non-APC - 4y lag'),
-              cbind('tx_mi_nicsap_l4','Infant Mortality Rate - non-APC - 5y lag'),
-              cbind('tx_ma_l1','Adult Mortality Rate - 1y lag'),
-              cbind('tx_ma_l2','Adult Mortality Rate - 2y lag'),
-              cbind('tx_ma_l3','Adult Mortality Rate - 3y lag'),
-              cbind('tx_ma_l4','Adult Mortality Rate - 4y lag'),
-              cbind('tx_ma_l5','Adult Mortality Rate - 5y lag'),
-              cbind('tx_ma_icsap_l1','Adult Mortality Rate - APC - 1y lag'),
-              cbind('tx_ma_icsap_l2','Adult Mortality Rate - APC - 2y lag'),
-              cbind('tx_ma_icsap_l3','Adult Mortality Rate - APC - 3y lag'),
-              cbind('tx_ma_icsap_l4','Adult Mortality Rate - APC - 4y lag'),
-              cbind('tx_ma_icsap_l5','Adult Mortality Rate - APC - 5y lag'),
-              cbind('tx_ma_nicsap_l1','Adult Mortality Rate - non-APC - 1y lag'),
-              cbind('tx_ma_nicsap_l2','Adult Mortality Rate - non-APC - 2y lag'),
-              cbind('tx_ma_nicsap_l3','Adult Mortality Rate - non-APC - 3y lag'),
-              cbind('tx_ma_nicsap_l4','Adult Mortality Rate - non-APC - 4y lag'),
-              cbind('tx_ma_nicsap_l4','Adult Mortality Rate - non-APC - 5y lag'))
+table_formating <- function(df,s){
+  df <- df %>% 
+    filter(spec==s) %>%
+    select(-spec) %>% 
+    mutate(term=var_name) %>% 
+    mutate(sig = ifelse(p.value<=0.01,"***",""),
+           sig = ifelse(p.value<=0.05 & p.value>0.01,"**",sig),
+           sig = ifelse(p.value<=0.1 & p.value>0.05,"*",sig)) %>% 
+    mutate(std.error = paste0("(",round(std.error,digits = 3),")"),
+           estimate = paste0(round(estimate,digits = 3),sig))
+  
+  df <- bind_rows(df %>%
+                    select(term,estimate,coeff,nobs) %>% filter(coeff=="iv") %>% mutate(item="b"),
+                  df %>% 
+                    select(term,std.error,coeff,nobs) %>% filter(coeff=="iv") %>% rename(estimate = std.error)%>% mutate(item="se"),
+                  df %>%
+                    select(term,estimate,coeff,nobs) %>% filter(coeff=="iv_firstterm") %>% mutate(item="b"),
+                  df %>% 
+                    select(term,std.error,coeff,nobs) %>% filter(coeff=="iv_firstterm") %>% rename(estimate = std.error) %>% mutate(item="se"),
+                  df %>%
+                    select(term,estimate,coeff,nobs) %>% filter(coeff=="t_firstterm") %>% mutate(item="b"),
+                  df %>% 
+                    select(term,std.error,coeff,nobs) %>% filter(coeff=="t_firstterm") %>% rename(estimate = std.error) %>% mutate(item="se"),
+                  
+  ) %>% 
+    pivot_wider(id_cols = c("item","term","nobs"),
+                names_from = "coeff",
+                values_from = "estimate") %>% 
+    select(item,term,iv,iv_firstterm,t_firstterm,everything())
+}  # formats regression outputs into article format
+
+regress_output <- function(var,var_name,transform,year_filter,weight){
+  
+  # REDUCED FORM REGRESSION
+  # ----------------------------------------
+  
+  for (data in c("df")){
+    
+    d <- get(data)
+    obj <- paste0("reg_",data) # name of the output object
+    reduced(var,var_name,d,obj,transform,year_filter,weight) # function for OLS regression
+    
+    
+    print(paste0("Reduced form regs for sample ",data))
+  }
+  
+  # Reduced form final tables
+  table_all_1 <- reg_df  %>% table_formating(1) %>% mutate(spec = 1)
+  table_all_2 <- reg_df  %>% table_formating(2) %>% mutate(spec = 2)
+  table_all_3 <- reg_df  %>% table_formating(3) %>% mutate(spec = 3)
+  
+  
+  table_all <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3)) %>% 
+    select(-item)
+  
+  
+  # IV + OLS + reduced form table
+  # ----------------------------------------
+  
+  
+  # assigning objects to the global envir
+  assign("table_all",table_all, envir = .GlobalEnv) 
+  
+}  # runs regressions and output objects
+
+
 
 
 # 9. Saving
