@@ -265,11 +265,18 @@ df <- df %>%
   unnest(all_of(yeartreat_dummies))
 
 # Instrument interacted with first term dummy
-df <- df %>% 
+df <- df %>%
   mutate(firstterm = (1-second_term),
          iv_firstterm = iv * firstterm) %>%
   # baseline first term * time
   mutate(t_firstterm = t * firstterm)
+
+# Instrument interacted with firjan index
+# df <- df %>% 
+#   mutate(firstterm = firjan_index,
+#          iv_firstterm = iv * firjan_index) %>%
+#   # baseline first term * time
+#   mutate(t_firstterm = t * firjan_index)
 
 
 
