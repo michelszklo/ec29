@@ -139,7 +139,7 @@ for(i in 1){
   # scripts <- "ec29/"
   # dir <- "C:/Users/Michel/Documents/GitHub/"
   # source(paste0(dir,scripts,"09_regs_firststage.R"))
-  print("first stage: ok")
+  # print("first stage: ok")
   scripts <- "ec29/"
   dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"10_regs_spending.R"))
