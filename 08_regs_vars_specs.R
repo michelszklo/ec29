@@ -169,7 +169,8 @@ df <- df %>%
   mutate(peso_b = mean(birth_nasc_vivos, na.rm = T),
          peso_a = mean(pop_25_59, na.rm = T),
          peso_a1 = mean(pop_25_39, na.rm = T),
-         peso_a2 = mean(pop_40_59, na.rm = T)) %>% 
+         peso_a2 = mean(pop_40_59, na.rm = T),
+         peso_r = mean(finbra_reccorr_pcapita,na.rm = T)) %>% 
   ungroup()
 # mutate(post_11 = ifelse(ano==2011,1,0)) %>% 
 # mutate(post_12 = ifelse(ano==2012,1,0)) %>% 
@@ -345,7 +346,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
   # filtering regression variables
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,all_of(controls),pop,
-           peso_eq,peso_b,peso_a,peso_a1,peso_a2) %>% 
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -421,7 +422,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   # filtering regression variables
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
-           peso_eq,peso_b,peso_a,peso_a1,peso_a2) %>% 
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
