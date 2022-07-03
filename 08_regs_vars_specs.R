@@ -435,7 +435,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
     
     spec_reduced<- get(paste0("spec",spec,"_post_y"))
     
-    weight_vector <- df_reg[weight] %>% as.numeric()
+    weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
     # second stage regression
     # ------------------------------
     

@@ -110,23 +110,12 @@ var_map <- rbind(cbind('finbra_desp_o_pcapita','Total Spending per capita'),
                  cbind('siops_despservicoster_share','Health Spending - 3rd parties services (% Health Spending)'),
                  cbind('siops_despoutros_share','Health Spending - other expenditures (% Health Spending)'))
 
-
-if (instrument=="ec29_baseline"){
-  for (i in seq(1,30,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    reduced_yearly(var,var_name,df,1,1998,-22,12,2,"full",below = below) # ec29baseline
-    # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
-  }
-}
-
 if (instrument=="dist_ec29_baseline"){
   for (i in seq(1,4,1)){
     var <- var_map[i,1]
     var_name <- var_map[i,2]
     print(var_name)
-    reduced_yearly(var,var_name,df,3,1998,-1500,2000,250,"full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-8500,2500,1000,"full",below = below,weight = "peso_eq") # ec29baseline
     # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
   }
   
@@ -134,7 +123,7 @@ if (instrument=="dist_ec29_baseline"){
     var <- var_map[i,1]
     var_name <- var_map[i,2]
     print(var_name)
-    reduced_yearly(var,var_name,df,3,1998,-1000,1000,250,"full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-4000,1000,500,"full",below = below,weight = "peso_eq") # ec29baseline
     # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
   }
   
@@ -142,7 +131,7 @@ if (instrument=="dist_ec29_baseline"){
     var <- var_map[i,1]
     var_name <- var_map[i,2]
     print(var_name)
-    reduced_yearly(var,var_name,df,3,1998,-400,1000,100,"full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-400,1000,100,"full",below = below,weight = "peso_eq") # ec29baseline
     # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
   }
   
@@ -150,12 +139,9 @@ if (instrument=="dist_ec29_baseline"){
     var <- var_map[i,1]
     var_name <- var_map[i,2]
     print(var_name)
-    reduced_yearly(var,var_name,df,3,1998,-2000,1200,200,"full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-7500,2000,500,"full",below = below,weight = "peso_eq") # ec29baseline
     # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
   }
-  
-  
-  
   
   
   
@@ -163,7 +149,7 @@ if (instrument=="dist_ec29_baseline"){
     var <- var_map[i,1]
     var_name <- var_map[i,2]
     print(var_name)
-    reduced_yearly(var,var_name,df,3,1998,-0.6,0.6,0.1,"full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-0.6,0.6,0.1,"full",below = below,weight = "peso_eq") # ec29baseline
     # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
   }
   
@@ -171,53 +157,7 @@ if (instrument=="dist_ec29_baseline"){
     var <- var_map[i,1]
     var_name <- var_map[i,2]
     print(var_name)
-    reduced_yearly(var,var_name,df,3,1998,-1.6,1.6,0.2,"full",below = below) # ec29baseline
-    # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
-  }
-}
-
-
-if (instrument=="dist_spending_pc_baseline"){
-  for (i in seq(1,30,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    reduced_yearly(var,var_name,df,1,1998,-0.01,0.04,0.01,"full",below = below) # ec29baseline
-    # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
-  }
-}
-
-
-
-if (instrument=="ec29_baseline_below"){
-  for (i in seq(1,30,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    reduced_yearly(var,var_name,df,1,1998,-40,20,5,"full",below = below) # ec29baseline
-    # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
-  }
-}
-
-
-if (instrument=="dist_ec29_baseline_below"){
-  for (i in seq(1,30,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    reduced_yearly(var,var_name,df,1,1998,-20,40,5,"full",below = below) # ec29baseline
-    # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
-  }
-}
-
-
-
-if (instrument=="dist_spending_pc_baseline_below"){
-  for (i in seq(1,30,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    reduced_yearly(var,var_name,df,1,1998,-0.04,0.06,0.01,"full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-1.6,1.6,0.2,"full",below = below,weight = "peso_eq") # ec29baseline
     # reduced_yearly(var,var_name,df_below,1,1998,-30,25,5,"below",below = below) # ec29baseline
   }
 }
@@ -243,26 +183,6 @@ var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community He
                  cbind('siab_cons_especif_pcapita','N. of Appointments from Family Health Program (per capita)')
 )
 
-if (instrument=="ec29_baseline"){
-  for (i in c(1,2,4)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-15,35,5,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-  for (i in c(3)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,3,1998,-1,1,0.2,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
 
 if (instrument=="dist_ec29_baseline"){
   for (i in seq(1,14,1)){
@@ -270,7 +190,7 @@ if (instrument=="dist_ec29_baseline"){
     var_name <- var_map[i,2]
     print(var_name)
     
-    reduced_yearly(var,var_name,df,3,1998,-2,2.75,0.5,sample = "full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-2.5,2.75,0.5,sample = "full",below = below,weight = "peso_eq") # ec29baseline
     
   }
   
@@ -278,95 +198,6 @@ if (instrument=="dist_ec29_baseline"){
   
 }
 
-
-if (instrument=="dist_spending_pc_baseline"){
-  for (i in c(1,2,4)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-0.05,0.02,0.01,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-  for (i in c(3)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,3,1998,-0.05,0.02,0.01,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
-
-
-
-
-if (instrument=="ec29_baseline_below"){
-  for (i in c(1,2,4)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-40,55,5,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-  for (i in c(3)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,3,1998,-0.6,0.6,0.2,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
-
-if (instrument=="dist_ec29_baseline_below"){
-  for (i in c(1,2,4)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-55,40,5,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-  for (i in c(3)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,3,1998,-0.6,0.6,0.2,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
-
-
-
-if (instrument=="dist_spending_pc_baseline_below"){
-  for (i in c(1,2,4)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-0.1,0.04,0.01,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-  for (i in c(3)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,3,1998,-0.02,0.02,0.005,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
 
 
 
@@ -399,18 +230,6 @@ var_map <- rbind(cbind('sia_ncnes_amb_mun_pcapita','N. of Health Facilities with
 )
 
 
-if (instrument=="ec29_baseline"){
-  for (i in seq(1,7,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-20,15,5,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
-
 
 if (instrument=="dist_ec29_baseline"){
   for (i in seq(17,22,1)){
@@ -418,7 +237,7 @@ if (instrument=="dist_ec29_baseline"){
     var_name <- var_map[i,2]
     print(var_name)
     
-    reduced_yearly(var,var_name,df,3,1998,-12.5,25,2.5,sample = "full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-12.5,25,2.5,sample = "full",below = below,weight = "peso_eq") # ec29baseline
     
   }
   
@@ -427,123 +246,13 @@ if (instrument=="dist_ec29_baseline"){
     var_name <- var_map[i,2]
     print(var_name)
     
-    reduced_yearly(var,var_name,df,3,1998,-.6,.4,0.2,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
-
-if (instrument=="dist_spending_pc_baseline"){
-  for (i in seq(1,7,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-0.02,0.03,0.01,sample = "full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-.3,.5,0.1,sample = "full",below = below,weight = "peso_eq") # ec29baseline
     
   }
   
 }
 
 
-
-if (instrument=="ec29_baseline_below"){
-  for (i in seq(1,7,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-45,25,5,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
-
-if (instrument=="dist_ec29_baseline_below"){
-  for (i in seq(1,7,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-25,45,5,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
-
-
-if (instrument=="dist_spending_pc_baseline_below"){
-  for (i in seq(1,7,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-0.04,0.04,0.01,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
-
-# 5. HR
-# =================================================================
-
-
-# 
-# var_map <- rbind(cbind('hr_all_pcapita','Total Health workers per 1000 population (log)'),
-#                  cbind('hr_superior_pcapita','Doctors per 1000 population (log)'),
-#                  cbind('hr_technician_pcapita','Health Technicians per 1000 population (log)'),
-#                  cbind('hr_elementary_pcapita','Elementary Health workers per 1000 population (log)'),
-#                  cbind('hr_admin_pcapita','Administrative workers per 1000 population (log)'))
-# 
-# 
-# if (instrument=="ec29_baseline"){
-#   
-#   for (i in seq(1,5,1)){
-#     var <- var_map[i,1]
-#     var_name <- var_map[i,2]
-#     print(var_name)
-#     
-#     reduced_yearly(var,var_name,df,1,1998,-8,8,2, sample = "full",below = "below") # ec29baseline
-#     
-#     
-#     
-#   }
-#   
-# }
-# 
-# 
-# 
-# 
-# if (instrument=="dist_ec29_baseline"){
-#   
-#   for (i in seq(1,5,1)){
-#     var <- var_map[i,1]
-#     var_name <- var_map[i,2]
-#     print(var_name)
-#     
-#     reduced_yearly(var,var_name,df,1,1998,-8,8,2, sample = "full",below = "below") # ec29baseline
-#     
-#     
-#     
-#   }
-#   
-# }
-# 
-# 
-# if (instrument=="ec29_baseline_below"){
-#   
-#   for (i in seq(1,5,1)){
-#     var <- var_map[i,1]
-#     var_name <- var_map[i,2]
-#     print(var_name)
-#     
-#     reduced_yearly(var,var_name,df,1,1998,-10,10,2, sample = "full",below = "below") # ec29baseline
-#     
-#     
-#     
-#   }
-#   
-# }
 
 # 6. IMR
 # =================================================================
@@ -564,18 +273,6 @@ var_map <-  rbind(cbind('tx_mi','Infant Mortality Rate'),
                   cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days'),
                   cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year'))
 
-if (instrument=="ec29_baseline"){
-  for (i in seq(1,15,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-15,20,5,sample = "full",below = below) # ec29baseline
-    
-    
-  }
-}
-
 
 if (instrument=="dist_ec29_baseline"){
   for (i in seq(1,3,1)){
@@ -583,7 +280,7 @@ if (instrument=="dist_ec29_baseline"){
     var_name <- var_map[i,2]
     print(var_name)
     
-    reduced_yearly(var,var_name,df,3,1998,-40,15,5,sample = "full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-40,15,5,sample = "full",below = below,weight = "peso_b") # ec29baseline
     
     
   }
@@ -593,7 +290,7 @@ if (instrument=="dist_ec29_baseline"){
     var_name <- var_map[i,2]
     print(var_name)
     
-    reduced_yearly(var,var_name,df,3,1998,-30,15,5,sample = "full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-30,15,5,sample = "full",below = below,weight = "peso_b") # ec29baseline
     
     
   }
@@ -601,56 +298,6 @@ if (instrument=="dist_ec29_baseline"){
 }
 
 
-if (instrument=="dist_spending_pc_baseline"){
-  for (i in seq(1,15,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-0.04,0.03,0.01,sample = "full",below = below) # ec29baseline
-    
-    
-  }
-}
-
-
-if (instrument=="ec29_baseline_below"){
-  for (i in seq(1,15,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-30,40,5,sample = "full",below = below) # ec29baseline
-    
-    
-  }
-}
-
-
-if (instrument=="dist_ec29_baseline_below"){
-  for (i in seq(1,15,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-40,30,5,sample = "full",below = below) # ec29baseline
-    
-    
-  }
-}
-
-
-if (instrument=="dist_spending_pc_baseline_below"){
-  for (i in seq(1,15,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-0.08,0.06,0.01,sample = "full",below = below) # ec29baseline
-    
-    
-  }
-}
 
 
 
@@ -677,26 +324,13 @@ var_map <-  rbind(
 )
 
 
-if (instrument=="ec29_baseline"){
-  for (i in seq(1,13,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-4,8,1,sample = "full",below = below)  # ec29baseline
-    
-    
-  }
-}
-
-
 if (instrument=="dist_ec29_baseline"){
   for (i in seq(1,3,1)){
     var <- var_map[i,1]
     var_name <- var_map[i,2]
     print(var_name)
     
-    reduced_yearly(var,var_name,df,3,1998,-6,3,1,sample = "full",below = below)  # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-6,3,1,sample = "full",below = below,weight = "peso_a")  # ec29baseline
     
     
   }
@@ -706,179 +340,13 @@ if (instrument=="dist_ec29_baseline"){
     var_name <- var_map[i,2]
     print(var_name)
     
-    reduced_yearly(var,var_name,df,3,1998,-1.5,1.5,0.5,sample = "full",below = below)  # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-1.5,1.5,0.5,sample = "full",below = below,weight = "peso_a")  # ec29baseline
     
     
   }
   
   
-  # 
-  # for (i in seq(14,16,1)){
-  #   var <- var_map[i,1]
-  #   var_name <- var_map[i,2]
-  #   print(var_name)
-  #   
-  #   reduced_yearly(var,var_name,df,3,1998,-4,3,1,sample = "full",below = below)  # ec29baseline
-  #   
-  #   
-  # }
-  # 
-  # for (i in seq(17,26,1)){
-  #   var <- var_map[i,1]
-  #   var_name <- var_map[i,2]
-  #   print(var_name)
-  #   
-  #   reduced_yearly(var,var_name,df,3,1998,-2,2,0.5,sample = "full",below = below)  # ec29baseline
-  #   
-  #   
-  # }
-  # 
-  # for (i in seq(27,29,1)){
-  #   var <- var_map[i,1]
-  #   var_name <- var_map[i,2]
-  #   print(var_name)
-  #   
-  #   reduced_yearly(var,var_name,df,3,1998,-9,3,1,sample = "full",below = below)  # ec29baseline
-  #   
-  #   
-  # }
-  # 
-  # for (i in seq(30,39,1)){
-  #   var <- var_map[i,1]
-  #   var_name <- var_map[i,2]
-  #   print(var_name)
-  #   
-  #   reduced_yearly(var,var_name,df,3,1998,-3,1.5,0.5,sample = "full",below = below)  # ec29baseline
-  #   
-  #   
-  # }
-  
-  
-  
-  
-}
-
-
-if (instrument=="dist_spending_pc_baseline"){
-  for (i in seq(1,13,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-0.01,0.01,0.002,sample = "full",below = below)  # ec29baseline
-    
-    
-  }
-}
-
-
-if (instrument=="ec29_baseline_below"){
-  for (i in seq(1,13,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-10,14,2,sample = "full",below = below)  # ec29baseline
-    
-    
-  }
-}
-
-
-if (instrument=="dist_ec29_baseline_below"){
-  for (i in seq(1,13,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-14,10,2,sample = "full",below = below)  # ec29baseline
-    
-    
-  }
-}
-
-
-if (instrument=="dist_spending_pc_baseline_below"){
-  for (i in seq(1,13,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-0.02,0.01,0.002,sample = "full",below = below)  # ec29baseline
-    
-    
-  }
-}
-
-
-
-# 8. IMR Lagged
-# =================================================================
-
-# var_map <-  rbind(cbind('tx_mi_l1','Infant Mortality Rate (log) - 1y lag'),
-#                   cbind('tx_mi_l2','Infant Mortality Rate (log) - 2y lag'),
-#                   cbind('tx_mi_l3','Infant Mortality Rate (log) - 3y lag'),
-#                   cbind('tx_mi_l4','Infant Mortality Rate (log) - 4y lag'),
-#                   cbind('tx_mi_l5','Infant Mortality Rate (log) - 5y lag'),
-#                   cbind('tx_mi_icsap_l1','Infant Mortality Rate - APC (log) - 1y lag'),
-#                   cbind('tx_mi_icsap_l2','Infant Mortality Rate - APC (log) - 2y lag'),
-#                   cbind('tx_mi_icsap_l3','Infant Mortality Rate - APC (log) - 3y lag'),
-#                   cbind('tx_mi_icsap_l4','Infant Mortality Rate - APC (log) - 4y lag'),
-#                   cbind('tx_mi_icsap_l5','Infant Mortality Rate - APC (log) - 5y lag'),
-#                   cbind('tx_mi_nicsap_l1','Infant Mortality Rate - non-APC (log) - 1y lag'),
-#                   cbind('tx_mi_nicsap_l2','Infant Mortality Rate - non-APC (log) - 2y lag'),
-#                   cbind('tx_mi_nicsap_l3','Infant Mortality Rate - non-APC (log) - 3y lag'),
-#                   cbind('tx_mi_nicsap_l4','Infant Mortality Rate - non-APC (log) - 4y lag'),
-#                   cbind('tx_mi_nicsap_l4','Infant Mortality Rate - non-APC (log) - 5y lag')
-# )
-# 
-# 
-# 
-# for (i in seq(1,15,1)){
-#   var <- var_map[i,1]
-#   var_name <- var_map[i,2]
-#   print(var_name)
-#   
-#   reduced_yearly(var,var_name,df,1,2000,-0.02,0.015,0.005) # ec29baseline
-#   
-#   
-# }
-# 
-# 
-# # 9. AMR Lagged
-# # =================================================================
-# 
-# 
-# 
-# var_map <-  rbind(cbind('tx_ma_l1','Adult Mortality Rate (log) - 1y lag'),
-#                   cbind('tx_ma_l2','Adult Mortality Rate (log) - 2y lag'),
-#                   cbind('tx_ma_l3','Adult Mortality Rate (log) - 3y lag'),
-#                   cbind('tx_ma_l4','Adult Mortality Rate (log) - 4y lag'),
-#                   cbind('tx_ma_l5','Adult Mortality Rate (log) - 5y lag'),
-#                   cbind('tx_ma_icsap_l1','Adult Mortality Rate - APC (log) - 1y lag'),
-#                   cbind('tx_ma_icsap_l2','Adult Mortality Rate - APC (log) - 2y lag'),
-#                   cbind('tx_ma_icsap_l3','Adult Mortality Rate - APC (log) - 3y lag'),
-#                   cbind('tx_ma_icsap_l4','Adult Mortality Rate - APC (log) - 4y lag'),
-#                   cbind('tx_ma_icsap_l5','Adult Mortality Rate - APC (log) - 5y lag'),
-#                   cbind('tx_ma_nicsap_l1','Adult Mortality Rate - non-APC (log) - 1y lag'),
-#                   cbind('tx_ma_nicsap_l2','Adult Mortality Rate - non-APC (log) - 2y lag'),
-#                   cbind('tx_ma_nicsap_l3','Adult Mortality Rate - non-APC (log) - 3y lag'),
-#                   cbind('tx_ma_nicsap_l4','Adult Mortality Rate - non-APC (log) - 4y lag'),
-#                   cbind('tx_ma_nicsap_l4','Adult Mortality Rate - non-APC (log) - 5y lag')
-# )
-# 
-# 
-# 
-# for (i in seq(1,15,1)){
-#   var <- var_map[i,1]
-#   var_name <- var_map[i,2]
-#   print(var_name)
-#   
-#   reduced_yearly(var,var_name,df,1,1998,-0.01,0.015,0.005)
-#   
-#   
-# }
-
+}  
 
 
 # 10. Birth and Access
@@ -894,18 +362,6 @@ var_map <- rbind(cbind('birth_apgar1','Apgar 1'),
                  cbind('birth_prenat_1_6','Prenatal Visits 1-6'),
                  cbind('birth_prenat_7_plus','Prenatal Visits 7+'))
 
-if (instrument=="ec29_baseline"){
-  for (i in seq(1,7,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-2,2,0.5,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
-
 
 if (instrument=="dist_ec29_baseline"){
   for (i in seq(1,9,1)){
@@ -913,63 +369,12 @@ if (instrument=="dist_ec29_baseline"){
     var_name <- var_map[i,2]
     print(var_name)
     
-    reduced_yearly(var,var_name,df,3,1998,-0.75,2,0.25,sample = "full",below = below) # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-0.75,2,0.25,sample = "full",below = below,weight = "peso_b") # ec29baseline
     
   }
   
 }
 
-
-if (instrument=="dist_spending_pc_baseline"){
-  for (i in seq(1,7,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-0.002,0.002,0.0005,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
-
-
-
-if (instrument=="ec29_baseline_below"){
-  for (i in seq(1,7,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-2.5,2.5,0.5,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
-
-
-if (instrument=="dist_ec29_baseline_below"){
-  for (i in seq(1,7,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-2.5,2.5,0.5,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
-
-if (instrument=="dist_spending_pc_baseline_below"){
-  for (i in seq(1,7,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    
-    reduced_yearly(var,var_name,df,1,1998,-0.002,0.002,0.0005,sample = "full",below = below) # ec29baseline
-    
-  }
-  
-}
 
 
 
