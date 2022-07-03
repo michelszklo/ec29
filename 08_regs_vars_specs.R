@@ -288,17 +288,6 @@ df <- df %>%
 controls <- c(grep("^t_", names(df), value = T),"finbra_desp_saude_san_pcapita_neighbor","lrf")
 controls <- controls[3:length(controls)]
 
-# IV specifications
-# ------------------------------------------------
-
-spec1_iv <- paste(" ~ 0","| cod_mun + ano | (")
-spec2_iv <- paste(" ~ 0","| cod_mun + uf_y_fe | (")
-spec3_iv <- paste(" ~ ", " + ",paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | (")
-
-spec_instrument <- paste(" ~ iv)"," | cod_mun")
-
-spec_instrument_yearly <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + "),")"," | cod_mun")
-
 
 # Reduce form specification and first stage - yearly
 # ------------------------------------------------
@@ -313,8 +302,6 @@ spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", pa
 # spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
-
-
 # Reduced form specifications and first stage
 # ------------------------------------------------
 
@@ -324,397 +311,11 @@ spec2_post <- paste(" ~ ","iv"," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec3_post <- paste(" ~ ","iv"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
-# OLS specifications
-# ------------------------------------------------
 
-spec1 <- paste(" | cod_mun + ano | 0 | cod_mun")
-spec2 <- paste(" | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3 <- paste(" + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
-
-
-
-# 5. 2 stages least squares function with bootstraps to estimate second stage SE
+# 5. Reduced Form
 # =================================================================
 
-
-iv <- function(outcome,treat,df,regression_output,transform,year_filter){
-  
-  
-  
-  df_reg <- df
-  
-  
-  # log of treatment variable
-  ln_treat <- paste0("ln_",treat)
-  # df_reg[ln_treat] <- sapply(df_reg[treat], function(x) ifelse(x==0,x+0.000001,x))
-  df_reg[ln_treat] <- df_reg[treat]
-  df_reg <- df_reg %>% 
-    mutate_at(ln_treat,log)
-  
-  
-  # outcome variable transformation
-  
-  if(transform==1){
-    # log
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,log)
-    
-    
-    
-  } else if(transform==2){
-    # inverse hyperbolic sign
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,asinh)
-  } else {
-    # level
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-  }
-  
-  # filtering regression variables
-  df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),iv,all_of(controls),pop) %>% 
-    filter(ano>=year_filter)
-  
-  df_reg <- df_reg[complete.cases(df_reg),]
-  df_reg <- df_reg[complete.cases(df_reg[,ln_treat]),]
-  df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
-  
-  
-  
-  # Regressions
-  # ------------------------------------
-  
-  # for (spec in c(1)){
-  for (spec in c(1,2,3)){
-    
-    # regression specs
-    spec_reg <-get(paste0("spec",spec,"_iv"))
-    regformula <- as.formula(paste(ln_outcome,spec_reg,ln_treat,spec_instrument))
-    
-    # regression model
-    fit <- felm(regformula, data = df_reg, weights = df_reg$pop ,exactDOF = T)
-    
-    # output
-    out <- cbind(fit %>% broom::tidy() %>% slice_tail(),fit %>% broom::glance() %>% select(nobs))
-    
-    out <- cbind(out,spec)
-    
-    if(spec==1){
-      table <- out
-    }
-    else{
-      table <- rbind(table,out)
-    }
-    
-    
-    
-  }
-  
-  table <- table %>% mutate(term = ln_outcome)
-  
-  assign(regression_output,table, envir = .GlobalEnv)
-  
-  
-  
-  
-}
-
-iv_yearly <- function(outcome,var_name,treat,df,transform,year_filter,y0,yf,ys){
-  
-  df_reg <- df %>% filter(ano>=year_filter)
-  
-  # log of treatment variable
-  ln_treat <- paste0("ln_",treat)
-  # df_reg[ln_treat] <- sapply(df_reg[treat], function(x) ifelse(x==0,x+0.000001,x))
-  df_reg[ln_treat] <- df_reg[treat]
-  df_reg <- df_reg %>% 
-    mutate_at(ln_treat,log)
-  
-  # outcome variable transformation
-  
-  if(transform==1){
-    # log
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,log)
-    
-    
-    
-  } else if(transform==2){
-    # inverse hyperbolic sign
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,asinh)
-  } else {
-    # level
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-  }
-  
-  # filtering regression variables
-  df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),all_of(yeartreat_dummies),iv,all_of(controls),pop) %>% 
-    filter(ano>=year_filter)
-  
-  df_reg <- df_reg[complete.cases(df_reg),]
-  df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
-  
-  
-  # Regressions
-  # ------------------------------------
-  
-  spec_reg<- get(paste0("spec",3,"_iv"))
-  
-  # second stage regression
-  # ------------------------------
-  regformula <- as.formula(paste(ln_outcome,spec_reg,ln_treat,spec_instrument_yearly))
-  fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
-  
-  table <- fit %>% 
-    broom::tidy() %>%
-    slice(1:13) %>%
-    select(term,estimate,std.error) %>% 
-    mutate(estimate = ifelse(term=="post_00_dist_spending_pc_baseline",0,estimate)) %>% 
-    mutate(lb = estimate - 1.96 * std.error,
-           ub = estimate + 1.96 * std.error,
-           year = seq.int(year_filter,2010))
-  
-  graph <- table %>%
-    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub))+
-    geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_pointrange(size = 0.5, alpha = 0.8) +
-    scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
-    scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
-    theme_light() +
-    labs(y = var_name) +
-    theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          plot.title = element_text(size = 10, face = "bold"),
-          axis.title = element_text(size=10),
-          legend.position="bottom")
-  
-  ggsave(paste0(dir,main_folder,yearly_folder_iv,ln_outcome,".png"),
-         plot = graph,
-         device = "png",
-         width = 7, height = 5,
-         units = "in")
-  ggsave(paste0(dir,main_folder,yearly_folder_iv,ln_outcome,".pdf"),
-         plot = graph,
-         device = "pdf",
-         width = 7, height = 5,
-         units = "in")
-  
-  
-}
-
-
-# 6. OLS
-# =================================================================
-
-
-ols <- function(outcome,treat,df,regression_output,transform,year_filter){
-  
-  
-  
-  df_reg <- df
-  
-  
-  # log of treatment variable
-  ln_treat <- paste0("ln_",treat)
-  # df_reg[ln_treat] <- sapply(df_reg[treat], function(x) ifelse(x==0,x+0.000001,x))
-  df_reg[ln_treat] <- df_reg[treat]
-  df_reg <- df_reg %>% 
-    mutate_at(ln_treat,log)
-  
-  
-  
-  
-  # outcome variable transformation
-  
-  if(transform==1){
-    # log
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,log)
-    
-    
-    
-  } else if(transform==2){
-    # inverse hyperbolic sign
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,asinh)
-  } else {
-    # level
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-  }
-  
-  # filtering regression variables
-  df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(ln_treat),iv,all_of(controls),pop) %>% 
-    filter(ano>=year_filter)
-  
-  df_reg <- df_reg[complete.cases(df_reg),]
-  df_reg <- df_reg[complete.cases(df_reg[,ln_treat]),]
-  df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
-  
-  
-  # Regressions
-  # ------------------------------------
-  
-  # for (spec in c(1)){
-  for (spec in c(1,2,3)){
-    
-    spec_ols<- get(paste0("spec",spec))
-    
-    # second stage regression
-    # ------------------------------
-    
-    regformula <- as.formula(paste(ln_outcome," ~ ",ln_treat,spec_ols))
-    fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
-    
-    out <- cbind(fit %>% broom::tidy() %>% slice(1),fit %>% broom::glance() %>% select(nobs))
-    
-    
-    out <- cbind(out,spec)
-    
-    if(spec==1){
-      table <- out
-    }
-    else{
-      table <- rbind(table,out)
-    }
-    
-    
-    
-  }
-  
-  table <- table %>% mutate(term = ln_outcome)
-  
-  assign(regression_output,table, envir = .GlobalEnv)
-  
-  
-  
-  
-}
-
-
-# 7. IV regression first stage
-# =================================================================
-# IV regression first stage
-iv_first <- function(df,treat,year_filter,obj_name){
-  
-  df_reg <- df %>% filter(ano>=year_filter)
-  ln_treat <- paste0("ln_",treat)
-  
-  for (spec in c(1,2,3)){
-    
-    spec_first <-get( paste0("spec",spec,"_post"))
-    
-    regformula1 <- as.formula(paste(ln_treat,spec_first))
-    
-    fit <- felm(regformula1, data = df_reg, weights = df_reg$pop,exactDOF = T)
-    
-    out <- cbind(fit %>% broom::tidy() %>% slice(1), fit %>% broom::glance() %>% select(statistic,nobs) %>% rename(f_statistic = statistic))
-    out <- out %>% mutate(spec=spec)
-    
-    if(spec==1){
-      table <- out
-    } else{
-      table <- rbind(table,out)
-    }
-    
-    assign(obj_name,table,envir = .GlobalEnv)
-    
-  }
-  
-}
-
-
-iv_first_yearly <- function(df,treat,year_filter,y0,yf,ys,graph_name){
-  df_reg <- df %>% filter(ano>=year_filter)
-  ln_treat <- paste0("ln_",treat)
-  
-  for (spec in c(1,2,3)){
-    
-    spec_first <-get( paste0("spec",spec,"_post_y"))
-    regformula1 <- as.formula(paste(ln_treat,spec_first))
-    
-    fit <- felm(regformula1, data = df_reg, weights = df_reg$pop,exactDOF = T)
-    
-    out <- fit %>% 
-      broom::tidy() %>%
-      slice(1:13) %>%
-      select(term,estimate,std.error) %>% 
-      mutate(estimate = ifelse(term==paste0("post_00_",instrument),0,estimate)) %>% 
-      mutate(lb = estimate - 1.96 * std.error,
-             ub = estimate + 1.96 * std.error,
-             year = seq.int(year_filter,2010),
-             spec = as.character(spec))
-    
-    if(spec==1){
-      table <- out
-    }
-    else{
-      table <- rbind(table,out)
-    }
-    
-  }
-  
-  
-  shapes <-  c(17,15,19)
-  # color_graph <- pal_lancet("lanonc")(9)
-  
-  graph <- table %>%
-    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub,shape = spec,group=spec))+
-    geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color="grey13") +
-    scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
-    scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
-    # scale_colour_manual(values = color_graph) +
-    scale_shape_manual(values = shapes) +
-    theme_light() +
-    labs(y = "Health and Sanitation Spending per capita (log)",
-         color = "Specification") +
-    theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          plot.title = element_text(size = 10, face = "bold"),
-          axis.title.x = element_text(size=12),
-          axis.title.y = element_text(size=8),
-          legend.position="bottom")
-  
-  
-  
-  ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",graph_name),".png"),
-         plot = graph,
-         device = "png",
-         width = 7, height = 5,
-         units = "in")
-  ggsave(paste0(dir,main_folder,yearly_folder,paste0("first_stage_",graph_name),".pdf"),
-         plot = graph,
-         device = "pdf",
-         width = 7, height = 5,
-         units = "in")
-  
-}
-
-
-# 8. Reduced Form
-# =================================================================
-
-reduced <- function(outcome,var_name,df,regression_output,transform,year_filter){
+reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,weight){
   
   df_reg <- df
   
@@ -743,7 +344,8 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,all_of(controls),pop,
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -758,11 +360,13 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
     
     spec_reduced<- get(paste0("spec",spec,"_post"))
     
+    weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
+    
     # second stage regression
     # ------------------------------
     
     regformula <- as.formula(paste(ln_outcome,spec_reduced))
-    fit <- felm(regformula, data = df_reg,exactDOF = T)
+    fit <- felm(regformula, data = df_reg,weights = weight_vector,exactDOF = T)
     
     out <- cbind(fit %>% broom::tidy() %>% slice(1),fit %>% broom::glance() %>% select(nobs))
     
@@ -787,7 +391,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter)
   
 }
 
-reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below){
+reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below,weight){
   
   df_reg <- df
   
@@ -816,7 +420,8 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop) %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -830,11 +435,12 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
     
     spec_reduced<- get(paste0("spec",spec,"_post_y"))
     
+    weight_vector <- df_reg[weight] %>% as.numeric()
     # second stage regression
     # ------------------------------
     
     regformula <- as.formula(paste(ln_outcome,spec_reduced))
-    fit <- felm(regformula, data = df_reg, weights = df_reg$pop,exactDOF = T)
+    fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
     
     out <- fit %>% 
       broom::tidy() %>%
@@ -901,103 +507,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
 }
 
 
-
-# 10. Variables labels dictionary
-# =================================================================
-
-dict <- rbind(cbind('finbra_desp_c_pcapita','Total Spending per capita'),
-              cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita'),
-              cbind('finbra_desp_investimento_pcapita','Investment Spending per capita'),
-              cbind('finbra_desp_adm_pcapita','Administrative Spending per capita'),
-              cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita'),
-              cbind('finbra_desp_transporte_pcapita','Trasnport Spending per capita - Total'),
-              cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita'),
-              cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita'),
-              cbind('finbra_desp_assist_prev_pcapita','Social Security Spending per capita'),
-              cbind('siops_despsaude_pcapita','Health Spending per capita - Total'),
-              cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources'),
-              cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Transfers'),
-              cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources'),
-              cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment'),
-              cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services'),
-              cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures'),
-              cbind('ACS_popprop','Population covered (share) by Community Health Agents'),
-              cbind('eSF_popprop','Population covered (share) by Family Health Agents'),
-              cbind('hospital','Presence of Municipal Hospital'),
-              cbind('unity_mun_pcapita','Municipal Outpatient Facilities per 1000 population'),
-              cbind('leitos_pc','Hospital Beds per capita'),
-              cbind('sia_pcapita','Outpatient procedures per capita'),
-              cbind('sia_ab_nsuperior_pcapita','PC outpatient proced college degree personal per capita'),
-              cbind('sia_ab_enfermagem_pcapita','PC outpatient proced non college degree personal per capita'),
-              cbind('sia_visita_superior_pcapita','Household visits by college degree personal per capita'),
-              cbind('sia_visita_medio_pcapita','Household visits by non college degree personal per capita'),
-              cbind('sia_ativ_grupo_pcapita','Educational activities in group per capita'),
-              cbind('hr_all_pcapita','Total Health workers per 1000 population'),
-              cbind('hr_superior_pcapita','Doctors per 1000 population'),
-              cbind('hr_technician_pcapita','Health Technicians per 1000 population'),
-              cbind('hr_elementary_pcapita','Elementary Health workers per 1000 population'),
-              cbind('hr_admin_pcapita','Administrative workers per 1000 population'),
-              cbind('tx_mi','Infant Mortality Rate'),
-              cbind('tx_mi_icsap','Infant Mortality Rate - APC'),
-              cbind('tx_mi_nicsap','Infant Mortality Rate - non-APC'),
-              cbind('tx_mi_infec','Infant Mortality Rate - Infectious'),
-              cbind('tx_mi_resp','Infant Mortality Rate - Respiratory'),
-              cbind('tx_mi_perinat','Infant Mortality Rate - Perinatal'),
-              cbind('tx_mi_cong','Infant Mortality Rate - Congenital'),
-              cbind('tx_mi_ext','Infant Mortality Rate - External'),
-              cbind('tx_mi_nut','Infant Mortality Rate - Nutritional'),
-              cbind('tx_mi_out','Infant Mortality Rate - Other'),
-              cbind('tx_mi_illdef','Infant Mortality Rate - Ill-Defined'),
-              cbind('tx_mi_fet','Infant Mortality Rate - Fetal'),
-              cbind('tx_mi_24h','Infant Mortality Rate - Within 24h'),
-              cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days'),
-              cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year'),
-              cbind('tx_ma','Adult Mortality Rate'),
-              cbind('tx_ma_circ','Adult Mortality Rate - Circulatory'),
-              cbind('tx_ma_neop','Adult Mortality Rate - Neoplasm'),
-              cbind('tx_ma_resp','Adult Mortality Rate - Respiratory'),
-              cbind('tx_ma_endoc','Adult Mortality Rate - Endocrine'),
-              cbind('tx_ma_ext','Adult Mortality Rate - External'),
-              cbind('tx_ma_nut','Adult Mortality Rate - Nutritional'),
-              cbind('tx_ma_illdef','Adult Mortality Rate - Ill-Defined'),
-              cbind('tx_ma_out','Adult Mortality Rate - Other'),
-              cbind('tx_ma_diab','Adult Mortality Rate - Diabetes'),
-              cbind('tx_ma_hyper','Adult Mortality Rate - Hypertension'),
-              cbind('tx_ma_icsap','Adult Mortality Rate - APC'),
-              cbind('tx_ma_nicsap','Adult Mortality Rate - non-APC'),
-              cbind('tx_mi_l1','Infant Mortality Rate - 1y lag'),
-              cbind('tx_mi_l2','Infant Mortality Rate - 2y lag'),
-              cbind('tx_mi_l3','Infant Mortality Rate - 3y lag'),
-              cbind('tx_mi_l4','Infant Mortality Rate - 4y lag'),
-              cbind('tx_mi_l5','Infant Mortality Rate - 5y lag'),
-              cbind('tx_mi_icsap_l1','Infant Mortality Rate - APC - 1y lag'),
-              cbind('tx_mi_icsap_l2','Infant Mortality Rate - APC - 2y lag'),
-              cbind('tx_mi_icsap_l3','Infant Mortality Rate - APC - 3y lag'),
-              cbind('tx_mi_icsap_l4','Infant Mortality Rate - APC - 4y lag'),
-              cbind('tx_mi_icsap_l5','Infant Mortality Rate - APC - 5y lag'),
-              cbind('tx_mi_nicsap_l1','Infant Mortality Rate - non-APC - 1y lag'),
-              cbind('tx_mi_nicsap_l2','Infant Mortality Rate - non-APC - 2y lag'),
-              cbind('tx_mi_nicsap_l3','Infant Mortality Rate - non-APC - 3y lag'),
-              cbind('tx_mi_nicsap_l4','Infant Mortality Rate - non-APC - 4y lag'),
-              cbind('tx_mi_nicsap_l4','Infant Mortality Rate - non-APC - 5y lag'),
-              cbind('tx_ma_l1','Adult Mortality Rate - 1y lag'),
-              cbind('tx_ma_l2','Adult Mortality Rate - 2y lag'),
-              cbind('tx_ma_l3','Adult Mortality Rate - 3y lag'),
-              cbind('tx_ma_l4','Adult Mortality Rate - 4y lag'),
-              cbind('tx_ma_l5','Adult Mortality Rate - 5y lag'),
-              cbind('tx_ma_icsap_l1','Adult Mortality Rate - APC - 1y lag'),
-              cbind('tx_ma_icsap_l2','Adult Mortality Rate - APC - 2y lag'),
-              cbind('tx_ma_icsap_l3','Adult Mortality Rate - APC - 3y lag'),
-              cbind('tx_ma_icsap_l4','Adult Mortality Rate - APC - 4y lag'),
-              cbind('tx_ma_icsap_l5','Adult Mortality Rate - APC - 5y lag'),
-              cbind('tx_ma_nicsap_l1','Adult Mortality Rate - non-APC - 1y lag'),
-              cbind('tx_ma_nicsap_l2','Adult Mortality Rate - non-APC - 2y lag'),
-              cbind('tx_ma_nicsap_l3','Adult Mortality Rate - non-APC - 3y lag'),
-              cbind('tx_ma_nicsap_l4','Adult Mortality Rate - non-APC - 4y lag'),
-              cbind('tx_ma_nicsap_l4','Adult Mortality Rate - non-APC - 5y lag'))
-
-
-# 9. Population cap
+# 6. Population cap
 # =================================================================
 
 cap_pop <- function(df,npop){
@@ -1017,6 +527,175 @@ cap_pop <- function(df,npop){
 # 
 # df_below <- df_below %>% 
 #   cap_pop(30000)
+
+# 7. Output functions
+# =================================================================
+
+table_formating <- function(df,s){
+  df <- df %>% 
+    filter(spec==s) %>%
+    select(-spec) %>% 
+    mutate(term=var_name) %>% 
+    mutate(sig = ifelse(p.value<=0.01,"***",""),
+           sig = ifelse(p.value<=0.05 & p.value>0.01,"**",sig),
+           sig = ifelse(p.value<=0.1 & p.value>0.05,"*",sig)) %>% 
+    mutate(std.error = paste0("(",round(std.error,digits = 3),")"),
+           estimate = paste0(round(estimate,digits = 3),sig))
+  
+  df <- bind_rows(df %>%
+                    select(term,estimate),
+                  df %>% 
+                    select(term,std.error) %>% 
+                    rename(estimate = std.error))
+}  # formats regression outputs into article format
+
+
+regress_output <- function(var,var_name,transform,year_filter,weight){
+  
+  # FULL SAMPLE
+  # ----------------------------------------
+  
+  # loop through full database and subsamples
+  for (data in c("df","df_above","df_below")){
+    
+    d <- get(data)
+    obj <- paste0("reg_",data) # name of the output object
+    
+    reduced(var,var_name,d,obj,transform,year_filter,weight = weight) # function for reduced form regression
+    
+    print(paste0("Regs for sample ",data))
+  } 
+  
+  # 2sls final tables
+  
+  obs_all_1 <- reg_df %>% slice(1) %>% select(nobs) %>% as.numeric()
+  obs_all_2 <- reg_df %>% slice(2) %>% select(nobs) %>% as.numeric()
+  obs_all_3 <- reg_df %>% slice(3) %>% select(nobs) %>% as.numeric()
+  
+  table_all_1 <- reg_df %>% mutate(sample = "full") %>% table_formating(1) %>% rename("ALL_full" = "estimate") %>% mutate(obs_full = obs_all_1)
+  table_all_2 <- reg_df %>% mutate(sample = "full") %>% table_formating(2) %>% rename("ALL_full" = "estimate") %>% mutate(obs_full = obs_all_2)
+  table_all_3 <- reg_df %>% mutate(sample = "full") %>% table_formating(3) %>% rename("ALL_full" = "estimate") %>% mutate(obs_full = obs_all_3)
+  
+  obs_below_1 <- reg_df_below %>% slice(1) %>% select(nobs) %>% as.numeric()
+  obs_below_2 <- reg_df_below %>% slice(2) %>% select(nobs) %>% as.numeric()
+  obs_below_3 <- reg_df_below %>% slice(3) %>% select(nobs) %>% as.numeric()
+  
+  table_below_1 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(1) %>% rename("ALL_below" = "estimate") %>% select(-term) %>% mutate(obs_below = obs_below_1)
+  table_below_2 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(2) %>% rename("ALL_below" = "estimate") %>% select(-term) %>% mutate(obs_below = obs_below_2)
+  table_below_3 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(3) %>% rename("ALL_below" = "estimate") %>% select(-term) %>% mutate(obs_below = obs_below_3)
+  
+  obs_above_1 <- reg_df_above %>% slice(1) %>% select(nobs) %>% as.numeric()
+  obs_above_2 <- reg_df_above %>% slice(2) %>% select(nobs) %>% as.numeric()
+  obs_above_3 <- reg_df_above %>% slice(3) %>% select(nobs) %>% as.numeric()
+  
+  table_above_1 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(1) %>% rename("ALL_above" = "estimate") %>% select(-term) %>% mutate(spec=1) %>% mutate(obs_above = obs_above_1)
+  table_above_2 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(2) %>% rename("ALL_above" = "estimate") %>% select(-term) %>% mutate(spec=2) %>% mutate(obs_above = obs_above_2)
+  table_above_3 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(3) %>% rename("ALL_above" = "estimate") %>% select(-term) %>% mutate(spec=3) %>% mutate(obs_above = obs_above_1)
+  
+  
+  table_all <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3),
+                         bind_rows(table_below_1,table_below_2,table_below_3),
+                         bind_rows(table_above_1,table_above_2,table_above_3)) 
+  
+  
+  # SAMPLE: MUNICIPALITIES WITH UP TO 50K INHABITANTS
+  # ----------------------------------------
+  
+  # loop through full database and subsamples
+  for (data in c("df","df_above","df_below")){
+    
+    d <- get(data) %>% 
+      cap_pop(50000)
+    
+    obj <- paste0("reg_",data) # name of the output object
+    reduced(var,var_name,d,obj,transform,year_filter,weight = weight) # function for reduced form regression
+    
+    print(paste0("Regs for Pop<=50 for sample ",data))
+  }
+  
+  # OLS final tables
+  table_all_1 <- reg_df %>% mutate(sample = "full") %>% table_formating(1) %>% rename("pop50_full" = "estimate")
+  table_all_2 <- reg_df %>% mutate(sample = "full") %>% table_formating(2) %>% rename("pop50_full" = "estimate")
+  table_all_3 <- reg_df %>% mutate(sample = "full") %>% table_formating(3) %>% rename("pop50_full" = "estimate")
+  
+  table_below_1 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(1) %>% rename("pop50_below" = "estimate") %>% select(-term)
+  table_below_2 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(2) %>% rename("pop50_below" = "estimate") %>% select(-term) 
+  table_below_3 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(3) %>% rename("pop50_below" = "estimate") %>% select(-term) 
+  
+  
+  table_above_1 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(1) %>% rename("pop50_above" = "estimate") %>% select(-term) %>% mutate(spec=1)
+  table_above_2 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(2) %>% rename("pop50_above" = "estimate") %>% select(-term) %>% mutate(spec=2)
+  table_above_3 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(3) %>% rename("pop50_above" = "estimate") %>% select(-term) %>% mutate(spec=3)
+  
+  
+  
+  table_pop50 <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3),
+                           bind_rows(table_below_1,table_below_2,table_below_3),
+                           bind_rows(table_above_1,table_above_2,table_above_3)) 
+  
+  
+  # SAMPLE: MUNICIPALITIES WITH UP TO 30K INHABITANTS
+  # ----------------------------------------
+  
+  for (data in c("df","df_above","df_below")){
+    
+    d <- get(data) %>% 
+      cap_pop(30000)
+    
+    obj <- paste0("reg_",data) # name of the output object
+    reduced(var,var_name,d,obj,transform,year_filter,weight = weight) # function for reduced form regression
+    
+    
+    print(paste0("Regs for Pop<=30 for sample ",data))
+  }
+  
+  # Reduced form final tables
+  table_all_1 <- reg_df %>% mutate(sample = "full") %>% table_formating(1) %>% rename("pop30_full" = "estimate")
+  table_all_2 <- reg_df %>% mutate(sample = "full") %>% table_formating(2) %>% rename("pop30_full" = "estimate")
+  table_all_3 <- reg_df %>% mutate(sample = "full") %>% table_formating(3) %>% rename("pop30_full" = "estimate")
+  
+  table_below_1 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(1) %>% rename("pop30_below" = "estimate") %>% select(-term)
+  table_below_2 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(2) %>% rename("pop30_below" = "estimate") %>% select(-term) 
+  table_below_3 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(3) %>% rename("pop30_below" = "estimate") %>% select(-term) 
+  
+  
+  table_above_1 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(1) %>% rename("pop30_above" = "estimate") %>% select(-term) %>% mutate(spec=1)
+  table_above_2 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(2) %>% rename("pop30_above" = "estimate") %>% select(-term) %>% mutate(spec=2)
+  table_above_3 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(3) %>% rename("pop30_above" = "estimate") %>% select(-term) %>% mutate(spec=3)
+  
+  
+  
+  table_pop30 <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3),
+                           bind_rows(table_below_1,table_below_2,table_below_3),
+                           bind_rows(table_above_1,table_above_2,table_above_3)) 
+  
+  
+  # IV + OLS + reduced form table
+  # ----------------------------------------
+  
+  table_final <- cbind.data.frame(table_all %>% select(term,`ALL_full`),
+                                  table_pop50 %>% select(pop50_full),
+                                  table_pop30 %>% select(`pop30_full`),
+                                  table_all %>% select(`obs_full`),
+                                  
+                                  table_all %>% select(`ALL_below`),
+                                  table_pop50 %>% select(pop50_below),
+                                  table_pop30 %>% select(`pop30_below`),
+                                  table_all %>% select(`obs_below`),
+                                  
+                                  table_all %>% select(`ALL_above`),
+                                  table_pop50 %>% select(pop50_above),
+                                  table_pop30 %>% select(`pop30_above`),
+                                  table_all %>% select(`obs_above`),
+                                  table_pop30 %>% select(`spec`))
+  
+  # assigning objects to the global envir
+  assign("table_all",table_final, envir = .GlobalEnv) 
+  
+}  # runs regressions and output objects
+
+
+
 
 
 # 10. Saving
