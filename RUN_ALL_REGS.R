@@ -132,10 +132,10 @@ for(i in 1){
   # Run all regressions
   # ------------------------------------
   
-  scripts <- "ec29/"
-  dir <- "C:/Users/Michel/Documents/GitHub/"
-  source(paste0(dir,scripts,"08_regs_vars_specs.R"))
-  print("specs script: ok")
+  # scripts <- "ec29/"
+  # dir <- "C:/Users/Michel/Documents/GitHub/"
+  # source(paste0(dir,scripts,"08_regs_vars_specs.R"))
+  # print("specs script: ok")
   # scripts <- "ec29/"
   # dir <- "C:/Users/Michel/Documents/GitHub/"
   # source(paste0(dir,scripts,"09_regs_firststage.R"))
