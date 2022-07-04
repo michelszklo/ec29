@@ -286,16 +286,24 @@ df <- df %>%
 # 4. regression specifications
 # =================================================================
 
-controls <- c(grep("^t_", names(df), value = T),"finbra_desp_saude_san_pcapita_neighbor","lrf")
+# controls <- c(grep("^t_", names(df), value = T),"finbra_desp_saude_san_pcapita_neighbor","lrf")
+controls <- grep("^t_", names(df), value = T)
 controls <- controls[3:length(controls)]
 
 
 # Reduce form specification and first stage - yearly
 # ------------------------------------------------
 
-spec1_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
-spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+# spec1_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
+# spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+# spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+
+spec1_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(c("finbra_desp_saude_san_pcapita_neighbor","lrf"), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(c("finbra_desp_saude_san_pcapita_neighbor","lrf",controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+
+
+
 
 # # changing the order that controls and fixed effects are added to the specifications
 # spec1_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
@@ -307,9 +315,13 @@ spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", pa
 # ------------------------------------------------
 
 # spending in per capita figures
-spec1_post <- paste(" ~ ","iv"," | cod_mun + ano | 0 | cod_mun")
-spec2_post <- paste(" ~ ","iv"," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3_post <- paste(" ~ ","iv"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+# spec1_post <- paste(" ~ ","iv"," | cod_mun + ano | 0 | cod_mun")
+# spec2_post <- paste(" ~ ","iv"," | cod_mun + uf_y_fe | 0 | cod_mun")
+# spec3_post <- paste(" ~ ","iv"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+
+spec1_post <- paste(" ~ ","iv"," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec2_post <- paste(" ~ ","iv"," + ", paste(c("finbra_desp_saude_san_pcapita_neighbor","lrf"), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post <- paste(" ~ ","iv"," + ", paste(c("finbra_desp_saude_san_pcapita_neighbor","lrf",controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 
@@ -346,7 +358,8 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
   # filtering regression variables
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,all_of(controls),pop,
-           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r) %>% 
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r,
+           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -422,7 +435,8 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   # filtering regression variables
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
-           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r) %>% 
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r,
+           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -453,11 +467,11 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
              year = seq.int(year_filter,2010),
              spec = as.character(spec)) %>% 
       mutate(spec = ifelse(spec=="1","Baseline",spec),
-             spec = ifelse(spec=="2","+ Controls",spec),
-             spec = ifelse(spec=="3","+ State-Year FE",spec)) %>% 
+             spec = ifelse(spec=="2","+ Fiscal Controls",spec),
+             spec = ifelse(spec=="3","+ Socioeconomic Controls",spec)) %>% 
       mutate(spec = as.factor(spec)) 
     
-    out$spec <- factor(out$spec,levels = c("Baseline","+ State-Year FE","+ Controls"))  
+    out$spec <- factor(out$spec,levels = c("Baseline","+ Fiscal Controls","+ Socioeconomic Controls"))  
     
     if(spec==1){
       table <- out
