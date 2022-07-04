@@ -272,12 +272,24 @@ df <- df %>%
   mutate(t_firstterm = t * firstterm)
 
 # Instrument interacted with firjan index
-# df <- df %>% 
-#   mutate(firstterm = firjan_index,
-#          iv_firstterm = iv * firjan_index) %>%
+# df <- df %>%
+#   mutate(firstterm = firjan_above,
+#          iv_firstterm = iv * firstterm) %>%
 #   # baseline first term * time
-#   mutate(t_firstterm = t * firjan_index)
+#   mutate(t_firstterm = t * firstterm)
 
+
+# Instrument interacted with first per capita income
+# df <- df %>%
+#   group_by(ano) %>% 
+#   mutate(avg_rdpc_baseline = mean(rdpc_baseline,na.rm = T)) %>% 
+#   ungroup() %>% 
+#   mutate(low_income = 0) %>% 
+#   mutate(low_income = ifelse(rdpc_baseline<avg_rdpc_baseline,1,low_income)) %>% 
+#   mutate(firstterm = low_income,
+#          iv_firstterm = iv * firstterm) %>%
+#   # baseline first term * time
+#   mutate(t_firstterm = t * firstterm)
 
 
 # 4. regression specifications
