@@ -363,6 +363,7 @@ df <- mun_list %>%
   left_join(sinasc, by = c("ano","cod_mun")) %>% 
   # datasus - sim
   left_join(sim, by = c("ano","cod_mun")) %>% 
+  mutate(mi = ifelse(is.na(mi),0,mi)) %>% 
   left_join(sim_mm, by = c("ano","cod_mun")) %>% 
   left_join(sim_mc, by = c("ano","cod_mun")) %>%
   left_join(sim_ma, by = c("ano","cod_mun")) %>%
