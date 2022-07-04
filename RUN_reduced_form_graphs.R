@@ -190,7 +190,7 @@ if (instrument=="dist_ec29_baseline"){
     var_name <- var_map[i,2]
     print(var_name)
     
-    reduced_yearly(var,var_name,df,3,1998,-2.5,2.75,0.5,sample = "full",below = below,weight = "peso_eq") # ec29baseline
+    reduced_yearly(var,var_name,df,3,1998,-2.5,3,0.5,sample = "full",below = below,weight = "peso_eq") # ec29baseline
     
   }
   
