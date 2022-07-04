@@ -71,15 +71,20 @@ dir2 <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 #   
 # )
 
-running_map <- rbind(
-  cbind("regs_outputs/","yearly_reduced_form_dist_ec29_elect/","dist_ec29_baseline",0,"results_dist_ec29_baseline_elect.xlsx")
-  
-)
+# running_map <- rbind(
+#   cbind("regs_outputs/","yearly_reduced_form_dist_ec29_elect/","dist_ec29_baseline",0,"results_dist_ec29_baseline_elect.xlsx")
+#   
+# )
 
 # running_map <- rbind(
 #   cbind("regs_outputs/","yearly_reduced_form_dist_ec29_governance/","dist_ec29_baseline",0,"results_dist_ec29_baseline_governance.xlsx")
-#   
+# 
 # )
+
+running_map <- rbind(
+  cbind("regs_outputs/","yearly_reduced_form_dist_ec29_income/","dist_ec29_baseline",0,"results_dist_ec29_baseline_income.xlsx")
+  
+)
 
 
 # 2. Run all loop
