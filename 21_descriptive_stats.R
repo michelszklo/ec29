@@ -104,7 +104,7 @@ summary_stat <- function(df,baseline_year,obj){
 
 var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spent in Health"),
                  cbind("dist_ec29_baseline","Distance to the EC29 Target"),
-  
+                 
                  cbind('finbra_reccorr_pcapita','Total Revenue per capita (2010 R$)'),
                  cbind('finbra_rectribut_pcapita','Tax Revenue per capita (2010 R$)'),
                  cbind('finbra_rectransf_pcapita','Transfers Revenue per capita (2010 R$)'),
@@ -270,15 +270,33 @@ df <- df %>%
   mutate(quantile = as.character(quantile)) %>% 
   filter(quantile != 'NaN')
 
+# generating low (high) income sample and high (low) inequality sample
+df <- df %>%
+  group_by(ano) %>%
+  mutate(avg_rdpc_baseline = mean(rdpc_baseline,na.rm = T),
+         avg_gini_baseline = mean(gini_baseline, na.rm = T)) %>%
+  ungroup() %>%
+  mutate(low_income = 0,
+         high_ineq = 0) %>%
+  mutate(low_income = ifelse(rdpc_baseline<avg_rdpc_baseline,1,low_income),
+         high_ineq = ifelse(gini_baseline>avg_gini_baseline,1,high_ineq))
+
+
 df_top <- df %>% filter(quantile=="4") %>% select(quantile,dist_ec29_baseline,everything())
 df_bottom <- df %>% filter(quantile=="1") %>% select(quantile,dist_ec29_baseline,everything())
-  
+
 
 summary_stat(df %>% mutate(pop = pop/1000),2000,"stats_2000")
 summary_stat(df_top %>% mutate(pop = pop/1000),2000,"stats_2000_top")
 summary_stat(df_bottom %>% mutate(pop = pop/1000),2000,"stats_2000_bottom")
 summary_stat(df %>% mutate(pop = pop/1000) %>% filter(second_term==1),2000,"stats_2000_second")
 summary_stat(df %>% mutate(pop = pop/1000) %>% filter(second_term==0),2000,"stats_2000_first")
+
+summary_stat(df %>%  mutate(pop = pop/1000) %>% filter(low_income==1),2000,"stats_2000_lowincome")
+summary_stat(df %>%  mutate(pop = pop/1000) %>% filter(low_income==0),2000,"stats_2000_highincome")
+
+summary_stat(df %>%  mutate(pop = pop/1000) %>% filter(high_ineq==1),2000,"stats_2000_highineq")
+summary_stat(df %>%  mutate(pop = pop/1000) %>% filter(high_ineq==0),2000,"stats_2000_lowineq")
 
 
 # 4. Statistic for variables with baseline in 2002
@@ -352,23 +370,39 @@ summary_stat(df %>% mutate(pop = pop/1000) %>% filter(second_term==0),2000,"stat
 
 stats <- cbind(
   stats_2000 %>% 
-  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)),
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)),
   stats_2000_top %>% 
     mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
     select(-Variable),
   stats_2000_bottom %>% 
     mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
     select(-Variable))
-  
+
 
 stats_elect <-cbind(
   stats_2000_first %>% 
-  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)),
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)),
   stats_second <-stats_2000_second %>% 
     mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
     select(-Variable)
 )
 
+stats_income <- cbind(
+  stats_2000_lowincome %>% 
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)),
+  stats_2000_highincome %>% 
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
+    select(-Variable)
+  
+)
+
+stats_ineq <- cbind(
+  stats_2000_highineq %>% 
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)),
+  stats_2000_lowineq %>% 
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
+    select(-Variable)
+)
 
 
 
@@ -377,5 +411,7 @@ write.xlsx2(stats, file = paste0(dir,main_folder,output_file),sheetName = "descr
 write.xlsx2(stats_elect, file = paste0(dir,main_folder,"results_dist_ec29_baseline_elect.xlsx"),sheetName = "descriptive",row.names = F,append = T)
 
 
+write.xlsx2(stats_income, file = paste0(dir,main_folder,"income_stats.xlsx"),sheetName = "descriptive",row.names = F,append = T)
+write.xlsx2(stats_ineq, file = paste0(dir,main_folder,"ineq_stats.xlsx"),sheetName = "descriptive",row.names = F,append = T)
 
 
