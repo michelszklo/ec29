@@ -265,11 +265,11 @@ df <- df %>%
   unnest(all_of(yeartreat_dummies))
 
 # Instrument interacted with first term dummy
-df <- df %>%
-  mutate(firstterm = (1-second_term),
-         iv_firstterm = iv * firstterm) %>%
-  # baseline first term * time
-  mutate(t_firstterm = t * firstterm)
+# df <- df %>%
+#   mutate(firstterm = (1-second_term),
+#          iv_firstterm = iv * firstterm) %>%
+#   # baseline first term * time
+#   mutate(t_firstterm = t * firstterm)
 
 # Instrument interacted with firjan index
 # df <- df %>%
@@ -279,7 +279,7 @@ df <- df %>%
 #   mutate(t_firstterm = t * firstterm)
 
 
-# Instrument interacted with first per capita income
+# Instrument interacted with per capita income
 # df <- df %>%
 #   group_by(ano) %>% 
 #   mutate(avg_rdpc_baseline = mean(rdpc_baseline,na.rm = T)) %>% 
@@ -290,6 +290,21 @@ df <- df %>%
 #          iv_firstterm = iv * firstterm) %>%
 #   # baseline first term * time
 #   mutate(t_firstterm = t * firstterm)
+
+
+# Instrument interacted with income inequality
+df <- df %>%
+  group_by(ano) %>%
+  mutate(avg_gini_baseline = mean(gini_baseline, na.rm = T)) %>%
+  ungroup() %>%
+  mutate(high_ineq = 0) %>%
+  mutate(high_ineq = ifelse(gini_baseline>avg_gini_baseline,1,high_ineq)) %>% 
+    mutate(firstterm = high_ineq,
+           iv_firstterm = iv * firstterm) %>%
+    # baseline first term * time
+    mutate(t_firstterm = t * firstterm)
+
+
 
 
 # 4. regression specifications

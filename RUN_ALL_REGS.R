@@ -81,8 +81,14 @@ dir2 <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 # 
 # )
 
+# running_map <- rbind(
+#   cbind("regs_outputs/","yearly_reduced_form_dist_ec29_income/","dist_ec29_baseline",0,"results_dist_ec29_baseline_income.xlsx")
+#   
+# )
+
+
 running_map <- rbind(
-  cbind("regs_outputs/","yearly_reduced_form_dist_ec29_income/","dist_ec29_baseline",0,"results_dist_ec29_baseline_income.xlsx")
+  cbind("regs_outputs/","yearly_reduced_form_dist_ec29_income/","dist_ec29_baseline",0,"results_dist_ec29_baseline_ineq.xlsx")
   
 )
 
