@@ -367,7 +367,8 @@ gdp <- gdp %>%
 # 16. Bolsa Familia per capita
 # ==============================================================
 
-pbf <- read.csv(file = paste0(raw,"PBF/pbf.csv"), encoding = "UTF-8", sep = ",")
+pbf <- read.csv(file = paste0(raw,"PBF/pbf.csv"), encoding = "UTF-8", sep = ",") %>% 
+  rename(pbf_pcapita = pbf_pc)
 
 
 # 17. Merging all
@@ -441,7 +442,7 @@ df <- mun_list %>%
   left_join(firjan, by = "cod_mun") %>% 
   left_join(gdp, by = c("ano","cod_mun")) %>% 
   left_join(pbf, by = c("ano","cod_mun"))
-  
+
 
 # creating dummies for the presence of hospitals
 
@@ -467,7 +468,7 @@ for (v in dummy_vars){
 
 
 
-# 16. Deflating variables
+# 18. Deflating variables
 # ==============================================================
 
 exclude_vars <- grep("siops_pct",names(df), invert = T,value = T)
@@ -498,7 +499,7 @@ df <- df %>%
 
 
 
-# 17. Creating mortality rates
+# 19. Creating mortality rates
 # ==============================================================
 
 
@@ -620,7 +621,7 @@ df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x
 
 
 
-# 18. Creating per capita figurues for specific variables
+# 20. Creating per capita figurues for specific variables
 # ==============================================================
 
 # vars
@@ -639,7 +640,7 @@ df <- df %>%
 
 
 # per capita figures
-vars <- c(infra_vars,sia_vars,ams_vars,siab_vars)
+vars <- c(infra_vars,sia_vars,ams_vars,siab_vars,"gdp_mun")
 vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
 
 df[vars_new] <- df[vars]
