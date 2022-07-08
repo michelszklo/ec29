@@ -281,7 +281,10 @@ ams <- data.frame(read.dta13(paste0(raw,"AMS/ams.dta")))
 # =================================================================
 
 leitos <- data.frame(read.dta13(paste0(raw,"Infra/Leitos.dta"))) %>%
-  filter(ano>=1998) 
+  filter(ano>=1998) %>% 
+  mutate(leitos = ifelse(ano==2004,
+                         (dplyr::lead(leitos,1)-dplyr::lag(leitos,1))/2 + dplyr::lag(leitos,1),
+                         leitos))
 
 
 # 8. Atlas 2013 data (Baseline controls)
@@ -343,7 +346,31 @@ names(siab)[3:14] <- paste("siab",names(siab)[3:14],sep = "_")
 firjan <- read.csv(paste0(raw,"firjan_index_build/firjan.csv")) %>% select(-X)
 
 
-# 15. Merging all
+# 15. GDP per capita
+# ==============================================================
+
+gdp <- read.csv(file = paste0(raw,"PIB_municipal/pib_mun.csv"), encoding = "UTF-8", sep = ",", skip = 1) %>% 
+  select(-X)
+gdp <- gdp %>%
+  mutate(cod_mun = as.numeric(substr(as.character(Código),1,6))) %>% 
+  pivot_longer(cols = grep("X",names(gdp),value = T),
+               names_to = "ano",
+               values_to = "gdp_mun") %>% 
+  mutate(ano = as.numeric(substr(ano,2,5))) %>% 
+  select(cod_mun,ano,gdp_mun) %>% 
+  mutate(adj = (dplyr::lead(gdp_mun,1)-gdp_mun)/3*2) %>% 
+  mutate(gdp_mun = ifelse(ano==1996,gdp_mun+adj,gdp_mun)) %>% 
+  mutate(ano = ifelse(ano==1996,1998,ano)) %>% 
+  select(-adj)
+
+
+# 16. Bolsa Familia per capita
+# ==============================================================
+
+pbf <- read.csv(file = paste0(raw,"PBF/pbf.csv"), encoding = "UTF-8", sep = ",")
+
+
+# 17. Merging all
 # ==============================================================
 
 df <- mun_list %>% 
@@ -411,7 +438,10 @@ df <- mun_list %>%
   left_join(ams_cnes,by = c("ano","cod_mun")) %>% 
   # siab data
   left_join(siab, by = c("ano","cod_mun")) %>% 
-  left_join(firjan, by = "cod_mun")
+  left_join(firjan, by = "cod_mun") %>% 
+  left_join(gdp, by = c("ano","cod_mun")) %>% 
+  left_join(pbf, by = c("ano","cod_mun"))
+  
 
 # creating dummies for the presence of hospitals
 
