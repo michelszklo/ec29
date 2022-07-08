@@ -683,7 +683,8 @@ df <- df %>%
 # ==============================================================
 
 df <- df %>% 
-  mutate(lrf = ifelse(finbra_desp_pessoal_pcapita/finbra_desp_o_pcapita>0.6,1,0))
+  mutate(lrf = finbra_desp_pessoal_pcapita / finbra_reccorr_pcapita,
+         lrf_dummy = ifelse(lrf<0.6,1,0))
 
 
 # 21. Share of spending to total spending (finbra)
