@@ -69,36 +69,19 @@ var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community He
                  cbind('siab_visit_cha_psf_pcapita','N. of Household Visits by Family Health Agents (per capita)'),
                  cbind('siab_cons_especif_pcapita','N. of Appointments (per capita)'),
                  cbind('siab_cons_especif_pacs_pcapita','N. of Appointments from Community Health Program (per capita)'),
-                 cbind('siab_cons_especif_pcapita','N. of Appointments from Family Health Program (per capita)')
+                 cbind('siab_cons_especif_pcapita','N. of Appointments from Family Health Program (per capita)'),
+                 cbind('leitos_pc',"N. of Hospital Beds (per capita)"),
+                 cbind('hospital','Presence of Hospital')
 )
 
 
-
-adjust_years <- function(df){
-  df <- df
-}
-
-df <- df %>% adjust_years()
-df_below <- df_below %>% adjust_years()
-df_above <- df_above %>% adjust_years()
 
 
 # 3. Run and ouput
 # =================================================================
 
-df <- df %>%
-  filter(ano<=2010) %>%
-  mutate(iv=ifelse(ano<=2000,0,iv)) 
-df_below <- df_below %>%
-  filter(ano<=2010) %>%
-  mutate(iv=ifelse(ano<=2000,0,iv)) 
-df_above <- df_above %>%
-  filter(ano<=2010) %>%
-  mutate(iv=ifelse(ano<=2000,0,iv)) 
 
-
-
-for (i in 1:14){
+for (i in 1:16){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)

@@ -186,6 +186,44 @@ infra <- data.frame(read.dta13(paste0(raw,"Infra/infra_psf.dta")))
 # sinasc (birth - access to health)
 sinasc <- read.csv(paste0(raw,"SINASC/SINASC_final.csv"), encoding = "UTF-8")
 
+sinasc_f <- read.csv(paste0(raw,"SINASC/birth_fem.csv"), encoding = "Latin-1", sep = ";") %>% 
+  mutate(cod_mun = substr(Município,1,6)) %>% 
+  select(-c("Município")) %>% 
+  mutate(cod_mun = as.numeric(cod_mun)) %>%
+  filter(!is.na(cod_mun) & substr(cod_mun,3,6)!="0000")
+sinasc_f[,1:13] <- lapply(sinasc_f[,1:13], function(x) as.numeric(gsub("-","0",x)))
+
+sinasc_f <- sinasc_f %>% 
+  pivot_longer(cols = colnames(sinasc_f[1:13]),
+               names_to = "ano",
+               values_to = "birth_f") %>% 
+  mutate(ano = as.numeric(substr(ano,2,5)))
+
+sinasc_f[is.na(sinasc_f)] <- 0
+
+sinasc_m <- read.csv(paste0(raw,"SINASC/birth_masc.csv"), encoding = "Latin-1", sep = ";") %>% 
+  mutate(cod_mun = substr(Município,1,6)) %>% 
+  select(-c("Município")) %>% 
+  mutate(cod_mun = as.numeric(cod_mun)) %>%
+  filter(!is.na(cod_mun) & substr(cod_mun,3,6)!="0000")
+sinasc_m[,1:13] <- lapply(sinasc_m[,1:13], function(x) as.numeric(gsub("-","0",x)))
+
+sinasc_m <- sinasc_m %>% 
+  pivot_longer(cols = colnames(sinasc_m[1:13]),
+               names_to = "ano",
+               values_to = "birth_m") %>% 
+  mutate(ano = as.numeric(substr(ano,2,5)))
+
+sinasc_m[is.na(sinasc_m)] <- 0
+
+sinasc <- sinasc %>% 
+  left_join(sinasc_f, by = c("ano","cod_mun")) %>% 
+  left_join(sinasc_m, by = c("ano","cod_mun")) %>% 
+  mutate(birth_sexratio = ifelse(birth_f==0,NA,birth_m/birth_f)) %>% 
+  select(-c("birth_f","birth_m"))
+  
+rm(sinasc_f,sinasc_m)
+
 # sim
 sim <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse.dta")))
 
@@ -254,6 +292,9 @@ import_treat_tabnet_pop(paste0(raw,"SIM/pop_40_59.csv"),"pop_40_59",1998,2012,"p
 
 # pop 40-59 years
 import_treat_tabnet_pop(paste0(raw,"SIM/pop_60.csv"),"pop_60",1998,2012,"pop_60",4)
+
+# pop women 10-49 years
+import_treat_tabnet_pop(paste0(raw,"pop/pop_fem_1049.csv"),"pop_fem_10_49",1998,2010,"pop_fem_10_49",5)
 
 
 # pop_40 <- read.csv(paste0(raw,"SIM/pop40.csv")) %>% rename(pop40=pop)
@@ -407,6 +448,8 @@ df <- mun_list %>%
   left_join(pop_25_39, by = c("ano","cod_mun")) %>%
   left_join(pop_40_59, by = c("ano","cod_mun")) %>%
   left_join(pop_60, by = c("ano","cod_mun")) %>%
+  left_join(pop_fem_10_49, by = c("ano","cod_mun")) %>%
+  mutate(birth_fertility = birth_nasc_vivos / pop_fem_10_49) %>% 
   # left_join(pop_40, by = c("ano","cod_mun")) %>%
   # left_join(pop_40_96 %>% select(-ano), by = c("cod_mun")) %>%
   # mutate(pop40 = ifelse(ano==1999,dplyr::lead(pop40,1),pop40),

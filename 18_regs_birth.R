@@ -63,26 +63,16 @@ var_map <- rbind(cbind('birth_apgar1','Apgar 1'),
                  cbind('birth_low_weight_2500g','Low Birth Weight (<2.5k)'),
                  cbind('birth_prenat_0','Prenatal Visits None'),
                  cbind('birth_prenat_1_6','Prenatal Visits 1-6'),
-                 cbind('birth_prenat_7_plus','Prenatal Visits 7+'))
+                 cbind('birth_prenat_7_plus','Prenatal Visits 7+'),
+                 cbind('birth_sexratio',"Sex Ratio at Birth"),
+                 cbind('birth_fertility','Fertility (N. of Births per 10-49y women)'))
 
 
 
 # 3. Run and ouput
 # =================================================================
 
-df <- df %>%
-  filter(ano<=2010) %>%
-  mutate(iv=ifelse(ano<=2000,0,iv)) 
-df_below <- df_below %>%
-  filter(ano<=2010) %>%
-  mutate(iv=ifelse(ano<=2000,0,iv)) 
-df_above <- df_above %>%
-  filter(ano<=2010) %>%
-  mutate(iv=ifelse(ano<=2000,0,iv)) 
-
-
-
-for (i in seq(1,9,1)){
+for (i in seq(1,11,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)

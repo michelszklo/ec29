@@ -56,10 +56,7 @@ load(paste0(dir,"regs.RData"))
 # 2. selecting variables
 # =================================================================
 
-vars <- c("ano","cod_mun","uf","pop","finbra_desp_saude_san_pcapita",'siops_despsaude_pcapita',
-          "iv","ec29_baseline","dist_ec29_baseline","dist_spending_pc_baseline",
-          "ec29_baseline_below","dist_ec29_baseline_below","dist_spending_pc_baseline_below",
-          grep("ano_2005",names(df),value = T))
+vars <- c("ano","cod_mun","uf","pop","iv",all_of(controls))
 
 df <- df %>% 
   select(all_of(vars))
@@ -67,10 +64,14 @@ df <- df %>%
 df_above <- df_above %>% 
   select(all_of(vars))
 
-
 df_below <- df_below %>% 
   select(all_of(vars))
 
+df_first <- df_first %>% 
+  select(all_of(vars))
+
+df_second <- df_second %>% 
+  select(all_of(vars))
 
 
 # 3. loading and merging CNES data
@@ -82,17 +83,12 @@ cnes_vars_pcapita_sinh <- sapply(cnes_vars, function(x) paste0(x,"_pcapita"), si
 CNES[cnes_vars_pcapita_sinh] <- CNES[cnes_vars]
 
 
-delta_2000_2005_cnes_merge <- function(df){
+cnes_merge <- function(df){
   df <- df %>% 
     left_join(CNES, by = c("cod_mun","ano")) %>%
-    group_by(cod_mun) %>% 
-    mutate(delta_finbra_desp_saude_san_pcapita = finbra_desp_saude_san_pcapita - dplyr::lag(finbra_desp_saude_san_pcapita,5),
-           delta_siops_despsaude_pcapita = siops_despsaude_pcapita - dplyr::lag(siops_despsaude_pcapita,5)) %>% 
-    ungroup() %>% 
     filter(ano==2005) %>% 
     mutate_at(cnes_vars_pcapita_sinh,`/`,quote(pop)) %>% 
     mutate_at(cnes_vars_pcapita_sinh,`*`,1000000)
-    
 }
 
 
