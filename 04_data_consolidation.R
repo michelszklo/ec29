@@ -184,7 +184,8 @@ rm(fns_pabvar)
 infra <- data.frame(read.dta13(paste0(raw,"Infra/infra_psf.dta")))
 
 # sinasc (birth - access to health)
-sinasc <- read.csv(paste0(raw,"SINASC/SINASC_final.csv"), encoding = "UTF-8")
+sinasc <- read.csv(paste0(raw,"SINASC/SINASC_final.csv"), encoding = "UTF-8") %>% 
+  mutate(birth_premature = 1-birth_gest_37plus)
 
 sinasc_f <- read.csv(paste0(raw,"SINASC/birth_fem.csv"), encoding = "Latin-1", sep = ";") %>% 
   mutate(cod_mun = substr(Município,1,6)) %>% 
