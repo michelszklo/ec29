@@ -30,7 +30,8 @@ packages<-c('readr',
             'purrr',
             'boot',
             'broom',
-            'modelsummary')
+            'modelsummary',
+            'ggarchery')
 to_install<-packages[!(packages %in% installed.packages()[,"Package"])]
 if(length(to_install)>0) install.packages(to_install)
 
@@ -484,6 +485,7 @@ reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_fil
   
 }
 
+
 reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below,weight){
   
   df_reg <- df
@@ -546,11 +548,12 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
              year = seq.int(year_filter,2010),
              spec = as.character(spec)) %>% 
       mutate(spec = ifelse(spec=="1","Baseline",spec),
-             spec = ifelse(spec=="2","+ Fiscal Controls",spec),
-             spec = ifelse(spec=="3","+ Socioeconomic Controls",spec)) %>% 
+             spec = ifelse(spec=="2","+ Baseline Controls",spec),
+             spec = ifelse(spec=="3","+ Time Varying Controls",spec),
+             spec = ifelse(spec=="4","+ Fiscal Controls",spec)) %>% 
       mutate(spec = as.factor(spec)) 
     
-    out$spec <- factor(out$spec,levels = c("Baseline","+ Fiscal Controls","+ Socioeconomic Controls"))  
+    out$spec <- factor(out$spec,levels = c("Baseline","+ Baseline Controls","+ Time Varying Controls","+ Fiscal Controls"))  
     
     if(spec==1){
       table <- out
@@ -560,42 +563,209 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
     }
   }
   
+  # adjusments for big confidence intervals
+  table <- table %>% 
+    mutate(lb_adj = NA,
+           ub_adj = NA) %>% 
+    mutate(lb_adj = ifelse(lb<y0,y0,lb_adj),
+           ub_adj = ifelse(ub>yf,yf,ub_adj)) %>% 
+    mutate(lb = ifelse(lb<y0,y0,lb),
+           ub = ifelse(ub>yf,yf,ub))
+  
+  # graphs variation
+  
+  # if all NA for lb_adj
+  if(table %>% filter(!is.na(lb_adj)) %>% nrow() == 0){
+    lb_na <- 1
+  }else{
+    lb_na <- 0
+  }
+  
+  # if all NA for ub_adj
+  if(table %>% filter(!is.na(ub_adj)) %>% nrow() == 0){
+    ub_na <- 1
+  }else{
+    ub_na <- 0
+  }
   
   
-  shapes <-  c(17,15,19)
-  # color_graph <- pal_lancet("lanonc")(9)
+  # GRAPHS
+  # ---------
   
-  graph <- table %>%
-    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
-    geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
-    scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
-    scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
-    # scale_colour_manual(values = color_graph) +
-    scale_shape_manual(values = shapes) +
-    theme_light() +
-    labs(y = var_name,
-         shape = "Specification") +
-    theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          plot.title = element_text(size = 10, face = "bold"),
-          axis.title.x = element_text(size=12),
-          axis.title.y = element_text(size=8),
-          legend.position="bottom")
+  shapes <-  c(8,15,19)
+  
+  # graph with now bounds adjs
   
   
   
-  ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
-         plot = graph,
-         device = "png",
-         width = 7, height = 5,
-         units = "in")
-  ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
-         plot = graph,
-         device = "pdf",
-         width = 7, height = 5,
-         units = "in")
+  if(lb_na==1 & lb_na==1){
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
+      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_shape_manual(values = shapes) +
+      theme_light() +
+      labs(y = var_name,
+           shape = "Specification") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=12),
+            axis.title.y = element_text(size=8),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+    
+  } else if (lb_na==0 & ub_na ==1) {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
+      geom_point(aes(y = lb_adj,x = year,group=spec),
+                 position=position_dodge(width=0.6),
+                 shape = 25,
+                 color = "indianred4",
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_shape_manual(values = shapes) +
+      theme_light() +
+      labs(y = var_name,
+           shape = "Specification") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=12),
+            axis.title.y = element_text(size=8),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+    
+  } else if (lb_na==1 & ub_na ==0) {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
+      geom_point(aes(y = ub_adj,x = year,group=spec),
+                 position=position_dodge(width=0.6),
+                 shape = 24,
+                 color = "indianred4",
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_shape_manual(values = shapes) +
+      theme_light() +
+      labs(y = var_name,
+           shape = "Specification") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=12),
+            axis.title.y = element_text(size=8),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+  } else {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
+      geom_point(aes(y = lb_adj,x = year,group=spec),
+                 position=position_dodge(width=0.6),
+                 shape = 25,
+                 color = "indianred4",
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      geom_point(aes(y = ub_adj,x = year,group=spec),
+                 position=position_dodge(width=0.6),
+                 shape = 24,
+                 color = "indianred4",
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_shape_manual(values = shapes) +
+      theme_light() +
+      labs(y = var_name,
+           shape = "Specification") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=12),
+            axis.title.y = element_text(size=8),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+  }
+  
   
   
 }
@@ -676,42 +846,208 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
     }
   }
   
+  # adjusments for big confidence intervals
+  table <- table %>% 
+    mutate(lb_adj = NA,
+           ub_adj = NA) %>% 
+    mutate(lb_adj = ifelse(lb<y0,y0,lb_adj),
+           ub_adj = ifelse(ub>yf,yf,ub_adj)) %>% 
+    mutate(lb = ifelse(lb<y0,y0,lb),
+           ub = ifelse(ub>yf,yf,ub))
+  
+  # graphs variation
+  
+  # if all NA for lb_adj
+  if(table %>% filter(!is.na(lb_adj)) %>% nrow() == 0){
+    lb_na <- 1
+  }else{
+    lb_na <- 0
+  }
+  
+  # if all NA for ub_adj
+  if(table %>% filter(!is.na(ub_adj)) %>% nrow() == 0){
+    ub_na <- 1
+  }else{
+    ub_na <- 0
+  }
   
   
-  shapes <-  c(17,15,19)
-  # color_graph <- pal_lancet("lanonc")(9)
+  # GRAPHS
+  # ---------
   
-  graph <- table %>%
-    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
-    geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
-    scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
-    scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
-    # scale_colour_manual(values = color_graph) +
-    scale_shape_manual(values = shapes) +
-    theme_light() +
-    labs(y = var_name,
-         shape = "Specification") +
-    theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          plot.title = element_text(size = 10, face = "bold"),
-          axis.title.x = element_text(size=12),
-          axis.title.y = element_text(size=8),
-          legend.position="bottom")
+  shapes <-  c(8,15,19)
+  
+  # graph with now bounds adjs
   
   
   
-  ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
-         plot = graph,
-         device = "png",
-         width = 7, height = 5,
-         units = "in")
-  ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
-         plot = graph,
-         device = "pdf",
-         width = 7, height = 5,
-         units = "in")
+  if(lb_na==1 & lb_na==1){
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
+      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_shape_manual(values = shapes) +
+      theme_light() +
+      labs(y = var_name,
+           shape = "Specification") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=12),
+            axis.title.y = element_text(size=8),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+    
+  } else if (lb_na==0 & ub_na ==1) {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
+      geom_point(aes(y = lb_adj,x = year,group=spec),
+                 position=position_dodge(width=0.6),
+                 shape = 25,
+                 color = "indianred4",
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_shape_manual(values = shapes) +
+      theme_light() +
+      labs(y = var_name,
+           shape = "Specification") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=12),
+            axis.title.y = element_text(size=8),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+    
+  } else if (lb_na==1 & ub_na ==0) {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
+      geom_point(aes(y = ub_adj,x = year,group=spec),
+                 position=position_dodge(width=0.6),
+                 shape = 24,
+                 color = "indianred4",
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_shape_manual(values = shapes) +
+      theme_light() +
+      labs(y = var_name,
+           shape = "Specification") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=12),
+            axis.title.y = element_text(size=8),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+  } else {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
+      geom_point(aes(y = lb_adj,x = year,group=spec),
+                 position=position_dodge(width=0.6),
+                 shape = 25,
+                 color = "indianred4",
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      geom_point(aes(y = ub_adj,x = year,group=spec),
+                 position=position_dodge(width=0.6),
+                 shape = 24,
+                 color = "indianred4",
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_shape_manual(values = shapes) +
+      theme_light() +
+      labs(y = var_name,
+           shape = "Specification") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=12),
+            axis.title.y = element_text(size=8),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+  }
   
   
 }
