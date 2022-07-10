@@ -39,8 +39,6 @@ if(length(to_install)>0) install.packages(to_install)
 lapply(packages,require,character.only=TRUE)
 
 
-options(digits = 30)
-
 
 # SET PATH FOR EC 29-2000 ON YOUR COMPUTER
 # ------------------------------------
@@ -259,7 +257,7 @@ var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spe
 
 # generating df of top and bottom quartile of the distance to ec29 in the baseline
 
-df <- df %>%
+df_q <- df %>%
   group_by(ano) %>% 
   mutate(quantile = ifelse(ano==2000,quantcut(ec29_baseline,4),NA)) %>% 
   ungroup() %>% 
