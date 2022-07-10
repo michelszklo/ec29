@@ -319,6 +319,8 @@ controls <- c(baseline_controls,tvarying_controls,fiscal_controls,imr_controls)
 spec1_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(baseline_controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec4_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+
 
 # Reduce form specification for IMR
 # ------------------------------------------------
@@ -326,6 +328,7 @@ spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", pa
 spec1_post_y_imr <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ",imr_controls," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec2_post_y_imr <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(c(baseline_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec3_post_y_imr <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post_y_imr <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls,imr_controls,fiscal_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 # Reduced form specifications
@@ -544,7 +547,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   # Regressions
   # ------------------------------------
   
-  for (spec in c(1,2,3)){
+  for (spec in c(1,4)){
     
     spec_reduced<- get(paste0("spec",spec,"_post_y"))
     
@@ -565,12 +568,10 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
              year = seq.int(year_filter,2010),
              spec = as.character(spec)) %>% 
       mutate(spec = ifelse(spec=="1","Baseline",spec),
-             spec = ifelse(spec=="2","+ Baseline Controls",spec),
-             spec = ifelse(spec=="3","+ Time Varying Controls",spec),
-             spec = ifelse(spec=="4","+ Fiscal Controls",spec)) %>% 
+             spec = ifelse(spec=="4","+ Baseline, Time Varying and Fiscal Controls",spec)) %>% 
       mutate(spec = as.factor(spec)) 
     
-    out$spec <- factor(out$spec,levels = c("Baseline","+ Baseline Controls","+ Time Varying Controls","+ Fiscal Controls"))  
+    out$spec <- factor(out$spec,levels = c("Baseline","+ Baseline, Time Varying and Fiscal Controls"))  
     
     if(spec==1){
       table <- out
@@ -609,7 +610,291 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   # GRAPHS
   # ---------
   
-  shapes <-  c(8,15,19)
+  # shapes <-  c(8,15,19)
+  shapes <-  c(15,19)
+  
+  # graph with now bounds adjs
+  
+  
+  
+  if(lb_na==1 & lb_na==1){
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6),color = "grey20") +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_shape_manual(values = shapes) +
+      theme_light() +
+      labs(y = var_name,
+           shape = "Specification") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=12),
+            axis.title.y = element_text(size=8),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+    
+  } else if (lb_na==0 & ub_na ==1) {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6),color = "grey20") +
+      geom_point(aes(y = lb_adj,x = year,group=spec),
+                 position=position_dodge(width=0.6),
+                 shape = 25,
+                 color = "grey50",
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_shape_manual(values = shapes) +
+      theme_light() +
+      labs(y = var_name,
+           shape = "Specification") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=12),
+            axis.title.y = element_text(size=8),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+    
+  } else if (lb_na==1 & ub_na ==0) {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6),color = "grey20") +
+      geom_point(aes(y = ub_adj,x = year,group=spec),
+                 position=position_dodge(width=0.6),
+                 shape = 24,
+                 color = "grey50",
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_shape_manual(values = shapes) +
+      theme_light() +
+      labs(y = var_name,
+           shape = "Specification") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=12),
+            axis.title.y = element_text(size=8),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+  } else {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6),color = "grey20") +
+      geom_point(aes(y = lb_adj,x = year,group=spec),
+                 position=position_dodge(width=0.6),
+                 shape = 25,
+                 color = "grey50",
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      geom_point(aes(y = ub_adj,x = year,group=spec),
+                 position=position_dodge(width=0.6),
+                 shape = 24,
+                 color = "grey50",
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_shape_manual(values = shapes) +
+      theme_light() +
+      labs(y = var_name,
+           shape = "Specification") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=12),
+            axis.title.y = element_text(size=8),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+  }
+  
+  
+  
+}
+
+reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below,weight,year_cap){
+  
+  df_reg <- df
+  
+  # outcome variable transformation
+  
+  if(transform==1){
+    # log
+    ln_outcome <- paste0("ln_",outcome)
+    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
+    df_reg <- df_reg %>% 
+      mutate_at(ln_outcome,log)
+    
+    
+    
+  } else if(transform==2){
+    # inverse hyperbolic sign
+    ln_outcome <- paste0("ln_",outcome)
+    df_reg[ln_outcome] <- df_reg[outcome]
+    df_reg <- df_reg %>% 
+      mutate_at(ln_outcome,asinh)
+  } else {
+    # level
+    ln_outcome <- paste0("ln_",outcome)
+    df_reg[ln_outcome] <- df_reg[outcome]
+  }
+  
+  # filtering regression variables
+  df_reg <- df_reg %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r,
+           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+    filter(ano>=year_filter)
+  
+  df_reg <- df_reg[complete.cases(df_reg),]
+  df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
+  
+  
+  # Regressions
+  # ------------------------------------
+  
+  for (spec in c(1,4)){
+    
+    spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
+    
+    weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
+    # second stage regression
+    # ------------------------------
+    
+    regformula <- as.formula(paste(ln_outcome,spec_reduced))
+    fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
+    
+    out <- fit %>% 
+      broom::tidy() %>%
+      slice(1:13) %>%
+      select(term,estimate,std.error) %>% 
+      mutate(estimate = ifelse(term==paste0("post_00_",instrument),0,estimate)) %>% 
+      mutate(lb = estimate - 1.96 * std.error,
+             ub = estimate + 1.96 * std.error,
+             year = seq.int(year_filter,2010),
+             spec = as.character(spec)) %>% 
+      mutate(spec = ifelse(spec=="1","Baseline",spec),
+             spec = ifelse(spec=="4","+ Baseline, Time Varying and Fiscal Controls",spec)) %>% 
+      mutate(spec = as.factor(spec)) 
+    
+    out$spec <- factor(out$spec,levels = c("Baseline","+ Baseline, Time Varying and Fiscal Controls"))  
+    
+    if(spec==1){
+      table <- out
+    }
+    else{
+      table <- rbind(table,out)
+    }
+  }
+  
+  # adjusments for big confidence intervals
+  table <- table %>% 
+    mutate(lb_adj = NA,
+           ub_adj = NA) %>% 
+    mutate(lb_adj = ifelse(lb<y0,y0,lb_adj),
+           ub_adj = ifelse(ub>yf,yf,ub_adj)) %>% 
+    mutate(lb = ifelse(lb<y0,y0,lb),
+           ub = ifelse(ub>yf,yf,ub))
+  
+  # graphs variation
+  
+  # if all NA for lb_adj
+  if(table %>% filter(!is.na(lb_adj)) %>% nrow() == 0){
+    lb_na <- 1
+  }else{
+    lb_na <- 0
+  }
+  
+  # if all NA for ub_adj
+  if(table %>% filter(!is.na(ub_adj)) %>% nrow() == 0){
+    ub_na <- 1
+  }else{
+    ub_na <- 0
+  }
+  
+  
+  # GRAPHS
+  # ---------
+  
+  # shapes <-  c(8,15,19)
+  shapes <-  c(15,19)
   
   # graph with now bounds adjs
   
