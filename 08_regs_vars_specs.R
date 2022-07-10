@@ -179,7 +179,7 @@ df <- df %>%
   mutate(lrf_baseline  = mean(lrf_baseline,na.rm = T)) %>% 
   ungroup() %>% 
   mutate(lrf_baseline_median = median(lrf_baseline,na.rm = T)) %>% 
-  mutate(lrf_baseline_above = ifelse(lrf_baseline>lrf_baseline_median,1,0)) %>% 
+  mutate(lrf_baseline_above = ifelse(lrf_baseline>lrf_baseline_median,1,0)) %>%
   # infant mortality rate at the baseline
   # mutate(tx_mi_baseline = ifelse(ano==2000,
   #                                (dplyr::lag(tx_mi,2) + dplyr::lag(tx_mi,1) + tx_mi)/3,
@@ -188,14 +188,6 @@ df <- df %>%
   group_by(cod_mun) %>% 
   mutate(tx_mi_baseline = mean(tx_mi_baseline, na.rm = T)) %>% 
   ungroup()
-
-
-
-# mutate(post_11 = ifelse(ano==2011,1,0)) %>% 
-# mutate(post_12 = ifelse(ano==2012,1,0)) %>% 
-# mutate(post_13 = ifelse(ano==2013,1,0)) %>% 
-# mutate(post_14 = ifelse(ano==2014,1,0)) %>% 
-# mutate(post_15 = ifelse(ano==2015,1,0)) 
 
 
 # baseline controls
@@ -211,6 +203,14 @@ df <- df %>%
   group_by(cod_mun) %>% 
   mutate_at(controlsvar_baseline, function(x) mean(x,na.rm = T)) %>% 
   ungroup()
+
+# generating high (low) income sample and high (low) inequality sample
+df <- df %>% 
+  mutate(rdpc_baseline_median = median(rdpc_baseline,na.rm = T),
+         gini_baseline_median = median(gini_baseline, na.rm = T)) %>% 
+  mutate(rdpc_baseline_above = ifelse(rdpc_baseline>rdpc_baseline_median,1,0),
+         gini_baseline_above = ifelse(gini_baseline>=gini_baseline_median,1,0))
+
 
 # generating time variable
 df <- df %>% 
@@ -278,6 +278,23 @@ df_above <- df %>%
 
 df_below <- df %>% 
   filter(lrf_baseline_above==0)
+
+
+# Municipalities below and above median Gini inequality
+# -----------------------------------------------------------------
+df_high_ineq <- df %>% 
+  filter(gini_baseline_above==1)
+
+df_low_ineq <- df %>% 
+  filter(gini_baseline_above==0)
+
+# Municipalities below and above median Income
+# -----------------------------------------------------------------
+df_high_inc <- df %>% 
+  filter(rdpc_baseline_above==1)
+
+df_low_inc <- df %>% 
+  filter(rdpc_baseline_above==0)
 
 
 # 4. regression specifications
@@ -486,7 +503,7 @@ reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_fil
 }
 
 
-reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below,weight){
+reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below,weight,year_cap){
   
   df_reg <- df
   
@@ -604,8 +621,8 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
       ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
       geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
-      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6),color = "grey20") +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
       scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
       # scale_colour_manual(values = color_graph) +
       scale_shape_manual(values = shapes) +
@@ -639,15 +656,15 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
       ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
       geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6),color = "grey20") +
       geom_point(aes(y = lb_adj,x = year,group=spec),
                  position=position_dodge(width=0.6),
                  shape = 25,
-                 color = "indianred4",
+                 color = "grey50",
                  fill = "white",
                  size = 1.7,
                  stroke = 0.5) +
-      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
       scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
       # scale_colour_manual(values = color_graph) +
       scale_shape_manual(values = shapes) +
@@ -681,15 +698,15 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
       ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
       geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6),color = "grey20") +
       geom_point(aes(y = ub_adj,x = year,group=spec),
                  position=position_dodge(width=0.6),
                  shape = 24,
-                 color = "indianred4",
+                 color = "grey50",
                  fill = "white",
                  size = 1.7,
                  stroke = 0.5) +
-      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
       scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
       # scale_colour_manual(values = color_graph) +
       scale_shape_manual(values = shapes) +
@@ -722,22 +739,22 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
       ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
       geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6),color = "grey20") +
       geom_point(aes(y = lb_adj,x = year,group=spec),
                  position=position_dodge(width=0.6),
                  shape = 25,
-                 color = "indianred4",
+                 color = "grey50",
                  fill = "white",
                  size = 1.7,
                  stroke = 0.5) +
       geom_point(aes(y = ub_adj,x = year,group=spec),
                  position=position_dodge(width=0.6),
                  shape = 24,
-                 color = "indianred4",
+                 color = "grey50",
                  fill = "white",
                  size = 1.7,
                  stroke = 0.5) +
-      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
       scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
       # scale_colour_manual(values = color_graph) +
       scale_shape_manual(values = shapes) +
@@ -766,288 +783,6 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
     
   }
   
-  
-  
-}
-
-reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below,weight){
-  
-  df_reg <- df
-  
-  # outcome variable transformation
-  
-  if(transform==1){
-    # log
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,log)
-    
-    
-    
-  } else if(transform==2){
-    # inverse hyperbolic sign
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,asinh)
-  } else {
-    # level
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-  }
-  
-  # filtering regression variables
-  df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
-           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r,
-           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
-    filter(ano>=year_filter)
-  
-  df_reg <- df_reg[complete.cases(df_reg),]
-  df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
-  
-  
-  # Regressions
-  # ------------------------------------
-  
-  for (spec in c(1,2,3)){
-    
-    spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
-    
-    weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
-    # second stage regression
-    # ------------------------------
-    
-    regformula <- as.formula(paste(ln_outcome,spec_reduced))
-    fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
-    
-    out <- fit %>% 
-      broom::tidy() %>%
-      slice(1:13) %>%
-      select(term,estimate,std.error) %>% 
-      mutate(estimate = ifelse(term==paste0("post_00_",instrument),0,estimate)) %>% 
-      mutate(lb = estimate - 1.96 * std.error,
-             ub = estimate + 1.96 * std.error,
-             year = seq.int(year_filter,2010),
-             spec = as.character(spec)) %>% 
-      mutate(spec = ifelse(spec=="1","Baseline",spec),
-             spec = ifelse(spec=="2","+ Fiscal Controls",spec),
-             spec = ifelse(spec=="3","+ Socioeconomic Controls",spec)) %>% 
-      mutate(spec = as.factor(spec)) 
-    
-    out$spec <- factor(out$spec,levels = c("Baseline","+ Fiscal Controls","+ Socioeconomic Controls"))  
-    
-    if(spec==1){
-      table <- out
-    }
-    else{
-      table <- rbind(table,out)
-    }
-  }
-  
-  # adjusments for big confidence intervals
-  table <- table %>% 
-    mutate(lb_adj = NA,
-           ub_adj = NA) %>% 
-    mutate(lb_adj = ifelse(lb<y0,y0,lb_adj),
-           ub_adj = ifelse(ub>yf,yf,ub_adj)) %>% 
-    mutate(lb = ifelse(lb<y0,y0,lb),
-           ub = ifelse(ub>yf,yf,ub))
-  
-  # graphs variation
-  
-  # if all NA for lb_adj
-  if(table %>% filter(!is.na(lb_adj)) %>% nrow() == 0){
-    lb_na <- 1
-  }else{
-    lb_na <- 0
-  }
-  
-  # if all NA for ub_adj
-  if(table %>% filter(!is.na(ub_adj)) %>% nrow() == 0){
-    ub_na <- 1
-  }else{
-    ub_na <- 0
-  }
-  
-  
-  # GRAPHS
-  # ---------
-  
-  shapes <-  c(8,15,19)
-  
-  # graph with now bounds adjs
-  
-  
-  
-  if(lb_na==1 & lb_na==1){
-    
-    graph <- table %>%
-      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
-      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
-      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
-      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
-      # scale_colour_manual(values = color_graph) +
-      scale_shape_manual(values = shapes) +
-      theme_light() +
-      labs(y = var_name,
-           shape = "Specification") +
-      theme(panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=12),
-            axis.title.y = element_text(size=8),
-            legend.position="bottom")
-    
-    
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
-    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
-           plot = graph,
-           device = "pdf",
-           width = 7, height = 5,
-           units = "in")
-    
-    
-  } else if (lb_na==0 & ub_na ==1) {
-    
-    graph <- table %>%
-      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
-      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
-      geom_point(aes(y = lb_adj,x = year,group=spec),
-                 position=position_dodge(width=0.6),
-                 shape = 25,
-                 color = "indianred4",
-                 fill = "white",
-                 size = 1.7,
-                 stroke = 0.5) +
-      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
-      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
-      # scale_colour_manual(values = color_graph) +
-      scale_shape_manual(values = shapes) +
-      theme_light() +
-      labs(y = var_name,
-           shape = "Specification") +
-      theme(panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=12),
-            axis.title.y = element_text(size=8),
-            legend.position="bottom")
-    
-    
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
-    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
-           plot = graph,
-           device = "pdf",
-           width = 7, height = 5,
-           units = "in")
-    
-    
-  } else if (lb_na==1 & ub_na ==0) {
-    
-    graph <- table %>%
-      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
-      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
-      geom_point(aes(y = ub_adj,x = year,group=spec),
-                 position=position_dodge(width=0.6),
-                 shape = 24,
-                 color = "indianred4",
-                 fill = "white",
-                 size = 1.7,
-                 stroke = 0.5) +
-      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
-      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
-      # scale_colour_manual(values = color_graph) +
-      scale_shape_manual(values = shapes) +
-      theme_light() +
-      labs(y = var_name,
-           shape = "Specification") +
-      theme(panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=12),
-            axis.title.y = element_text(size=8),
-            legend.position="bottom")
-    
-    
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
-    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
-           plot = graph,
-           device = "pdf",
-           width = 7, height = 5,
-           units = "in")
-    
-  } else {
-    
-    graph <- table %>%
-      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
-      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6),color = "grey13") +
-      geom_point(aes(y = lb_adj,x = year,group=spec),
-                 position=position_dodge(width=0.6),
-                 shape = 25,
-                 color = "indianred4",
-                 fill = "white",
-                 size = 1.7,
-                 stroke = 0.5) +
-      geom_point(aes(y = ub_adj,x = year,group=spec),
-                 position=position_dodge(width=0.6),
-                 shape = 24,
-                 color = "indianred4",
-                 fill = "white",
-                 size = 1.7,
-                 stroke = 0.5) +
-      scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
-      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
-      # scale_colour_manual(values = color_graph) +
-      scale_shape_manual(values = shapes) +
-      theme_light() +
-      labs(y = var_name,
-           shape = "Specification") +
-      theme(panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=12),
-            axis.title.y = element_text(size=8),
-            legend.position="bottom")
-    
-    
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
-    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
-           plot = graph,
-           device = "pdf",
-           width = 7, height = 5,
-           units = "in")
-    
-  }
   
   
 }
@@ -1080,7 +815,7 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
   # ----------------------------------------
   
   # loop through full database and subsamples
-  for (data in c("df","df_first","df_second","df_above","df_below")){
+  for (data in c("df","df_first","df_second","df_above","df_below","df_low_inc","df_high_inc","df_low_ineq","df_high_ineq")){
     
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
@@ -1101,6 +836,50 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
   table_all_2 <- reg_df %>% mutate(sample = "all") %>% table_formating(2) %>% rename("all" = "estimate") %>% mutate(obs_all = obs_all_2)
   table_all_3 <- reg_df %>% mutate(sample = "all") %>% table_formating(3) %>% rename("all" = "estimate") %>% mutate(obs_all = obs_all_3)
   table_all_4 <- reg_df %>% mutate(sample = "all") %>% table_formating(4) %>% rename("all" = "estimate") %>% mutate(obs_all = obs_all_4)
+  
+  
+  obs_low_inc_1 <- reg_df_low_inc %>% slice(1) %>% select(nobs) %>% as.numeric()
+  obs_low_inc_2 <- reg_df_low_inc %>% slice(2) %>% select(nobs) %>% as.numeric()
+  obs_low_inc_3 <- reg_df_low_inc %>% slice(3) %>% select(nobs) %>% as.numeric()
+  obs_low_inc_4 <- reg_df_low_inc %>% slice(4) %>% select(nobs) %>% as.numeric()
+  
+  table_low_inc_1 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(1) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_1)
+  table_low_inc_2 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(2) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_2)
+  table_low_inc_3 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(3) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_3)
+  table_low_inc_4 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(4) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_4)
+  
+  
+  obs_high_inc_1 <- reg_df_high_inc %>% slice(1) %>% select(nobs) %>% as.numeric()
+  obs_high_inc_2 <- reg_df_high_inc %>% slice(2) %>% select(nobs) %>% as.numeric()
+  obs_high_inc_3 <- reg_df_high_inc %>% slice(3) %>% select(nobs) %>% as.numeric()
+  obs_high_inc_4 <- reg_df_high_inc %>% slice(4) %>% select(nobs) %>% as.numeric()
+  
+  table_high_inc_1 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(1) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_1)
+  table_high_inc_2 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(2) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_2)
+  table_high_inc_3 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(3) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_3)
+  table_high_inc_4 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(4) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_4)
+  
+  
+  obs_low_ineq_1 <- reg_df_low_ineq %>% slice(1) %>% select(nobs) %>% as.numeric()
+  obs_low_ineq_2 <- reg_df_low_ineq %>% slice(2) %>% select(nobs) %>% as.numeric()
+  obs_low_ineq_3 <- reg_df_low_ineq %>% slice(3) %>% select(nobs) %>% as.numeric()
+  obs_low_ineq_4 <- reg_df_low_ineq %>% slice(4) %>% select(nobs) %>% as.numeric()
+  
+  table_low_ineq_1 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(1) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_1)
+  table_low_ineq_2 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(2) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_2)
+  table_low_ineq_3 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(3) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_3)
+  table_low_ineq_4 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(4) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_4)
+  
+  
+  obs_high_ineq_1 <- reg_df_high_ineq %>% slice(1) %>% select(nobs) %>% as.numeric()
+  obs_high_ineq_2 <- reg_df_high_ineq %>% slice(2) %>% select(nobs) %>% as.numeric()
+  obs_high_ineq_3 <- reg_df_high_ineq %>% slice(3) %>% select(nobs) %>% as.numeric()
+  obs_high_ineq_4 <- reg_df_high_ineq %>% slice(4) %>% select(nobs) %>% as.numeric()
+  
+  table_high_ineq_1 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(1) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_1)
+  table_high_ineq_2 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(2) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_2)
+  table_high_ineq_3 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(3) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_3)
+  table_high_ineq_4 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(4) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_4)
   
   
   obs_below_1 <- reg_df_below %>% slice(1) %>% select(nobs) %>% as.numeric()
@@ -1152,6 +931,10 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
   table_all <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3,table_all_4),
                          bind_rows(table_below_1,table_below_2,table_below_3,table_below_4),
                          bind_rows(table_above_1,table_above_2,table_above_3,table_above_4),
+                         bind_rows(table_low_inc_1,table_low_inc_2,table_low_inc_3,table_low_inc_4),
+                         bind_rows(table_high_inc_1,table_high_inc_2,table_high_inc_3,table_high_inc_4),
+                         bind_rows(table_low_ineq_1,table_low_ineq_2,table_low_ineq_3,table_low_ineq_4),
+                         bind_rows(table_high_ineq_1,table_high_ineq_2,table_high_ineq_3,table_high_ineq_4),
                          bind_rows(table_first_1,table_first_2,table_first_3,table_first_4),
                          bind_rows(table_second_1,table_second_2,table_second_3,table_second_4)) 
   
@@ -1190,6 +973,50 @@ regress_output_imr <- function(var,var_name,transform,year_filter,weight){
   table_all_4 <- reg_df %>% mutate(sample = "all") %>% table_formating(4) %>% rename("all" = "estimate") %>% mutate(obs_all = obs_all_4)
   
   
+  obs_low_inc_1 <- reg_df_low_inc %>% slice(1) %>% select(nobs) %>% as.numeric()
+  obs_low_inc_2 <- reg_df_low_inc %>% slice(2) %>% select(nobs) %>% as.numeric()
+  obs_low_inc_3 <- reg_df_low_inc %>% slice(3) %>% select(nobs) %>% as.numeric()
+  obs_low_inc_4 <- reg_df_low_inc %>% slice(4) %>% select(nobs) %>% as.numeric()
+  
+  table_low_inc_1 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(1) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_1)
+  table_low_inc_2 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(2) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_2)
+  table_low_inc_3 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(3) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_3)
+  table_low_inc_4 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(4) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_4)
+  
+  
+  obs_high_inc_1 <- reg_df_high_inc %>% slice(1) %>% select(nobs) %>% as.numeric()
+  obs_high_inc_2 <- reg_df_high_inc %>% slice(2) %>% select(nobs) %>% as.numeric()
+  obs_high_inc_3 <- reg_df_high_inc %>% slice(3) %>% select(nobs) %>% as.numeric()
+  obs_high_inc_4 <- reg_df_high_inc %>% slice(4) %>% select(nobs) %>% as.numeric()
+  
+  table_high_inc_1 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(1) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_1)
+  table_high_inc_2 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(2) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_2)
+  table_high_inc_3 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(3) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_3)
+  table_high_inc_4 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(4) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_4)
+  
+  
+  obs_low_ineq_1 <- reg_df_low_ineq %>% slice(1) %>% select(nobs) %>% as.numeric()
+  obs_low_ineq_2 <- reg_df_low_ineq %>% slice(2) %>% select(nobs) %>% as.numeric()
+  obs_low_ineq_3 <- reg_df_low_ineq %>% slice(3) %>% select(nobs) %>% as.numeric()
+  obs_low_ineq_4 <- reg_df_low_ineq %>% slice(4) %>% select(nobs) %>% as.numeric()
+  
+  table_low_ineq_1 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(1) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_1)
+  table_low_ineq_2 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(2) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_2)
+  table_low_ineq_3 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(3) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_3)
+  table_low_ineq_4 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(4) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_4)
+  
+  
+  obs_high_ineq_1 <- reg_df_high_ineq %>% slice(1) %>% select(nobs) %>% as.numeric()
+  obs_high_ineq_2 <- reg_df_high_ineq %>% slice(2) %>% select(nobs) %>% as.numeric()
+  obs_high_ineq_3 <- reg_df_high_ineq %>% slice(3) %>% select(nobs) %>% as.numeric()
+  obs_high_ineq_4 <- reg_df_high_ineq %>% slice(4) %>% select(nobs) %>% as.numeric()
+  
+  table_high_ineq_1 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(1) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_1)
+  table_high_ineq_2 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(2) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_2)
+  table_high_ineq_3 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(3) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_3)
+  table_high_ineq_4 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(4) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_4)
+  
+  
   obs_below_1 <- reg_df_below %>% slice(1) %>% select(nobs) %>% as.numeric()
   obs_below_2 <- reg_df_below %>% slice(2) %>% select(nobs) %>% as.numeric()
   obs_below_3 <- reg_df_below %>% slice(3) %>% select(nobs) %>% as.numeric()
@@ -1239,6 +1066,10 @@ regress_output_imr <- function(var,var_name,transform,year_filter,weight){
   table_all <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3,table_all_4),
                          bind_rows(table_below_1,table_below_2,table_below_3,table_below_4),
                          bind_rows(table_above_1,table_above_2,table_above_3,table_above_4),
+                         bind_rows(table_low_inc_1,table_low_inc_2,table_low_inc_3,table_low_inc_4),
+                         bind_rows(table_high_inc_1,table_high_inc_2,table_high_inc_3,table_high_inc_4),
+                         bind_rows(table_low_ineq_1,table_low_ineq_2,table_low_ineq_3,table_low_ineq_4),
+                         bind_rows(table_high_ineq_1,table_high_ineq_2,table_high_ineq_3,table_high_ineq_4),
                          bind_rows(table_first_1,table_first_2,table_first_3,table_first_4),
                          bind_rows(table_second_1,table_second_2,table_second_3,table_second_4)) 
   
