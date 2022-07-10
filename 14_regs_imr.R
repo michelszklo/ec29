@@ -99,6 +99,25 @@ for (i in seq(1,16,1)){
   
 }
 
+for (i in seq(1,16,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  
+  regress_output_imr(var,var_name,3,1998,"peso_b")
+  
+  
+  if(exists("df_table_all")){
+    df_table_all <- rbind(df_table_all,table_all)
+    
+  } else {
+    
+    df_table_all <- table_all
+    
+  }
+  
+}
+
 
 
 

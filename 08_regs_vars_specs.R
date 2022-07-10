@@ -181,10 +181,10 @@ df <- df %>%
   mutate(lrf_baseline_median = median(lrf_baseline,na.rm = T)) %>% 
   mutate(lrf_baseline_above = ifelse(lrf_baseline>lrf_baseline_median,1,0)) %>%
   # infant mortality rate at the baseline
-  # mutate(tx_mi_baseline = ifelse(ano==2000,
-  #                                (dplyr::lag(tx_mi,2) + dplyr::lag(tx_mi,1) + tx_mi)/3,
-  #                                NA)) %>% 
-  mutate(tx_mi_baseline = ifelse(ano==2000,tx_mi,NA)) %>% 
+  mutate(tx_mi_baseline = ifelse(ano==2000,
+                                 (dplyr::lag(tx_mi_illdef,2) + dplyr::lag(tx_mi_illdef,1) + tx_mi_illdef)/3,
+                                 NA)) %>%
+  # mutate(tx_mi_baseline = ifelse(ano==2000,tx_mi_illdef,NA)) %>% 
   group_by(cod_mun) %>% 
   mutate(tx_mi_baseline = mean(tx_mi_baseline, na.rm = T)) %>% 
   ungroup()
@@ -950,7 +950,7 @@ regress_output_imr <- function(var,var_name,transform,year_filter,weight){
   # ----------------------------------------
   
   # loop through full database and subsamples
-  for (data in c("df","df_first","df_second","df_above","df_below")){
+  for (data in c("df","df_first","df_second","df_above","df_below","df_low_inc","df_high_inc","df_low_ineq","df_high_ineq")){
     
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
