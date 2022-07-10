@@ -328,7 +328,7 @@ spec4_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", pa
 spec1_post_y_imr <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ",imr_controls," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec2_post_y_imr <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(c(baseline_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec3_post_y_imr <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3_post_y_imr <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls,imr_controls,fiscal_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec4_post_y_imr <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls,imr_controls,fiscal_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 # Reduced form specifications
@@ -630,12 +630,13 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
       scale_shape_manual(values = shapes) +
       theme_light() +
       labs(y = var_name,
+           x = "Year",
            shape = "Specification") +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=12),
-            axis.title.y = element_text(size=8),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
             legend.position="bottom")
     
     
@@ -672,12 +673,13 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
       scale_shape_manual(values = shapes) +
       theme_light() +
       labs(y = var_name,
+           x = "Year",
            shape = "Specification") +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=12),
-            axis.title.y = element_text(size=8),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
             legend.position="bottom")
     
     
@@ -714,12 +716,13 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
       scale_shape_manual(values = shapes) +
       theme_light() +
       labs(y = var_name,
+           x = "Year",
            shape = "Specification") +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=12),
-            axis.title.y = element_text(size=8),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
             legend.position="bottom")
     
     
@@ -762,12 +765,13 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
       scale_shape_manual(values = shapes) +
       theme_light() +
       labs(y = var_name,
+           x = "Year",
            shape = "Specification") +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=12),
-            axis.title.y = element_text(size=8),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
             legend.position="bottom")
     
     
@@ -913,12 +917,13 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
       scale_shape_manual(values = shapes) +
       theme_light() +
       labs(y = var_name,
+           x = "Year",
            shape = "Specification") +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=12),
-            axis.title.y = element_text(size=8),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
             legend.position="bottom")
     
     
@@ -955,12 +960,13 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
       scale_shape_manual(values = shapes) +
       theme_light() +
       labs(y = var_name,
+           x = "Year",
            shape = "Specification") +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=12),
-            axis.title.y = element_text(size=8),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
             legend.position="bottom")
     
     
@@ -997,12 +1003,13 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
       scale_shape_manual(values = shapes) +
       theme_light() +
       labs(y = var_name,
+           x = "Year",
            shape = "Specification") +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=12),
-            axis.title.y = element_text(size=8),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
             legend.position="bottom")
     
     
@@ -1045,12 +1052,13 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
       scale_shape_manual(values = shapes) +
       theme_light() +
       labs(y = var_name,
+           x = "Year",
            shape = "Specification") +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=12),
-            axis.title.y = element_text(size=8),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
             legend.position="bottom")
     
     
