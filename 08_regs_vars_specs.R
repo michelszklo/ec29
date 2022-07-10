@@ -617,7 +617,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   
   
   
-  if(lb_na==1 & lb_na==1){
+  if(lb_na==1 & ub_na==1){
     
     graph <- table %>%
       ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
@@ -900,7 +900,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   
   
   
-  if(lb_na==1 & lb_na==1){
+  if(lb_na==1 & ub_na==1){
     
     graph <- table %>%
       ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, shape = spec,group=spec))+
