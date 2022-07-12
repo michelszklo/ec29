@@ -1258,13 +1258,13 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
       ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = Sample,group=Sample))+
       geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
       geom_point(aes(y = lb_adj,x = year,group=Sample),
                  position=position_dodge(width=0.6),
                  shape = 25,
                  fill = "white",
                  size = 1.7,
                  stroke = 0.5) +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
       scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
       scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
       # scale_colour_manual(values = color_graph) +
@@ -1299,13 +1299,13 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
       ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = Sample,group=Sample))+
       geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
       geom_point(aes(y = ub_adj,x = year,group=Sample),
                  position=position_dodge(width=0.6),
                  shape = 24,
                  fill = "white",
                  size = 1.7,
                  stroke = 0.5) +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
       scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
       scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
       # scale_colour_manual(values = color_graph) +
@@ -1339,7 +1339,6 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
       ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = Sample,group=Sample))+
       geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
       geom_point(aes(y = lb_adj,x = year,group=Sample),
                  position=position_dodge(width=0.6),
                  shape = 25,
@@ -1352,6 +1351,7 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
                  fill = "white",
                  size = 1.7,
                  stroke = 0.5) +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
       scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
       scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
       # scale_colour_manual(values = color_graph) +
@@ -1561,13 +1561,13 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
       ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = Sample,group=Sample))+
       geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
       geom_point(aes(y = lb_adj,x = year,group=Sample),
                  position=position_dodge(width=0.6),
                  shape = 25,
                  fill = "white",
                  size = 1.7,
                  stroke = 0.5) +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
       scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
       scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
       # scale_colour_manual(values = color_graph) +
@@ -1602,13 +1602,13 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
       ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = Sample,group=Sample))+
       geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
       geom_point(aes(y = ub_adj,x = year,group=Sample),
                  position=position_dodge(width=0.6),
                  shape = 24,
                  fill = "white",
                  size = 1.7,
                  stroke = 0.5) +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
       scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
       scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
       # scale_colour_manual(values = color_graph) +
@@ -1642,7 +1642,6 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
       ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = Sample,group=Sample))+
       geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
       geom_point(aes(y = lb_adj,x = year,group=Sample),
                  position=position_dodge(width=0.6),
                  shape = 25,
@@ -1655,6 +1654,7 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
                  fill = "white",
                  size = 1.7,
                  stroke = 0.5) +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
       scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
       scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
       # scale_colour_manual(values = color_graph) +
