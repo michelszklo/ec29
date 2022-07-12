@@ -1124,7 +1124,10 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
   df_reg1 <- df1 %>% transformations(transform = transform)
   df_reg2 <- df2 %>% transformations(transform = transform)
   
-  # outcome variable transformation
+  # baseline mean of outcome for each sample
+  
+  baseline1 <- mean(df_reg1[ln_outcome] %>% unlist() %>%  as.numeric())
+  baseline2 <- mean(df_reg2[ln_outcome] %>% unlist() %>%  as.numeric())
   
   
   
@@ -1151,6 +1154,9 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
       mutate(lb = estimate - 1.96 * std.error,
              ub = estimate + 1.96 * std.error,
              year = seq.int(year_filter,2010)) %>% 
+      mutate(estimate = estimate/baseline1*0.10,
+             lb = lb/baseline1*0.10,
+             ub = ub/baseline1*0.10) %>% 
       mutate(Sample = df1_name)
     
   }
@@ -1174,6 +1180,9 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
       mutate(lb = estimate - 1.96 * std.error,
              ub = estimate + 1.96 * std.error,
              year = seq.int(year_filter,2010)) %>% 
+      mutate(estimate = estimate/baseline2*0.10,
+             lb = lb/baseline2*0.10,
+             ub = ub/baseline2*0.10) %>% 
       mutate(Sample = df2_name)
     
   }
@@ -1427,7 +1436,8 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
   df_reg1 <- df1 %>% transformations(transform = transform)
   df_reg2 <- df2 %>% transformations(transform = transform)
   
-  # outcome variable transformation
+  baseline1 <- mean(df_reg1[ln_outcome] %>% unlist() %>%  as.numeric())
+  baseline2 <- mean(df_reg2[ln_outcome] %>% unlist() %>%  as.numeric())
   
   
   
@@ -1454,6 +1464,9 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
       mutate(lb = estimate - 1.96 * std.error,
              ub = estimate + 1.96 * std.error,
              year = seq.int(year_filter,2010)) %>% 
+      mutate(estimate = estimate/baseline1*0.10,
+             lb = lb/baseline1*0.10,
+             ub = ub/baseline1*0.10) %>% 
       mutate(Sample = df1_name)
     
   }
@@ -1477,6 +1490,9 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
       mutate(lb = estimate - 1.96 * std.error,
              ub = estimate + 1.96 * std.error,
              year = seq.int(year_filter,2010)) %>% 
+      mutate(estimate = estimate/baseline2*0.10,
+             lb = lb/baseline2*0.10,
+             ub = ub/baseline2*0.10) %>% 
       mutate(Sample = df2_name)
     
   }
