@@ -55,7 +55,10 @@ load(paste0(dir,"regs.RData"))
 
 
 yearly_folder <- "yearly_reduced_form_dist_ec29_ineq/"
-df1 <- df_low_inc
+
+dir.create(paste0(dir,main_folder,yearly_folder), showWarnings = FALSE)
+
+df1 <- df_low_ineq
 df1_name <- "1. Low Inequality"
 df2 <- df_high_ineq
 df2_name <- "2. High Inequality"
@@ -66,27 +69,27 @@ df2_name <- "2. High Inequality"
 # =================================================================
 
 
-var_map <- rbind(cbind('finbra_reccorr_pcapita','Total Revenue per capita (2010 R$)'),
+var_map <- rbind(cbind('finbra_reccorr_pcapita','Total Revenue per capita (% chg)'),
                  
-                 cbind('finbra_desp_o_pcapita','Total Spending per capita (2010 R$)'),
-                 cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita (2010 R$)'),
-                 cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (2010 R$)'),
-                 cbind('finbra_desp_outros_nature_pcapita','Other Spending per capita (2010 R$)'),
+                 cbind('finbra_desp_o_pcapita','Total Spending per capita (% chg)'),
+                 cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita (% chg)'),
+                 cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (% chg)'),
+                 cbind('finbra_desp_outros_nature_pcapita','Other Spending per capita (% chg)'),
                  
-                 cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (2010 R$)'),
-                 cbind('finbra_desp_transporte_pcapita','Transport Spending per capita (2010 R$)'),
-                 cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (2010 R$)'),
-                 cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (2010 R$)'),
-                 cbind('finbra_desp_assist_prev_pcapita','Social Assistance Spending per capita (2010 R$)'),
-                 cbind('finbra_desp_outros_area_pcapita','Other Areas Spending per capita (2010 R$)'),
+                 cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (% chg)'),
+                 cbind('finbra_desp_transporte_pcapita','Transport Spending per capita (% chg)'),
+                 cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (% chg)'),
+                 cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (% chg)'),
+                 cbind('finbra_desp_assist_prev_pcapita','Social Assistance Spending per capita (% chg)'),
+                 cbind('finbra_desp_outros_area_pcapita','Other Areas Spending per capita (% chg)'),
                  
-                 cbind('siops_despsaude_pcapita','Health Spending per capita - Total (2010 R$)'),
-                 cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (2010 R$)'),
-                 cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Transfers (2010 R$)'),
-                 cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources (2010 R$)'),
-                 cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (2010 R$)'),
-                 cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (2010 R$)'),
-                 cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (2010 R$)'))
+                 cbind('siops_despsaude_pcapita','Health Spending per capita - Total (% chg)'),
+                 cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (% chg)'),
+                 cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Transfers (% chg)'),
+                 cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources (% chg)'),
+                 cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (% chg)'),
+                 cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (% chg)'),
+                 cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (% chg)'))
 
 # figure 6
 
@@ -94,7 +97,7 @@ for (i in seq(1,2,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-7500,2500,1000,"6",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.8,0.4,0.2,"6",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
   
 }
 
@@ -104,7 +107,7 @@ for (i in seq(3,5,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-3000,1000,500,"7",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1,0.4,0.2,"7",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 # figure 8
@@ -113,7 +116,7 @@ for (i in seq(6,11,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-2000,1000,500,"8",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1.8,0.4,0.2,"8",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 # figure 9
@@ -122,7 +125,7 @@ for (i in c(6,seq(12,14,1))){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-500,800,100,"9",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.6,0.6,0.2,"9",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 
@@ -132,7 +135,7 @@ for (i in seq(15,18,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-150,350,50,"10",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.4,1.2,0.2,"10",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 
@@ -170,7 +173,7 @@ for (i in seq(1,2,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.5,0.5,0.1,"11",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.1,0.1,0.02,"11",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 
@@ -179,7 +182,7 @@ for (i in seq(3,11,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-2,2.5,0.5,"12",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.6,1.2,0.2,"12",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 
@@ -188,7 +191,7 @@ for (i in seq(12,19,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.3,0.3,0.1,"13",below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.2,0.4,0.05,"13",below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
 }
 
 
@@ -217,7 +220,7 @@ for (i in seq(1,3,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.2,0.2,0.05,"14",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.4,0.2,0.05,"14",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 
@@ -226,14 +229,14 @@ for (i in seq(4,5,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-6,10,2,"15",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.4,0.4,0.05,"15",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 for (i in seq(6,9,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-6,10,2,"15",below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.4,0.4,0.05,"15",below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
 }
 
 
@@ -271,7 +274,7 @@ for (i in seq(1,3,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_imr_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-20,10,5,"16",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly_imr_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.4,0.4,0.05,"16",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 
@@ -287,7 +290,7 @@ for (i in seq(12,15,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_imr_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-10,10,5,"17",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly_imr_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.4,0.4,0.05,"17",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 
@@ -303,7 +306,7 @@ for (i in seq(4,11,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_imr_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-10,10,5,"18",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly_imr_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.6,0.6,0.05,"18",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 
@@ -333,7 +336,7 @@ for (i in seq(2,3,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1.5,1.5,0.5,"19",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.05,0.05,0.01,"19",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 
