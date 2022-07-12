@@ -54,14 +54,14 @@ dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 load(paste0(dir,"regs.RData"))
 
 
-yearly_folder <- "yearly_reduced_form_dist_ec29_ineq/"
+yearly_folder <- "yearly_reduced_form_dist_ec29_income/"
 
 dir.create(paste0(dir,main_folder,yearly_folder), showWarnings = FALSE)
 
-df1 <- df_low_ineq
-df1_name <- "1. Low Inequality"
-df2 <- df_high_ineq
-df2_name <- "2. High Inequality"
+df1 <- df_low_inc
+df1_name <- "1. Low Income"
+df2 <- df_high_inc
+df2_name <- "2. High Income"
 
 
 
@@ -116,7 +116,7 @@ for (i in seq(6,11,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1.8,0.4,0.2,"8",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-2.4,0.4,0.2,"8",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 # figure 9
@@ -182,7 +182,7 @@ for (i in seq(3,11,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.6,1.2,0.2,"12",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1,1.2,0.2,"12",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 
