@@ -1081,6 +1081,615 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
 }
 
 
+# regs + graph function for heterogeneity analysis. 
+reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transform,year_filter,y0,yf,ys,sample,below,weight,year_cap){
+  
+  transformations <- function(df_reg,transform){
+    
+    if(transform==1){
+      # log
+      ln_outcome <- paste0("ln_",outcome)
+      df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
+      df_reg <- df_reg %>% 
+        mutate_at(ln_outcome,log)
+      
+      
+      
+    } else if(transform==2){
+      # inverse hyperbolic sign
+      ln_outcome <- paste0("ln_",outcome)
+      df_reg[ln_outcome] <- df_reg[outcome]
+      df_reg <- df_reg %>% 
+        mutate_at(ln_outcome,asinh)
+    } else {
+      # level
+      ln_outcome <- paste0("ln_",outcome)
+      df_reg[ln_outcome] <- df_reg[outcome]
+    }
+    
+    # filtering regression variables
+    df_reg <- df_reg %>% 
+      select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
+             peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r,
+             finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+      filter(ano>=year_filter)
+    
+    df_reg <- df_reg[complete.cases(df_reg),]
+    df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
+    
+  }
+  
+  ln_outcome <- paste0("ln_",outcome)
+  
+  df_reg1 <- df1 %>% transformations(transform = transform)
+  df_reg2 <- df2 %>% transformations(transform = transform)
+  
+  # outcome variable transformation
+  
+  
+  
+  
+  # Regressions
+  # ------------------------------------
+  
+  for (spec in c(4)){
+    
+    spec_reduced<- get(paste0("spec",spec,"_post_y"))
+    
+    weight_vector <- df_reg1[weight] %>% unlist() %>% as.numeric()
+    # second stage regression
+    # ------------------------------
+    
+    regformula <- as.formula(paste(ln_outcome,spec_reduced))
+    fit <- felm(regformula, data = df_reg1, weights = weight_vector,exactDOF = T)
+    
+    table1 <- fit %>% 
+      broom::tidy() %>%
+      slice(1:13) %>%
+      select(term,estimate,std.error) %>% 
+      mutate(estimate = ifelse(term==paste0("post_00_",instrument),0,estimate)) %>% 
+      mutate(lb = estimate - 1.96 * std.error,
+             ub = estimate + 1.96 * std.error,
+             year = seq.int(year_filter,2010)) %>% 
+      mutate(Sample = df1_name)
+    
+  }
+  
+  for (spec in c(4)){
+    
+    spec_reduced<- get(paste0("spec",spec,"_post_y"))
+    
+    weight_vector <- df_reg2[weight] %>% unlist() %>% as.numeric()
+    # second stage regression
+    # ------------------------------
+    
+    regformula <- as.formula(paste(ln_outcome,spec_reduced))
+    fit <- felm(regformula, data = df_reg2, weights = weight_vector,exactDOF = T)
+    
+    table2 <- fit %>% 
+      broom::tidy() %>%
+      slice(1:13) %>%
+      select(term,estimate,std.error) %>% 
+      mutate(estimate = ifelse(term==paste0("post_00_",instrument),0,estimate)) %>% 
+      mutate(lb = estimate - 1.96 * std.error,
+             ub = estimate + 1.96 * std.error,
+             year = seq.int(year_filter,2010)) %>% 
+      mutate(Sample = df2_name)
+    
+  }
+  
+  
+  table <- rbind(table1,table2)
+  
+  # adjusments for big confidence intervals
+  table <- table %>% 
+    mutate(lb_adj = NA,
+           ub_adj = NA) %>% 
+    mutate(lb_adj = ifelse(lb<y0,y0,lb_adj),
+           ub_adj = ifelse(ub>yf,yf,ub_adj)) %>% 
+    mutate(lb = ifelse(lb<y0,y0,lb),
+           ub = ifelse(ub>yf,yf,ub))
+  
+  # graphs variation
+  
+  # if all NA for lb_adj
+  if(table %>% filter(!is.na(lb_adj)) %>% nrow() == 0){
+    lb_na <- 1
+  }else{
+    lb_na <- 0
+  }
+  
+  # if all NA for ub_adj
+  if(table %>% filter(!is.na(ub_adj)) %>% nrow() == 0){
+    ub_na <- 1
+  }else{
+    ub_na <- 0
+  }
+  
+  
+  # GRAPHS
+  # ---------
+  
+  # shapes <-  c(8,15,19)
+  colors <-  c("#67a9cf","#ef8a62")
+  
+  # graph with now bounds adjs
+  
+  
+  
+  if(lb_na==1 & ub_na==1){
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = Sample,group=Sample))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_color_manual(values = colors) +
+      theme_light() +
+      labs(y = var_name,
+           x = "Year") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+    
+  } else if (lb_na==0 & ub_na ==1) {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = Sample,group=Sample))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
+      geom_point(aes(y = lb_adj,x = year,group=Sample),
+                 position=position_dodge(width=0.6),
+                 shape = 25,
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_color_manual(values = colors) +
+      theme_light() +
+      labs(y = var_name,
+           x = "Year") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+    
+  } else if (lb_na==1 & ub_na ==0) {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = Sample,group=Sample))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
+      geom_point(aes(y = ub_adj,x = year,group=Sample),
+                 position=position_dodge(width=0.6),
+                 shape = 24,
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_color_manual(values = colors) +
+      theme_light() +
+      labs(y = var_name,
+           x = "Year") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+  } else {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = Sample,group=Sample))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
+      geom_point(aes(y = lb_adj,x = year,group=Sample),
+                 position=position_dodge(width=0.6),
+                 shape = 25,
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      geom_point(aes(y = ub_adj,x = year,group=Sample),
+                 position=position_dodge(width=0.6),
+                 shape = 24,
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_color_manual(values = colors) +
+      theme_light() +
+      labs(y = var_name,
+           x = "Year") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+  }
+  
+  
+  
+}
+
+reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transform,year_filter,y0,yf,ys,sample,below,weight,year_cap){
+  
+  transformations <- function(df_reg,transform){
+    
+    if(transform==1){
+      # log
+      ln_outcome <- paste0("ln_",outcome)
+      df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
+      df_reg <- df_reg %>% 
+        mutate_at(ln_outcome,log)
+      
+      
+      
+    } else if(transform==2){
+      # inverse hyperbolic sign
+      ln_outcome <- paste0("ln_",outcome)
+      df_reg[ln_outcome] <- df_reg[outcome]
+      df_reg <- df_reg %>% 
+        mutate_at(ln_outcome,asinh)
+    } else {
+      # level
+      ln_outcome <- paste0("ln_",outcome)
+      df_reg[ln_outcome] <- df_reg[outcome]
+    }
+    
+    # filtering regression variables
+    df_reg <- df_reg %>% 
+      select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
+             peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r,
+             finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+      filter(ano>=year_filter)
+    
+    df_reg <- df_reg[complete.cases(df_reg),]
+    df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
+    
+  }
+  
+  ln_outcome <- paste0("ln_",outcome)
+  
+  df_reg1 <- df1 %>% transformations(transform = transform)
+  df_reg2 <- df2 %>% transformations(transform = transform)
+  
+  # outcome variable transformation
+  
+  
+  
+  
+  # Regressions
+  # ------------------------------------
+  
+  for (spec in c(4)){
+    
+    spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
+    
+    weight_vector <- df_reg1[weight] %>% unlist() %>% as.numeric()
+    # second stage regression
+    # ------------------------------
+    
+    regformula <- as.formula(paste(ln_outcome,spec_reduced))
+    fit <- felm(regformula, data = df_reg1, weights = weight_vector,exactDOF = T)
+    
+    table1 <- fit %>% 
+      broom::tidy() %>%
+      slice(1:13) %>%
+      select(term,estimate,std.error) %>% 
+      mutate(estimate = ifelse(term==paste0("post_00_",instrument),0,estimate)) %>% 
+      mutate(lb = estimate - 1.96 * std.error,
+             ub = estimate + 1.96 * std.error,
+             year = seq.int(year_filter,2010)) %>% 
+      mutate(Sample = df1_name)
+    
+  }
+  
+  for (spec in c(4)){
+    
+    spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
+    
+    weight_vector <- df_reg2[weight] %>% unlist() %>% as.numeric()
+    # second stage regression
+    # ------------------------------
+    
+    regformula <- as.formula(paste(ln_outcome,spec_reduced))
+    fit <- felm(regformula, data = df_reg2, weights = weight_vector,exactDOF = T)
+    
+    table2 <- fit %>% 
+      broom::tidy() %>%
+      slice(1:13) %>%
+      select(term,estimate,std.error) %>% 
+      mutate(estimate = ifelse(term==paste0("post_00_",instrument),0,estimate)) %>% 
+      mutate(lb = estimate - 1.96 * std.error,
+             ub = estimate + 1.96 * std.error,
+             year = seq.int(year_filter,2010)) %>% 
+      mutate(Sample = df2_name)
+    
+  }
+  
+  
+  table <- rbind(table1,table2)
+  
+  # adjusments for big confidence intervals
+  table <- table %>% 
+    mutate(lb_adj = NA,
+           ub_adj = NA) %>% 
+    mutate(lb_adj = ifelse(lb<y0,y0,lb_adj),
+           ub_adj = ifelse(ub>yf,yf,ub_adj)) %>% 
+    mutate(lb = ifelse(lb<y0,y0,lb),
+           ub = ifelse(ub>yf,yf,ub))
+  
+  # graphs variation
+  
+  # if all NA for lb_adj
+  if(table %>% filter(!is.na(lb_adj)) %>% nrow() == 0){
+    lb_na <- 1
+  }else{
+    lb_na <- 0
+  }
+  
+  # if all NA for ub_adj
+  if(table %>% filter(!is.na(ub_adj)) %>% nrow() == 0){
+    ub_na <- 1
+  }else{
+    ub_na <- 0
+  }
+  
+  
+  # GRAPHS
+  # ---------
+  
+  # shapes <-  c(8,15,19)
+  colors <-  c("#67a9cf","#ef8a62")
+  
+  # graph with now bounds adjs
+  
+  
+  
+  if(lb_na==1 & ub_na==1){
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = Sample,group=Sample))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_color_manual(values = colors) +
+      theme_light() +
+      labs(y = var_name,
+           x = "Year") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+    
+  } else if (lb_na==0 & ub_na ==1) {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = Sample,group=Sample))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
+      geom_point(aes(y = lb_adj,x = year,group=Sample),
+                 position=position_dodge(width=0.6),
+                 shape = 25,
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_color_manual(values = colors) +
+      theme_light() +
+      labs(y = var_name,
+           x = "Year") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+    
+  } else if (lb_na==1 & ub_na ==0) {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = Sample,group=Sample))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
+      geom_point(aes(y = ub_adj,x = year,group=Sample),
+                 position=position_dodge(width=0.6),
+                 shape = 24,
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_color_manual(values = colors) +
+      theme_light() +
+      labs(y = var_name,
+           x = "Year") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+  } else {
+    
+    graph <- table %>%
+      ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color = Sample,group=Sample))+
+      geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
+      geom_pointrange(size = 0.4, alpha = 1, position = position_dodge(width=0.6)) +
+      geom_point(aes(y = lb_adj,x = year,group=Sample),
+                 position=position_dodge(width=0.6),
+                 shape = 25,
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      geom_point(aes(y = ub_adj,x = year,group=Sample),
+                 position=position_dodge(width=0.6),
+                 shape = 24,
+                 fill = "white",
+                 size = 1.7,
+                 stroke = 0.5) +
+      scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      # scale_colour_manual(values = color_graph) +
+      scale_color_manual(values = colors) +
+      theme_light() +
+      labs(y = var_name,
+           x = "Year") +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            plot.title = element_text(size = 10, face = "bold"),
+            axis.title.x = element_text(size=10),
+            axis.title.y = element_text(size=6),
+            legend.position="bottom")
+    
+    
+    
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
+           plot = graph,
+           device = "png",
+           width = 7, height = 5,
+           units = "in")
+    ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
+           plot = graph,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+    
+  }
+  
+  
+  
+}
+
+
+
 # 7. Output functions
 # =================================================================
 
