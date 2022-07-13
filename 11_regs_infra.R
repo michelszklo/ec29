@@ -58,9 +58,6 @@ load(paste0(dir,"regs.RData"))
 
 var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community Health Agents'),
                  cbind('eSF_popprop','Population covered (share) by Family Health Agents'),
-                 cbind('siab_regist_pers_pcapita','N. of People Register in the Primary Care System (per capita)'),
-                 cbind('siab_regist_pers_pacs_pcapita','N. of People Register in the CH Program (per capita)'),
-                 cbind('siab_regist_pers_psf_pcapita','N. of People Register in the FH Program (per capita)'),
                  cbind('siab_accomp_especif_pcapita','N. of People Visited by Primary Care Agents (per capita)'),
                  cbind('siab_accomp_especif_pacs_pcapita','N. of People Visited by Community Health Agents (per capita)'),
                  cbind('siab_accomp_especif_psf_pcapita','N. of People Visited by Family Health Agents (per capita)'),
@@ -69,7 +66,18 @@ var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community He
                  cbind('siab_visit_cha_psf_pcapita','N. of Household Visits by Family Health Agents (per capita)'),
                  cbind('siab_cons_especif_pcapita','N. of Appointments (per capita)'),
                  cbind('siab_cons_especif_pacs_pcapita','N. of Appointments from Community Health Program (per capita)'),
-                 cbind('siab_cons_especif_pcapita','N. of Appointments from Family Health Program (per capita)')
+                 cbind('siab_cons_especif_psf_pcapita','N. of Appointments from Family Health Program (per capita)'),
+                 
+                 cbind('sia_ncnes_amb_mun_pcapita','N. of Health Facilities with Ambulatory Service (per capita*1000)'),
+                 cbind('sia_ncnes_acs_pcapita','N. of Health Facilities with Ambulatory Service and ACS Teams (per capita*1000)'),
+                 cbind('sia_ncnes_psf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Teams (per capita*1000)'),
+                 cbind('sia_ncnes_medcom_pcapita','N. of Health Facilities with Ambulatory Service and Community Doctors (per capita*1000)'),
+                 cbind('sia_ncnes_medpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Doctors (per capita*1000)'),
+                 cbind('sia_ncnes_enfacs_pcapita','N. of Health Facilities with Ambulatory Service and ACS Nurses (per capita*1000)'),
+                 cbind('sia_ncnes_enfpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Nurses (per capita*1000)'),
+                 cbind('sia_ncnes_outpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Nursing Assistants (per capita*1000)'),
+                 cbind('leitos_pc',"N. of Hospital Beds (per capita)"),
+                 cbind('hospital','Presence of Hospital')
 )
 
 
@@ -78,23 +86,13 @@ adjust_years <- function(df){
   df <- df
 }
 
-df <- df %>% adjust_years()
-df_below <- df_below %>% adjust_years()
-df_above <- df_above %>% adjust_years()
-
 
 # 3. Run and ouput
 # =================================================================
-df <- df %>%
-  filter(ano<=2010) %>%
-  mutate(iv=ifelse(ano<=2000,0,iv),
-         iv_firstterm = ifelse(ano<=2000,0,iv_firstterm),
-         firstterm = ifelse(ano<=2000,0,firstterm)) 
 
 
 
-
-for (i in 1:14){
+for (i in 1:21){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)

@@ -54,42 +54,16 @@ dir2 <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 # 1. Folder, files and instrument setup
 # =================================================================
 
-# running_map <- rbind(
-#   cbind("regs_outputs/","yearly_reduced_form_ec29/","ec29_baseline",0,"results_ec29_baseline.xlsx"),
-#   cbind("regs_outputs/","yearly_reduced_form_ec29_b/","ec29_baseline_below",1,"results_ec29_baseline.xlsx"),
-#   cbind("regs_outputs/","yearly_reduced_form_dist_ec29/","dist_ec29_baseline",0,"results_dist_ec29_baseline.xlsx"),
-#   cbind("regs_outputs/","yearly_reduced_form_dist_ec29_b/","dist_ec29_baseline_below",1,"results_dist_ec29_baseline.xlsx"),
-#   cbind("regs_outputs/","yearly_reduced_form_dist_spending/","dist_spending_pc_baseline",0,"results_dist_spending_baseline.xlsx"),
-#   cbind("regs_outputs/","yearly_reduced_form_dist_spending_b/","dist_spending_pc_baseline_below",1,"results_dist_spending_baseline.xlsx"),
-#   cbind("regs_outputs/","yearly_reduced_form_dist_spending2/","dist_spending_baseline",0,"results_dist_spending2_baseline.xlsx"),
-#   cbind("regs_outputs/","yearly_reduced_form_dist_spending2_b/","dist_spending_baseline_below",1,"results_dist_spending2_baseline.xlsx")
-# )
-
-
-# running_map <- rbind(
-#   cbind("regs_outputs/","yearly_reduced_form_dist_ec29/","dist_ec29_baseline",0,"results_dist_ec29_baseline.xlsx")
-#   
-# )
 
 # running_map <- rbind(
 #   cbind("regs_outputs/","yearly_reduced_form_dist_ec29_elect/","dist_ec29_baseline",0,"results_dist_ec29_baseline_elect.xlsx")
-#   
-# )
-
-# running_map <- rbind(
-#   cbind("regs_outputs/","yearly_reduced_form_dist_ec29_governance/","dist_ec29_baseline",0,"results_dist_ec29_baseline_governance.xlsx")
 # 
-# )
-
-# running_map <- rbind(
-#   cbind("regs_outputs/","yearly_reduced_form_dist_ec29_income/","dist_ec29_baseline",0,"results_dist_ec29_baseline_income.xlsx")
-#   
 # )
 
 
 running_map <- rbind(
   cbind("regs_outputs/","yearly_reduced_form_dist_ec29_income/","dist_ec29_baseline",0,"results_dist_ec29_baseline_ineq.xlsx")
-  
+
 )
 
 
@@ -162,9 +136,9 @@ for(i in 1){
   scripts <- "ec29/"
   dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"14_regs_imr.R"))
-  scripts <- "ec29/"
-  dir <- "C:/Users/Michel/Documents/GitHub/"
-  source(paste0(dir,scripts,"15_regs_amr.R"))
+  # scripts <- "ec29/"
+  # dir <- "C:/Users/Michel/Documents/GitHub/"
+  # source(paste0(dir,scripts,"15_regs_amr.R"))
   # scripts <- "ec29/"
   # dir <- "C:/Users/Michel/Documents/GitHub/"
   # source(paste0(dir,scripts,"16_regs_cmr.R"))

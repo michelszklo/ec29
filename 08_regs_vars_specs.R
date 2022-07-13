@@ -162,7 +162,7 @@ df <- df %>%
   mutate(post_07 = ifelse(ano==2007,1,0)) %>% 
   mutate(post_08 = ifelse(ano==2008,1,0)) %>% 
   mutate(post_09 = ifelse(ano==2009,1,0)) %>% 
-  mutate(post_10 = ifelse(ano==2010,1,0)) %>%
+  mutate(post_10 = ifelse(ano==2010,1,0)) %>% 
   # weights
   mutate(peso_eq = 1) %>% 
   group_by(cod_mun) %>% 
@@ -171,12 +171,23 @@ df <- df %>%
          peso_a1 = mean(pop_25_39, na.rm = T),
          peso_a2 = mean(pop_40_59, na.rm = T),
          peso_r = mean(finbra_reccorr_pcapita,na.rm = T)) %>% 
+  ungroup() %>% 
+  # sample split variable (by LRF)
+  group_by(cod_mun) %>% 
+  mutate(lrf_baseline = ifelse(ano==2000,lrf,NA)) %>% 
+  mutate(lrf_baseline  = mean(lrf_baseline,na.rm = T)) %>% 
+  ungroup() %>% 
+  mutate(lrf_baseline_median = median(lrf_baseline,na.rm = T)) %>% 
+  mutate(lrf_baseline_above = ifelse(lrf_baseline>lrf_baseline_median,1,0)) %>%
+  # infant mortality rate at the baseline
+  mutate(tx_mi_baseline = ifelse(ano==2000,
+                                 (dplyr::lag(tx_mi_illdef,2) + dplyr::lag(tx_mi_illdef,1) + tx_mi_illdef)/3,
+                                 NA)) %>%
+  # mutate(tx_mi_baseline = ifelse(ano==2000,tx_mi_illdef,NA)) %>% 
+  group_by(cod_mun) %>% 
+  mutate(tx_mi_baseline = mean(tx_mi_baseline, na.rm = T)) %>% 
   ungroup()
-# mutate(post_11 = ifelse(ano==2011,1,0)) %>% 
-# mutate(post_12 = ifelse(ano==2012,1,0)) %>% 
-# mutate(post_13 = ifelse(ano==2013,1,0)) %>% 
-# mutate(post_14 = ifelse(ano==2014,1,0)) %>% 
-# mutate(post_15 = ifelse(ano==2015,1,0)) 
+
 
 
 
@@ -195,6 +206,14 @@ df <- df %>%
   mutate_at(controlsvar_baseline, function(x) mean(x,na.rm = T)) %>% 
   ungroup()
 
+# generating high (low) income sample and high (low) inequality sample
+df <- df %>% 
+  mutate(rdpc_baseline_median = median(rdpc_baseline,na.rm = T),
+         gini_baseline_median = median(gini_baseline, na.rm = T)) %>% 
+  mutate(rdpc_baseline_above = ifelse(rdpc_baseline>rdpc_baseline_median,1,0),
+         gini_baseline_above = ifelse(gini_baseline>=gini_baseline_median,1,0))
+
+
 # generating time variable
 df <- df %>% 
   group_by(cod_mun) %>% 
@@ -208,51 +227,24 @@ df <- df %>%
   mutate_at(interact_vars,`*`,quote(t))
 
 
+# creating t * baseline IMR
+df <- df %>% 
+  mutate(t_tx_mi_baseline = tx_mi_baseline * t)
+
+
 # creating year dummies
 df <- df %>% 
   dummy_cols(select_columns = "ano", ignore_na = TRUE)
 
 yeardummies <- grep("^ano_",names(df),value = T)
+dummies <- c(grep("^pre",names(df),value = T),grep("^post_",names(df), value = T))
+yeartreat_dummies <- sapply(dummies, function(x) paste0(x,"_",instrument), simplify = "array", USE.NAMES = F)
 
 
 
 
 # 3. Setting regression samples
 # =================================================================
-
-# sample 1: municipalities below target (positive distance to the target)
-# ------------------------------------------------------------------------
-df_below <- df %>%
-  filter(dist_ec29_baseline>0) #  %>%
-# mutate(ln_dist_spending_pc_baseline = log(dist_spending_pc_baseline))
-
-# interacting dummies with treatment (dist_ec29_baseline)
-
-dummies <- c(grep("^pre",names(df_below),value = T),grep("^post_",names(df), value = T))
-# yeartreat_dummies <- sapply(dummies, function(x) paste0(x,"_ln_dist_spending_pc_baseline"), simplify = "array", USE.NAMES = F)
-yeartreat_dummies <- sapply(dummies, function(x) paste0(x,"_",instrument), simplify = "array", USE.NAMES = F)
-df_below[yeartreat_dummies] <- df_below[dummies]
-
-df_below["iv"] <- df_below[instrument]
-
-df_below <- df_below %>%
-  mutate_at(yeartreat_dummies, `*`,quote(iv)) %>%
-  unnest(all_of(yeartreat_dummies))
-
-# sample 2: municipalities above target
-# ------------------------------------------------------------------------
-df_above <- df %>%
-  filter(dist_ec29_baseline<0) # %>% 
-
-# interacting dummies with treatment (dist_ec29_baseline)
-
-df_above[yeartreat_dummies] <- df_above[dummies]
-df_above["iv"] <- df_above[instrument]
-
-df_above <- df_above %>%
-  mutate_at(yeartreat_dummies, `*`,quote(iv)) %>%
-  unnest(all_of(yeartreat_dummies))
-
 
 # Full sample
 # ------------------------------------------------------------------------
@@ -264,45 +256,61 @@ df <- df %>%
   mutate_at(yeartreat_dummies, `*`,quote(iv)) %>% 
   unnest(all_of(yeartreat_dummies))
 
-# Instrument interacted with first term dummy
-# df <- df %>%
-#   mutate(firstterm = (1-second_term),
-#          iv_firstterm = iv * firstterm) %>%
-#   # baseline first term * time
-#   mutate(t_firstterm = t * firstterm)
-
-# Instrument interacted with firjan index
-# df <- df %>%
-#   mutate(firstterm = firjan_above,
-#          iv_firstterm = iv * firstterm) %>%
-#   # baseline first term * time
-#   mutate(t_firstterm = t * firstterm)
-
-
-# Instrument interacted with per capita income
-# df <- df %>%
-#   group_by(ano) %>% 
-#   mutate(avg_rdpc_baseline = mean(rdpc_baseline,na.rm = T)) %>% 
-#   ungroup() %>% 
-#   mutate(low_income = 0) %>% 
-#   mutate(low_income = ifelse(rdpc_baseline<avg_rdpc_baseline,1,low_income)) %>% 
-#   mutate(firstterm = low_income,
-#          iv_firstterm = iv * firstterm) %>%
-#   # baseline first term * time
-#   mutate(t_firstterm = t * firstterm)
-
-
-# Instrument interacted with income inequality
+# filters to 2010
 df <- df %>%
-  group_by(ano) %>%
-  mutate(avg_gini_baseline = mean(gini_baseline, na.rm = T)) %>%
-  ungroup() %>%
-  mutate(high_ineq = 0) %>%
-  mutate(high_ineq = ifelse(gini_baseline>avg_gini_baseline,1,high_ineq)) %>% 
-    mutate(firstterm = high_ineq,
-           iv_firstterm = iv * firstterm) %>%
-    # baseline first term * time
-    mutate(t_firstterm = t * firstterm)
+  filter(ano<=2010)
+
+# transform treatment into treatment*post
+df <- df %>%
+  mutate(iv=ifelse(ano<=2000,0,iv)) 
+
+
+# Instrument interacted with heterogeneity varaible
+df <- df %>% 
+  # first (second) term
+  # mutate(het = (1-second_term)) %>% 
+  # High (low) inequality
+  mutate(het = gini_baseline_above) %>%
+  mutate(iv_het = iv * het) %>% 
+  mutate(t_het = t * het)
+
+
+
+# Municipalities with mayors at first and second term
+# -----------------------------------------------------------------
+
+df_first <- df %>% 
+  filter(second_term==0)
+
+df_second <- df %>%
+  filter(second_term==1)
+
+
+# Municipalities below and above median LRF rule
+# -----------------------------------------------------------------
+
+df_above <- df %>% 
+  filter(lrf_baseline_above==1)
+
+df_below <- df %>% 
+  filter(lrf_baseline_above==0)
+
+
+# Municipalities below and above median Gini inequality
+# -----------------------------------------------------------------
+df_high_ineq <- df %>% 
+  filter(gini_baseline_above==1)
+
+df_low_ineq <- df %>% 
+  filter(gini_baseline_above==0)
+
+# Municipalities below and above median Income
+# -----------------------------------------------------------------
+df_high_inc <- df %>% 
+  filter(rdpc_baseline_above==1)
+
+df_low_inc <- df %>% 
+  filter(rdpc_baseline_above==0)
 
 
 
@@ -310,30 +318,35 @@ df <- df %>%
 # 4. regression specifications
 # =================================================================
 
-controls <- c(grep("^t_", names(df), value = T),"finbra_desp_saude_san_pcapita_neighbor","lrf")
-controls <- controls[3:length(controls)]
+baseline_controls <- grep("^t_", names(df), value = T)
+baseline_controls <- baseline_controls[3:length(baseline_controls)-1]
 
+tvarying_controls <- c("gdp_mun_pcapita","pbf_pcapita")
 
-# Reduce form specification - yearly
-# ------------------------------------------------
+fiscal_controls <- c("finbra_desp_saude_san_pcapita_neighbor","lrf")
 
-spec1_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
-spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+imr_controls <- "t_tx_mi_baseline"
 
-# # changing the order that controls and fixed effects are added to the specifications
-# spec1_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
-# spec2_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + ano | 0 | cod_mun")
-# spec3_post_y <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+controls <- c(baseline_controls,tvarying_controls,fiscal_controls,imr_controls)
+
 
 
 # Reduced form specifications
 # ------------------------------------------------
 
-# spending in per capita figures
-spec1_post <- paste(" ~ ","iv + iv_firstterm + t_firstterm"," | cod_mun + ano | 0 | cod_mun")
-spec2_post <- paste(" ~ ","iv + iv_firstterm + t_firstterm"," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3_post <- paste(" ~ ","iv + iv_firstterm + t_firstterm"," + ", paste(controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec1_post <- paste(" ~ ","iv + iv_het + t_het"," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec2_post <- paste(" ~ ","iv + iv_het + t_het"," + ", paste(baseline_controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post <- paste(" ~ ","iv + iv_het + t_het"," + ", paste(c(baseline_controls,tvarying_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec4_post <- paste(" ~ ","iv + iv_het + t_het"," + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+
+
+# Reduced form specifications IMR
+# ------------------------------------------------
+
+spec1_post_imr <- paste(" ~ ","iv + iv_het + t_het"," + ",imr_controls," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec2_post_imr <- paste(" ~ ","iv + iv_het + t_het"," + ", paste(c(baseline_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post_imr <- paste(" ~ ","iv + iv_het + t_het"," + ", paste(c(baseline_controls,tvarying_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec4_post_imr <- paste(" ~ ","iv + iv_het + t_het"," + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 
@@ -369,7 +382,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_firstterm,t_firstterm,all_of(controls),pop,
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_het,t_het,all_of(controls),pop,
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r) %>% 
     filter(ano>=year_filter)
   
@@ -381,7 +394,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
   # ------------------------------------
   
   # for (spec in c(1)){
-  for (spec in c(1,2,3)){
+  for (spec in c(1,2,3,4)){
     
     spec_reduced<- get(paste0("spec",spec,"_post"))
     
@@ -418,11 +431,9 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
   
 }
 
-reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below,weight){
+reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_filter,weight){
   
-  # first term sample
-  # ----------------------------------------------------------------
-  df_reg <- df %>% filter(firstterm==1)
+  df_reg <- df
   
   # outcome variable transformation
   
@@ -449,7 +460,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   
   # filtering regression variables
   df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_het,t_het,all_of(controls),pop,
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r) %>% 
     filter(ano>=year_filter)
   
@@ -460,12 +471,12 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   # Regressions
   # ------------------------------------
   
-  for (spec in c(1,2,3)){
+  # for (spec in c(1)){
+  for (spec in c(1,2,3,4)){
     
-    spec_reduced<- get(paste0("spec",spec,"_post_y"))
+    spec_reduced<- get(paste0("spec",spec,"_post_imr"))
     
     weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
-    
     
     # second stage regression
     # ------------------------------
@@ -473,152 +484,27 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
     regformula <- as.formula(paste(ln_outcome,spec_reduced))
     fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
     
-    out <- fit %>% 
-      broom::tidy() %>%
-      slice(1:13) %>%
-      select(term,estimate,std.error) %>% 
-      mutate(estimate = ifelse(term==paste0("post_00_",instrument),0,estimate)) %>% 
-      mutate(lb = estimate - 1.96 * std.error,
-             ub = estimate + 1.96 * std.error,
-             year = seq.int(year_filter,2010),
-             spec = as.character(spec)) %>% 
-      mutate(spec = ifelse(spec=="1","Baseline",spec),
-             spec = ifelse(spec=="2","+ Controls",spec),
-             spec = ifelse(spec=="3","+ State-Year FE",spec)) %>% 
-      mutate(spec = as.factor(spec)) 
+    out <- cbind(fit %>% broom::tidy() %>% slice(1:3),fit %>% broom::glance() %>% select(nobs))
     
-    out$spec <- factor(out$spec,levels = c("Baseline","+ State-Year FE","+ Controls"))  
+    
+    out <- cbind(out,spec)
     
     if(spec==1){
-      table_first <- out
+      table <- out
     }
     else{
-      table_first <- rbind(table_first,out)
+      table <- rbind(table,out)
     }
+    
+    
+    
   }
   
-  table_first <- table_first %>% mutate(sample = "First Term")
+  table <- table %>%
+    mutate(coeff = term,
+           term = ln_outcome)
   
-  # second term sample
-  # ----------------------------------------------------------------
-  df_reg <- df %>% filter(firstterm==0)
-  
-  # outcome variable transformation
-  
-  if(transform==1){
-    # log
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- sapply(df_reg[outcome], function(x) ifelse(x==0,NA,x))
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,log)
-    
-    
-    
-  } else if(transform==2){
-    # inverse hyperbolic sign
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-    df_reg <- df_reg %>% 
-      mutate_at(ln_outcome,asinh)
-  } else {
-    # level
-    ln_outcome <- paste0("ln_",outcome)
-    df_reg[ln_outcome] <- df_reg[outcome]
-  }
-  
-  # filtering regression variables
-  df_reg <- df_reg %>% 
-    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
-           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r) %>% 
-    filter(ano>=year_filter)
-  
-  df_reg <- df_reg[complete.cases(df_reg),]
-  df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
-  
-  
-  # Regressions
-  # ------------------------------------
-  
-  for (spec in c(1,2,3)){
-    
-    spec_reduced<- get(paste0("spec",spec,"_post_y"))
-    
-    weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
-    
-    
-    # second stage regression
-    # ------------------------------
-    
-    regformula <- as.formula(paste(ln_outcome,spec_reduced))
-    fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
-    
-    out <- fit %>% 
-      broom::tidy() %>%
-      slice(1:13) %>%
-      select(term,estimate,std.error) %>% 
-      mutate(estimate = ifelse(term==paste0("post_00_",instrument),0,estimate)) %>% 
-      mutate(lb = estimate - 1.96 * std.error,
-             ub = estimate + 1.96 * std.error,
-             year = seq.int(year_filter,2010),
-             spec = as.character(spec)) %>% 
-      mutate(spec = ifelse(spec=="1","Baseline",spec),
-             spec = ifelse(spec=="2","+ Controls",spec),
-             spec = ifelse(spec=="3","+ State-Year FE",spec)) %>% 
-      mutate(spec = as.factor(spec)) 
-    
-    out$spec <- factor(out$spec,levels = c("Baseline","+ State-Year FE","+ Controls"))  
-    
-    if(spec==1){
-      table_second <- out
-    }
-    else{
-      table_second <- rbind(table_second,out)
-    }
-  }
-  
-  table_second <- table_second %>% mutate(sample = "Second Term")
-  
-  table <- rbind(table_first,table_second)
-  
-  shapes <-  c(17,15,19)
-  color_graph <- c("grey13","grey48")
-  
-  graph <- table %>%
-    ggplot(aes(x = year, y = estimate, ymin = lb, ymax = ub, color=sample,shape = spec))+
-    geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "dotted") +
-    geom_pointrange(size = 0.5, alpha = 0.8, position = position_dodge(width=0.6)) +
-    scale_x_continuous(breaks = seq(1998,2010,1), limits = c(1997.5,2010.5)) +
-    scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
-    scale_color_manual(values = color_graph) +
-    scale_shape_manual(values = shapes) +
-    theme_light() +
-    labs(y = var_name,
-         color = "Sample",
-         shape = "Specification") +
-    theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          plot.title = element_text(size = 10, face = "bold"),
-          axis.title.x = element_text(size=12),
-          axis.title.y = element_text(size=8),
-          legend.position="bottom",
-          legend.box = "vertical",
-          legend.spacing.y = unit(0.0001, "cm")) +
-    guides(colour = guide_legend(order = 1), 
-           shape = guide_legend(order = 2))
-  
-  
-  
-  ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".png"),
-         plot = graph,
-         device = "png",
-         width = 7, height = 5,
-         units = "in")
-  ggsave(paste0(dir,main_folder,yearly_folder,outcome,"_",instrument,"_",instrument,"_",sample,".pdf"),
-         plot = graph,
-         device = "pdf",
-         width = 7, height = 5,
-         units = "in")
+  assign(regression_output,table, envir = .GlobalEnv)
   
   
 }
@@ -644,19 +530,19 @@ table_formating <- function(df,s){
                   df %>% 
                     select(term,std.error,coeff,nobs) %>% filter(coeff=="iv") %>% rename(estimate = std.error)%>% mutate(item="se"),
                   df %>%
-                    select(term,estimate,coeff,nobs) %>% filter(coeff=="iv_firstterm") %>% mutate(item="b"),
+                    select(term,estimate,coeff,nobs) %>% filter(coeff=="iv_het") %>% mutate(item="b"),
                   df %>% 
-                    select(term,std.error,coeff,nobs) %>% filter(coeff=="iv_firstterm") %>% rename(estimate = std.error) %>% mutate(item="se"),
+                    select(term,std.error,coeff,nobs) %>% filter(coeff=="iv_het") %>% rename(estimate = std.error) %>% mutate(item="se"),
                   df %>%
-                    select(term,estimate,coeff,nobs) %>% filter(coeff=="t_firstterm") %>% mutate(item="b"),
+                    select(term,estimate,coeff,nobs) %>% filter(coeff=="t_het") %>% mutate(item="b"),
                   df %>% 
-                    select(term,std.error,coeff,nobs) %>% filter(coeff=="t_firstterm") %>% rename(estimate = std.error) %>% mutate(item="se"),
+                    select(term,std.error,coeff,nobs) %>% filter(coeff=="t_het") %>% rename(estimate = std.error) %>% mutate(item="se"),
                   
   ) %>% 
     pivot_wider(id_cols = c("item","term","nobs"),
                 names_from = "coeff",
                 values_from = "estimate") %>% 
-    select(item,term,iv,iv_firstterm,t_firstterm,everything())
+    select(item,term,iv,iv_het,t_het,everything())
 }  # formats regression outputs into article format
 
 regress_output <- function(var,var_name,transform,year_filter,weight){
@@ -678,9 +564,10 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
   table_all_1 <- reg_df  %>% table_formating(1) %>% mutate(spec = 1)
   table_all_2 <- reg_df  %>% table_formating(2) %>% mutate(spec = 2)
   table_all_3 <- reg_df  %>% table_formating(3) %>% mutate(spec = 3)
+  table_all_4 <- reg_df  %>% table_formating(3) %>% mutate(spec = 4)
   
   
-  table_all <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3)) %>% 
+  table_all <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3,table_all_4)) %>% 
     select(-item)
   
   
@@ -693,6 +580,40 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
   
 }  # runs regressions and output objects
 
+regress_output_imr <- function(var,var_name,transform,year_filter,weight){
+  
+  # REDUCED FORM REGRESSION
+  # ----------------------------------------
+  
+  for (data in c("df")){
+    
+    d <- get(data)
+    obj <- paste0("reg_",data) # name of the output object
+    reduced_imr(var,var_name,d,obj,transform,year_filter,weight) # function for OLS regression
+    
+    
+    print(paste0("Reduced form regs for sample ",data))
+  }
+  
+  # Reduced form final tables
+  table_all_1 <- reg_df  %>% table_formating(1) %>% mutate(spec = 1)
+  table_all_2 <- reg_df  %>% table_formating(2) %>% mutate(spec = 2)
+  table_all_3 <- reg_df  %>% table_formating(3) %>% mutate(spec = 3)
+  table_all_4 <- reg_df  %>% table_formating(3) %>% mutate(spec = 4)
+  
+  
+  table_all <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3,table_all_4)) %>% 
+    select(-item)
+  
+  
+  # IV + OLS + reduced form table
+  # ----------------------------------------
+  
+  
+  # assigning objects to the global envir
+  assign("table_all",table_all, envir = .GlobalEnv) 
+  
+}  # runs regressions and output objects
 
 
 

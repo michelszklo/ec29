@@ -78,13 +78,6 @@ var_map <-  rbind(cbind('tx_mi','Infant Mortality Rate'),
 
 # 3. Run and ouput
 # =================================================================
-df <- df %>%
-  filter(ano<=2010) %>%
-  mutate(iv=ifelse(ano<=2000,0,iv),
-         iv_firstterm = ifelse(ano<=2000,0,iv_firstterm),
-         firstterm = ifelse(ano<=2000,0,firstterm)) 
-
-
 
 
 for (i in seq(1,16,1)){
@@ -92,7 +85,7 @@ for (i in seq(1,16,1)){
   var_name <- var_map[i,2]
   print(var_name)
   
-  regress_output(var,var_name,3,1998,"peso_b")
+  regress_output_imr(var,var_name,3,1998,"peso_b")
   
   
   if(exists("df_table_all")){
