@@ -59,9 +59,9 @@ yearly_folder <- "yearly_reduced_form_dist_ec29_elect/"
 dir.create(paste0(dir,main_folder,yearly_folder), showWarnings = FALSE)
 
 df1 <- df_first
-df1_name <- "1st Term"
+df1_name <- "1. First Term"
 df2 <- df_second
-df2_name <- "2nd Term"
+df2_name <- "2. Second Term"
 
 
 
