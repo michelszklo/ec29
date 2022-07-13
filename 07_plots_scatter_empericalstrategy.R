@@ -74,6 +74,7 @@ df_plot <- df_plot %>%
 # 2. Scatter plots
 # =================================================================
 
+
 corr(df_plot %>% 
        select(c("dist_ec29_baseline","change05_siops_despsaude_pcapita")) %>% 
        rename(ec29 = 1,
@@ -82,6 +83,8 @@ corr(df_plot %>%
        filter(!is.nan(ec29)) %>% 
        filter(spending<1000) %>% 
        filter(ec29>-0.5))
+
+# full sample
 
 
 scatter <- ggplot(df_plot %>% 
@@ -120,7 +123,87 @@ ggsave(filePDF,
 
 
 
+# by inequality
 
+colors <-  c("#67a9cf","#ef8a62")
+
+scatter_ineq <- ggplot(df_plot %>% 
+                    filter(change05_siops_despsaude_pcapita<1000) %>% 
+                    filter(dist_ec29_baseline>-0.5) %>% 
+                    mutate(Inequality = ifelse(gini_baseline_above==1,"2. High","1. Low"))
+                  ,
+                  aes(x = dist_ec29_baseline, y = change05_siops_despsaude_pcapita, color = Inequality,group = Inequality)) +
+  geom_point(size = 0.7, alpha = 0.5) +
+  # geom_smooth(method='lm', color = "sienna2",fill = "sienna2", alpha = 0.1, se = F, size = 0.5)+
+  scale_y_continuous(limits = c(-400,950), breaks = seq(-400,900,100)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  scale_color_manual(values = colors) +
+  labs(y = "Change in Health Spending per capita 2000-2005",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=12),
+        legend.position="bottom", legend.box = "horizontal")
+
+
+
+filePNG <- paste0(output,"scatter_dist_ec29_baseline_change05_ineq.png")
+filePDF <- paste0(output,"scatter_dist_ec29_baseline_change05_ineq.pdf")
+ggsave(filePNG,
+       plot = scatter_ineq,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter_ineq,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
+
+
+
+
+# by electoral term
+
+colors <-  c("#67a9cf","#ef8a62")
+
+scatter_elect <- ggplot(df_plot %>% 
+                         filter(change05_siops_despsaude_pcapita<1000) %>% 
+                         filter(dist_ec29_baseline>-0.5) %>% 
+                         mutate(`Electoral Term` = ifelse(second_term==0,"1. First Term","2. Second Term"))
+                       ,
+                       aes(x = dist_ec29_baseline, y = change05_siops_despsaude_pcapita, color = `Electoral Term`,group = `Electoral Term`)) +
+  geom_point(size = 0.7, alpha = 0.5) +
+  # geom_smooth(method='lm', color = "sienna2",fill = "sienna2", alpha = 0.1, se = F, size = 0.5)+
+  scale_y_continuous(limits = c(-400,950), breaks = seq(-400,900,100)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  scale_color_manual(values = colors) +
+  labs(y = "Change in Health Spending per capita 2000-2005",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=12),
+        legend.position="bottom", legend.box = "horizontal")
+
+
+
+filePNG <- paste0(output,"scatter_dist_ec29_baseline_change05_elect.png")
+filePDF <- paste0(output,"scatter_dist_ec29_baseline_change05_elect.pdf")
+ggsave(filePNG,
+       plot = scatter_elect,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter_elect,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
 
 
 
