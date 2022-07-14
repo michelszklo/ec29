@@ -222,7 +222,7 @@ sinasc <- sinasc %>%
   left_join(sinasc_m, by = c("ano","cod_mun")) %>% 
   mutate(birth_sexratio = ifelse(birth_f==0,NA,birth_m/birth_f)) %>% 
   select(-c("birth_f","birth_m"))
-  
+
 rm(sinasc_f,sinasc_m)
 
 # sim
@@ -380,6 +380,11 @@ siab <- siab %>%
   mutate(cod_mun = as.numeric(cod_mun))
 
 names(siab)[3:14] <- paste("siab",names(siab)[3:14],sep = "_")
+
+siab <- siab %>% 
+  mutate(siab_visit_cons = siab_visit_cha + siab_cons_especif,
+         siab_visit_cons_pacs = siab_visit_cha_pacs + siab_cons_especif_pacs,
+         siab_visit_cons_psf = siab_visit_cha_psf + siab_cons_especif_psf)
 
 
 # 14. Firjan Fiscal Index
@@ -732,7 +737,14 @@ df <- df %>%
          lrf_dummy = ifelse(lrf<0.6,1,0))
 
 
-# 21. Share of spending to total spending (finbra)
+# 21. Changes in SIOPS spending 2000 - 2005
+# ==============================================================
+
+df <- df %>% 
+  mutate(change_05_finbra_desp_saude_san_pcapita = dplyr::lead(finbra_desp_saude_san_pcapita,5) - finbra_desp_saude_san_pcapita,
+         change_05_siops_despsaude_pcapita = dplyr::lead(siops_despsaude_pcapita,5) - siops_despsaude_pcapita)
+
+# 22. Share of spending to total spending (finbra)
 # ==============================================================
 
 df <- df %>% 
@@ -783,7 +795,7 @@ df <- df %>%
   ) %>% 
   select(-c("sum_check","sum_check2"))
 
-# 22. saving
+# 23. saving
 # ==============================================================
 df <- df %>% filter(ano<=2015)
 

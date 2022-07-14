@@ -99,7 +99,7 @@ import_tabnet_year <- function(csv,object,year_start,year_end,varname,skip){
 # =================================================================
 
 temp <- list.files(path = paste0(path,"SINASC/"), pattern = "*.csv")
-temp <- temp[!temp %in% "nasc_vivos_11_15.csv"]
+temp <- temp[!temp %in% c("nasc_vivos_11_15.csv","SINASC_final.csv","birth_fem.csv","birth_masc.csv")]
 
 for (i in seq.int(1,length(temp))){
   name <- strsplit(temp[i],"[.]") %>% unlist()
@@ -125,7 +125,8 @@ sinasc <- sinasc %>%
          birth_low_weight_2500g = birth_low_weight_2500g / birth_nasc_vivos,
          birth_prenat_0 = birth_prenat_0 / birth_nasc_vivos,
          birth_prenat_1_6 = birth_prenat_1_6 / birth_nasc_vivos,
-         birth_prenat_7_plus = birth_prenat_7_plus / birth_nasc_vivos) %>% 
+         birth_prenat_7_plus = birth_prenat_7_plus / birth_nasc_vivos,
+         birth_prenat_ig = birth_prenat_ig/birth_nasc_vivos) %>% 
   select(-c("birth_apgar1_0_2","birth_apgar1_3_5","birth_apgar1_6_7","birth_apgar1_8_10","birth_apgar5_0_2","birth_apgar5_3_5","birth_apgar5_6_7","birth_apgar5_8_10"))
 
 
