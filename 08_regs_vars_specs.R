@@ -187,7 +187,13 @@ df <- df %>%
   # mutate(tx_mi_baseline = ifelse(ano==2000,tx_mi_illdef,NA)) %>% 
   group_by(cod_mun) %>% 
   mutate(tx_mi_baseline = mean(tx_mi_baseline, na.rm = T)) %>% 
-  ungroup()
+  ungroup() %>% 
+  # change in spending 2000-2005 in the baseline
+  mutate(change_05_siops_despsaude_pcapita_baseline = ifelse(ano==2000,change_05_siops_despsaude_pcapita,NA)) %>% 
+  group_by(cod_mun) %>% 
+  mutate(change_05_siops_despsaude_pcapita_baseline = mean(change_05_siops_despsaude_pcapita_baseline,na.rm = T)) %>% 
+  ungroup() 
+
 
 
 # baseline controls
@@ -204,12 +210,17 @@ df <- df %>%
   mutate_at(controlsvar_baseline, function(x) mean(x,na.rm = T)) %>% 
   ungroup()
 
-# generating high (low) income sample and high (low) inequality sample
+# generating high (low) income sample, high (low) inequality sample, high (low) below poverty line population
 df <- df %>% 
   mutate(rdpc_baseline_median = median(rdpc_baseline,na.rm = T),
-         gini_baseline_median = median(gini_baseline, na.rm = T)) %>% 
+         gini_baseline_median = median(gini_baseline, na.rm = T),
+         pmpob_baseline_median = median(pmpob_baseline, na.rm = T)) %>% 
   mutate(rdpc_baseline_above = ifelse(rdpc_baseline>rdpc_baseline_median,1,0),
-         gini_baseline_above = ifelse(gini_baseline>=gini_baseline_median,1,0))
+         gini_baseline_above = ifelse(gini_baseline>=gini_baseline_median,1,0),
+         pmpob_baseline_above = ifelse(pmpob_baseline>pmpob_baseline_median,1,0)) %>% 
+  mutate(health_income_baseline = change_05_siops_despsaude_pcapita_baseline/rdpc_baseline) %>% 
+  mutate(health_income_baseline_median = median(health_income_baseline,na.rm = T)) %>% 
+  mutate(health_income_baseline_above = ifelse(health_income_baseline>health_income_baseline_median,1,0))
 
 
 # generating time variable
@@ -295,6 +306,25 @@ df_high_inc <- df %>%
 
 df_low_inc <- df %>% 
   filter(rdpc_baseline_above==0)
+
+
+# Municipalities below and above median population below poverty line
+# -----------------------------------------------------------------
+df_high_pov <- df %>% 
+  filter(pmpob_baseline_above==1)
+
+df_low_pov <- df %>% 
+  filter(pmpob_baseline_above==0)
+
+
+# Municipalities below and above median population below poverty line
+# -----------------------------------------------------------------
+df_high_hi <- df %>% 
+  filter(health_income_baseline_above==1)
+
+df_low_hi <- df %>% 
+  filter(health_income_baseline_above==0)
+
 
 
 # 4. regression specifications
