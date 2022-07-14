@@ -312,7 +312,10 @@ sia_nprod <- read.csv(paste0(raw,"SIA_micro/sia_mun.csv"))
 sia_ncnes <- read.csv(paste0(raw,"SIA_micro/sia_ncnes_mun.csv"))
 
 
-ams <- data.frame(read.dta13(paste0(raw,"AMS/ams.dta"))) 
+ams <- data.frame(read.dta13(paste0(raw,"AMS/ams.dta")))
+
+names(ams)[3:43] <- paste("ams",names(ams)[3:43], sep = "_")
+
 
 # ADD VARIABLE AFTER MERGES
 # %>% 
@@ -358,10 +361,10 @@ censo <- data.frame(read.dta13(paste0(raw,"censo/censo.dta"))) %>%
 second_term <- read.csv(paste0(raw,"TSE/second_term.csv"), encoding = "UTF-8") %>% 
   distinct(cod_mun, .keep_all = T)
 
-# 11. AMS-CNES merge INFRA data
-# ==============================================================
-ams_cnes <- read.csv(paste0(raw,"AMS_CNES/AMS_CNES_2002_2010.csv"), encoding = "UTF-8") %>% select(-uf)
-names(ams_cnes)[3:22] <- paste("ams_cnes",names(ams_cnes)[3:22], sep = "_")
+# # 11. AMS-CNES merge INFRA data
+# # ==============================================================
+# ams_cnes <- read.csv(paste0(raw,"AMS_CNES/AMS_CNES_2002_2010.csv"), encoding = "UTF-8") %>% select(-uf)
+# names(ams_cnes)[3:22] <- paste("ams_cnes",names(ams_cnes)[3:22], sep = "_")
 
 
 # 12. SIAB HR data
@@ -481,11 +484,11 @@ df <- mun_list %>%
   left_join(second_term, by = c("cod_mun")) %>%
   # ams
   left_join(ams, by = c("ano","cod_mun")) %>%
-  mutate(hospital_nmun = ifelse(!is.na(hospital_est) & !is.na(hospital_fed),0,NA)) %>%
-  mutate(hospital_nmun = hospital_est + hospital_fed) %>% 
-  mutate(hr_all = hr_superior + hr_technician + hr_elementary + hr_admin) %>% 
+  mutate(ams_hospital_nmun = ifelse(!is.na(ams_hospital_est) & !is.na(ams_hospital_fed),0,NA)) %>%
+  mutate(ams_hospital_nmun = ams_hospital_est + ams_hospital_fed) %>% 
+  mutate(ams_hr_all = ams_hr_superior + ams_hr_technician + ams_hr_elementary + ams_hr_admin) %>% 
   # ams + cnes data
-  left_join(ams_cnes,by = c("ano","cod_mun")) %>% 
+  # left_join(ams_cnes,by = c("ano","cod_mun")) %>% 
   # siab data
   left_join(siab, by = c("ano","cod_mun")) %>% 
   left_join(firjan, by = "cod_mun") %>% 
@@ -676,10 +679,7 @@ df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x
 # vars
 infra_vars <- c("ACS_I", "eSF_I")
 sia_vars <- c("sia","sia_ab",grep("^sia_nprod",names(df),value = T))
-ams_vars <- c(grep("^hospital_",names(df), value = T),
-              grep("^unity_",names(df), value = T),
-              grep("^therapy_",names(df), value = T),
-              grep("^hr_",names(df), value = T))
+ams_vars <- grep("^ams_",names(df), value = T)
 siab_vars <- grep("siab",names(df),value = T)
 
 
@@ -698,10 +698,10 @@ df <- df %>%
   mutate_at(vars_new,`/`,quote(pop))
 
 # per capita * 1000 inhabitants figures
-ams_cnes_vars <- grep("ams_cnes",names(df),value = T)
+# ams_cnes_vars <- grep("ams_cnes",names(df),value = T)
 sia_ncnes_vars <- grep("sia_ncnes",names(df),value = T)
 
-vars <- c(ams_cnes_vars,sia_ncnes_vars)
+vars <- sia_ncnes_vars
 vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
 df[vars_new] <- df[vars]
 df <- df %>% 
