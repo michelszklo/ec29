@@ -55,8 +55,9 @@ load(paste0(dir,"regs.RData"))
 # 2. Define outcomes output name and output functions
 # =================================================================
 
-var_map <- rbind(cbind('birth_prenat_0','Prenatal Visits None'),
-                 cbind('birth_prenat_1_6','Prenatal Visits 1-6'),
+var_map <- rbind(cbind('birth_prenat_ig','Prenatal Visits - Ignored'),
+                 cbind('birth_prenat_0','Prenatal Visits -  None'),
+                 cbind('birth_prenat_1_6','Prenatal Visits - 1-6'),
                  cbind('birth_prenat_7_plus','Prenatal Visits 7+'),
                  cbind('birth_fertility','Fertility (N. of Births per 10-49y women)'),
                  cbind('birth_apgar1','Apgar 1'),
@@ -72,7 +73,7 @@ var_map <- rbind(cbind('birth_prenat_0','Prenatal Visits None'),
 # 3. Run and ouput
 # =================================================================
 
-for (i in seq(1,11,1)){
+for (i in seq(1,12,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
