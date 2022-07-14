@@ -61,12 +61,16 @@ var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community He
                  cbind('siab_accomp_especif_pcapita','N. of People Visited by Primary Care Agents (per capita)'),
                  cbind('siab_accomp_especif_pacs_pcapita','N. of People Visited by Community Health Agents (per capita)'),
                  cbind('siab_accomp_especif_psf_pcapita','N. of People Visited by Family Health Agents (per capita)'),
-                 cbind('siab_visit_cha_pcapita','N. of Household Visits (per capita)'),
-                 cbind('siab_visit_cha_pacs_pcapita','N. of Household Visits by Community Health Agents (per capita)'),
-                 cbind('siab_visit_cha_psf_pcapita','N. of Household Visits by Family Health Agents (per capita)'),
-                 cbind('siab_cons_especif_pcapita','N. of Appointments (per capita)'),
-                 cbind('siab_cons_especif_pacs_pcapita','N. of Appointments from Community Health Program (per capita)'),
-                 cbind('siab_cons_especif_psf_pcapita','N. of Appointments from Family Health Program (per capita)'),
+                 cbind('siab_cons_especif_pcapita','N. of Household Visits and Appointments (per capita)'),
+                 cbind('siab_visit_cons_pacs_pcapita','N. of Household Visits and Appointments from Community Health Agents (per capita)'),
+                 cbind('siab_visit_cons_psf_pcapita','N. of Household Visits and Appointments from Family Health Agents (per capita)'),
+                 
+                 # cbind('siab_visit_cha_pcapita','N. of Household Visits (per capita)'),
+                 # cbind('siab_visit_cha_pacs_pcapita','N. of Household Visits by Community Health Agents (per capita)'),
+                 # cbind('siab_visit_cha_psf_pcapita','N. of Household Visits by Family Health Agents (per capita)'),
+                 # cbind('siab_cons_especif_pcapita','N. of Appointments (per capita)'),
+                 # cbind('siab_cons_especif_pacs_pcapita','N. of Appointments from Community Health Program (per capita)'),
+                 # cbind('siab_cons_especif_psf_pcapita','N. of Appointments from Family Health Program (per capita)'),
                  
                  cbind('sia_ncnes_amb_mun_pcapita','N. of Health Facilities with Ambulatory Service (per capita*1000)'),
                  cbind('sia_ncnes_acs_pcapita','N. of Health Facilities with Ambulatory Service and ACS Teams (per capita*1000)'),
@@ -87,7 +91,7 @@ var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community He
 # =================================================================
 
 
-for (i in 1:21){
+for (i in 1:18){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
