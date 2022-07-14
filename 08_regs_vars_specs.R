@@ -1763,7 +1763,7 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
   # ----------------------------------------
   
   # loop through full database and subsamples
-  for (data in c("df","df_first","df_second","df_above","df_below","df_low_inc","df_high_inc","df_low_ineq","df_high_ineq")){
+  for (data in c("df","df_low_ineq","df_high_ineq","df_low_pov","df_high_pov","df_low_hi","df_high_hi","df_first","df_second")){
     
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
@@ -1775,117 +1775,102 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
   
   # 2sls final tables
   
-  obs_all_1 <- reg_df %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_all_2 <- reg_df %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_all_3 <- reg_df %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_all_4 <- reg_df %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_all_1 <- reg_df %>% mutate(sample = "all") %>% table_formating(1) %>% rename("all" = "estimate") %>% mutate(obs_all = obs_all_1)
-  table_all_2 <- reg_df %>% mutate(sample = "all") %>% table_formating(2) %>% rename("all" = "estimate") %>% mutate(obs_all = obs_all_2)
-  table_all_3 <- reg_df %>% mutate(sample = "all") %>% table_formating(3) %>% rename("all" = "estimate") %>% mutate(obs_all = obs_all_3)
-  table_all_4 <- reg_df %>% mutate(sample = "all") %>% table_formating(4) %>% rename("all" = "estimate") %>% mutate(obs_all = obs_all_4)
-  
-  
-  obs_low_inc_1 <- reg_df_low_inc %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_low_inc_2 <- reg_df_low_inc %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_low_inc_3 <- reg_df_low_inc %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_low_inc_4 <- reg_df_low_inc %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_low_inc_1 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(1) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_1)
-  table_low_inc_2 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(2) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_2)
-  table_low_inc_3 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(3) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_3)
-  table_low_inc_4 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(4) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_4)
-  
-  
-  obs_high_inc_1 <- reg_df_high_inc %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_high_inc_2 <- reg_df_high_inc %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_high_inc_3 <- reg_df_high_inc %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_high_inc_4 <- reg_df_high_inc %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_high_inc_1 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(1) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_1)
-  table_high_inc_2 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(2) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_2)
-  table_high_inc_3 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(3) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_3)
-  table_high_inc_4 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(4) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_4)
-  
-  
-  obs_low_ineq_1 <- reg_df_low_ineq %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_low_ineq_2 <- reg_df_low_ineq %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_low_ineq_3 <- reg_df_low_ineq %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_low_ineq_4 <- reg_df_low_ineq %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_low_ineq_1 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(1) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_1)
-  table_low_ineq_2 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(2) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_2)
-  table_low_ineq_3 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(3) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_3)
-  table_low_ineq_4 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(4) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_4)
-  
-  
-  obs_high_ineq_1 <- reg_df_high_ineq %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_high_ineq_2 <- reg_df_high_ineq %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_high_ineq_3 <- reg_df_high_ineq %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_high_ineq_4 <- reg_df_high_ineq %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_high_ineq_1 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(1) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_1)
-  table_high_ineq_2 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(2) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_2)
-  table_high_ineq_3 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(3) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_3)
-  table_high_ineq_4 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(4) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_4)
+  organizing_table <- function(d,sample_name,withspec){
+    
+    obs_1 <- d %>% slice(1) %>% select(nobs) %>% as.numeric()
+    obs_2 <- d %>% slice(2) %>% select(nobs) %>% as.numeric()
+    obs_3 <- d %>% slice(3) %>% select(nobs) %>% as.numeric()
+    obs_4 <- d %>% slice(4) %>% select(nobs) %>% as.numeric()
+    
+    obs_name <- paste0("obs_",sample_name)
+    
+    
+    if(withspec==0){
+      
+      table_1 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_1)
+      table_2 <- d %>% mutate(sample = sample_name) %>% table_formating(2) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_2)
+      table_3 <- d %>% mutate(sample = sample_name) %>% table_formating(3) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_3)
+      table_4 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_4)
+      
+      
+    } else {
+      
+      table_1 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_1) %>% mutate(spec=1)
+      table_2 <- d %>% mutate(sample = sample_name) %>% table_formating(2) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_2) %>% mutate(spec=2)
+      table_3 <- d %>% mutate(sample = sample_name) %>% table_formating(3) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_3) %>% mutate(spec=3)
+      table_4 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_4) %>% mutate(spec=4)
+      
+      
+    }
+    
+    
+    name1 <- paste0("table_1_",sample_name)
+    name2 <- paste0("table_2_",sample_name)
+    name3 <- paste0("table_3_",sample_name)
+    name4 <- paste0("table_4_",sample_name)
+    
+    assign(name1,table_1, envir = parent.frame()) 
+    assign(name2,table_2, envir = parent.frame()) 
+    assign(name3,table_3, envir = parent.frame()) 
+    assign(name4,table_4, envir = parent.frame()) 
+    
+    
+  }
   
   
-  obs_below_1 <- reg_df_below %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_below_2 <- reg_df_below %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_below_3 <- reg_df_below %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_below_4 <- reg_df_below %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_below_1 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(1) %>% rename("below" = "estimate") %>% select(-term) %>% mutate(obs_below = obs_below_1)
-  table_below_2 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(2) %>% rename("below" = "estimate") %>% select(-term) %>% mutate(obs_below = obs_below_2)
-  table_below_3 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(3) %>% rename("below" = "estimate") %>% select(-term) %>% mutate(obs_below = obs_below_3)
-  table_below_4 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(4) %>% rename("below" = "estimate") %>% select(-term) %>% mutate(obs_below = obs_below_4)
-  
-  
-  obs_above_1 <- reg_df_above %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_above_2 <- reg_df_above %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_above_3 <- reg_df_above %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_above_4 <- reg_df_above %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_above_1 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(1) %>% rename("above" = "estimate") %>% select(-term)  %>% mutate(obs_above = obs_above_1)
-  table_above_2 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(2) %>% rename("above" = "estimate") %>% select(-term)  %>% mutate(obs_above = obs_above_2)
-  table_above_3 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(3) %>% rename("above" = "estimate") %>% select(-term)  %>% mutate(obs_above = obs_above_3)
-  table_above_4 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(4) %>% rename("above" = "estimate") %>% select(-term)  %>% mutate(obs_above = obs_above_4)
+  organizing_table(reg_df,"all",0)
+  organizing_table(reg_df_low_ineq,"low_ineq",0)
+  organizing_table(reg_df_high_ineq,"high_ineq",0)
+  organizing_table(reg_df_low_pov,"low_pov",0)
+  organizing_table(reg_df_high_pov,"high_pov",0)
+  organizing_table(reg_df_low_hi,"low_hi",0)
+  organizing_table(reg_df_high_hi,"high_hi",0)
+  organizing_table(reg_df_first,"first",0)
+  organizing_table(reg_df_second,"second",1)
   
   
-  obs_first_1 <- reg_df_first %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_first_2 <- reg_df_first %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_first_3 <- reg_df_first %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_first_4 <- reg_df_first %>% slice(4) %>% select(nobs) %>% as.numeric()
+  tables <- ls()[sapply(ls(), function(x) class(get(x))) == 'data.frame']
   
-  table_first_1 <- reg_df_first %>% mutate(sample = "first") %>% table_formating(1) %>% rename("first" = "estimate") %>% select(-term) %>% mutate(obs_first = obs_first_1)
-  table_first_2 <- reg_df_first %>% mutate(sample = "first") %>% table_formating(2) %>% rename("first" = "estimate") %>% select(-term) %>% mutate(obs_first = obs_first_2)
-  table_first_3 <- reg_df_first %>% mutate(sample = "first") %>% table_formating(3) %>% rename("first" = "estimate") %>% select(-term) %>% mutate(obs_first = obs_first_3)
-  table_first_4 <- reg_df_first %>% mutate(sample = "first") %>% table_formating(4) %>% rename("first" = "estimate") %>% select(-term) %>% mutate(obs_first = obs_first_4)
+  binding <- function(name){
+    
+    output <- paste0("table_",name)
+    for(i in grep(name,tables,value = T)){
+      
+      first <- grep("1",i,value = T)
+      d <- get(i)
+      
+      if(length(first>0)){
+        df <- d
+      } else {
+        df <- bind_rows(df,d)
+      }
+      
+    }  
+    
+    assign(output,df,envir = parent.frame())
+    
+  }
   
+  binding("all")
+  binding("low_ineq")
+  binding("high_ineq")
+  binding("low_pov")
+  binding("high_pov")
+  binding("low_hi")
+  binding("high_hi")
+  binding("first")
+  binding("second")
   
-  obs_second_1 <- reg_df_second %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_second_2 <- reg_df_second %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_second_3 <- reg_df_second %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_second_4 <- reg_df_second %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_second_1 <- reg_df_second %>% mutate(sample = "second") %>% table_formating(1) %>% rename("second" = "estimate") %>% select(-term) %>% mutate(obs_second = obs_second_1) %>% mutate(spec=1)
-  table_second_2 <- reg_df_second %>% mutate(sample = "second") %>% table_formating(2) %>% rename("second" = "estimate") %>% select(-term) %>% mutate(obs_second = obs_second_2) %>% mutate(spec=2)
-  table_second_3 <- reg_df_second %>% mutate(sample = "second") %>% table_formating(3) %>% rename("second" = "estimate") %>% select(-term) %>% mutate(obs_second = obs_second_3) %>% mutate(spec=3)
-  table_second_4 <- reg_df_second %>% mutate(sample = "second") %>% table_formating(4) %>% rename("second" = "estimate") %>% select(-term) %>% mutate(obs_second = obs_second_4) %>% mutate(spec=4)
-  
-  
-  
-  
-  table_all <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3,table_all_4),
-                         bind_rows(table_below_1,table_below_2,table_below_3,table_below_4),
-                         bind_rows(table_above_1,table_above_2,table_above_3,table_above_4),
-                         bind_rows(table_low_inc_1,table_low_inc_2,table_low_inc_3,table_low_inc_4),
-                         bind_rows(table_high_inc_1,table_high_inc_2,table_high_inc_3,table_high_inc_4),
-                         bind_rows(table_low_ineq_1,table_low_ineq_2,table_low_ineq_3,table_low_ineq_4),
-                         bind_rows(table_high_ineq_1,table_high_ineq_2,table_high_ineq_3,table_high_ineq_4),
-                         bind_rows(table_first_1,table_first_2,table_first_3,table_first_4),
-                         bind_rows(table_second_1,table_second_2,table_second_3,table_second_4)) 
-  
+  table_all <- bind_cols(table_all,
+                         table_low_ineq %>% select(-term),
+                         table_high_ineq %>% select(-term),
+                         table_low_pov %>% select(-term),
+                         table_high_pov %>% select(-term),
+                         table_low_hi %>% select(-term),
+                         table_high_hi %>% select(-term),
+                         table_first %>% select(-term),
+                         table_second %>% select(-term)
+  )
   
   # assigning objects to the global envir
   assign("table_all",table_all, envir = .GlobalEnv) 
@@ -1898,7 +1883,7 @@ regress_output_imr <- function(var,var_name,transform,year_filter,weight){
   # ----------------------------------------
   
   # loop through full database and subsamples
-  for (data in c("df","df_first","df_second","df_above","df_below","df_low_inc","df_high_inc","df_low_ineq","df_high_ineq")){
+  for (data in c("df","df_low_ineq","df_high_ineq","df_low_pov","df_high_pov","df_low_hi","df_high_hi","df_first","df_second")){
     
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
@@ -1908,119 +1893,102 @@ regress_output_imr <- function(var,var_name,transform,year_filter,weight){
     print(paste0("Regs for sample ",data))
   } 
   
-  # 2sls final tables
-  
-  obs_all_1 <- reg_df %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_all_2 <- reg_df %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_all_3 <- reg_df %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_all_4 <- reg_df %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_all_1 <- reg_df %>% mutate(sample = "all") %>% table_formating(1) %>% rename("all" = "estimate") %>% mutate(obs_all = obs_all_1)
-  table_all_2 <- reg_df %>% mutate(sample = "all") %>% table_formating(2) %>% rename("all" = "estimate") %>% mutate(obs_all = obs_all_2)
-  table_all_3 <- reg_df %>% mutate(sample = "all") %>% table_formating(3) %>% rename("all" = "estimate") %>% mutate(obs_all = obs_all_3)
-  table_all_4 <- reg_df %>% mutate(sample = "all") %>% table_formating(4) %>% rename("all" = "estimate") %>% mutate(obs_all = obs_all_4)
-  
-  
-  obs_low_inc_1 <- reg_df_low_inc %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_low_inc_2 <- reg_df_low_inc %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_low_inc_3 <- reg_df_low_inc %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_low_inc_4 <- reg_df_low_inc %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_low_inc_1 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(1) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_1)
-  table_low_inc_2 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(2) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_2)
-  table_low_inc_3 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(3) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_3)
-  table_low_inc_4 <- reg_df_low_inc %>% mutate(sample = "low_inc") %>% table_formating(4) %>% rename("low_inc" = "estimate") %>% select(-term) %>% mutate(obs_low_inc = obs_low_inc_4)
-  
-  
-  obs_high_inc_1 <- reg_df_high_inc %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_high_inc_2 <- reg_df_high_inc %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_high_inc_3 <- reg_df_high_inc %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_high_inc_4 <- reg_df_high_inc %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_high_inc_1 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(1) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_1)
-  table_high_inc_2 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(2) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_2)
-  table_high_inc_3 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(3) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_3)
-  table_high_inc_4 <- reg_df_high_inc %>% mutate(sample = "high_inc") %>% table_formating(4) %>% rename("high_inc" = "estimate") %>% select(-term)  %>% mutate(obs_high_inc = obs_high_inc_4)
-  
-  
-  obs_low_ineq_1 <- reg_df_low_ineq %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_low_ineq_2 <- reg_df_low_ineq %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_low_ineq_3 <- reg_df_low_ineq %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_low_ineq_4 <- reg_df_low_ineq %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_low_ineq_1 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(1) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_1)
-  table_low_ineq_2 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(2) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_2)
-  table_low_ineq_3 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(3) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_3)
-  table_low_ineq_4 <- reg_df_low_ineq %>% mutate(sample = "low_ineq") %>% table_formating(4) %>% rename("low_ineq" = "estimate") %>% select(-term) %>% mutate(obs_low_ineq = obs_low_ineq_4)
+  organizing_table <- function(d,sample_name,withspec){
+    
+    obs_1 <- d %>% slice(1) %>% select(nobs) %>% as.numeric()
+    obs_2 <- d %>% slice(2) %>% select(nobs) %>% as.numeric()
+    obs_3 <- d %>% slice(3) %>% select(nobs) %>% as.numeric()
+    obs_4 <- d %>% slice(4) %>% select(nobs) %>% as.numeric()
+    
+    obs_name <- paste0("obs_",sample_name)
+    
+    
+    if(withspec==0){
+      
+      table_1 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_1)
+      table_2 <- d %>% mutate(sample = sample_name) %>% table_formating(2) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_2)
+      table_3 <- d %>% mutate(sample = sample_name) %>% table_formating(3) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_3)
+      table_4 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_4)
+      
+      
+    } else {
+      
+      table_1 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_1) %>% mutate(spec=1)
+      table_2 <- d %>% mutate(sample = sample_name) %>% table_formating(2) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_2) %>% mutate(spec=2)
+      table_3 <- d %>% mutate(sample = sample_name) %>% table_formating(3) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_3) %>% mutate(spec=3)
+      table_4 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_4) %>% mutate(spec=4)
+      
+      
+    }
+    
+    
+    name1 <- paste0("table_1_",sample_name)
+    name2 <- paste0("table_2_",sample_name)
+    name3 <- paste0("table_3_",sample_name)
+    name4 <- paste0("table_4_",sample_name)
+    
+    assign(name1,table_1, envir = parent.frame()) 
+    assign(name2,table_2, envir = parent.frame()) 
+    assign(name3,table_3, envir = parent.frame()) 
+    assign(name4,table_4, envir = parent.frame()) 
+    
+    
+  }
   
   
-  obs_high_ineq_1 <- reg_df_high_ineq %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_high_ineq_2 <- reg_df_high_ineq %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_high_ineq_3 <- reg_df_high_ineq %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_high_ineq_4 <- reg_df_high_ineq %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_high_ineq_1 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(1) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_1)
-  table_high_ineq_2 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(2) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_2)
-  table_high_ineq_3 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(3) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_3)
-  table_high_ineq_4 <- reg_df_high_ineq %>% mutate(sample = "high_ineq") %>% table_formating(4) %>% rename("high_ineq" = "estimate") %>% select(-term)  %>% mutate(obs_high_ineq = obs_high_ineq_4)
-  
-  
-  obs_below_1 <- reg_df_below %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_below_2 <- reg_df_below %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_below_3 <- reg_df_below %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_below_4 <- reg_df_below %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_below_1 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(1) %>% rename("below" = "estimate") %>% select(-term) %>% mutate(obs_below = obs_below_1)
-  table_below_2 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(2) %>% rename("below" = "estimate") %>% select(-term) %>% mutate(obs_below = obs_below_2)
-  table_below_3 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(3) %>% rename("below" = "estimate") %>% select(-term) %>% mutate(obs_below = obs_below_3)
-  table_below_4 <- reg_df_below %>% mutate(sample = "below") %>% table_formating(4) %>% rename("below" = "estimate") %>% select(-term) %>% mutate(obs_below = obs_below_4)
+  organizing_table(reg_df,"all",0)
+  organizing_table(reg_df_low_ineq,"low_ineq",0)
+  organizing_table(reg_df_high_ineq,"high_ineq",0)
+  organizing_table(reg_df_low_pov,"low_pov",0)
+  organizing_table(reg_df_high_pov,"high_pov",0)
+  organizing_table(reg_df_low_hi,"low_hi",0)
+  organizing_table(reg_df_high_hi,"high_hi",0)
+  organizing_table(reg_df_first,"first",0)
+  organizing_table(reg_df_second,"second",1)
   
   
-  obs_above_1 <- reg_df_above %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_above_2 <- reg_df_above %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_above_3 <- reg_df_above %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_above_4 <- reg_df_above %>% slice(4) %>% select(nobs) %>% as.numeric()
+  tables <- ls()[sapply(ls(), function(x) class(get(x))) == 'data.frame']
   
-  table_above_1 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(1) %>% rename("above" = "estimate") %>% select(-term)  %>% mutate(obs_above = obs_above_1)
-  table_above_2 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(2) %>% rename("above" = "estimate") %>% select(-term)  %>% mutate(obs_above = obs_above_2)
-  table_above_3 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(3) %>% rename("above" = "estimate") %>% select(-term)  %>% mutate(obs_above = obs_above_3)
-  table_above_4 <- reg_df_above %>% mutate(sample = "above") %>% table_formating(4) %>% rename("above" = "estimate") %>% select(-term)  %>% mutate(obs_above = obs_above_4)
+  binding <- function(name){
+    
+    output <- paste0("table_",name)
+    for(i in grep(name,tables,value = T)){
+      
+      first <- grep("1",i,value = T)
+      d <- get(i)
+      
+      if(length(first>0)){
+        df <- d
+      } else {
+        df <- bind_rows(df,d)
+      }
+      
+    }  
+    
+    assign(output,df,envir = parent.frame())
+    
+  }
   
+  binding("all")
+  binding("low_ineq")
+  binding("high_ineq")
+  binding("low_pov")
+  binding("high_pov")
+  binding("low_hi")
+  binding("high_hi")
+  binding("first")
+  binding("second")
   
-  obs_first_1 <- reg_df_first %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_first_2 <- reg_df_first %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_first_3 <- reg_df_first %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_first_4 <- reg_df_first %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_first_1 <- reg_df_first %>% mutate(sample = "first") %>% table_formating(1) %>% rename("first" = "estimate") %>% select(-term) %>% mutate(obs_first = obs_first_1)
-  table_first_2 <- reg_df_first %>% mutate(sample = "first") %>% table_formating(2) %>% rename("first" = "estimate") %>% select(-term) %>% mutate(obs_first = obs_first_2)
-  table_first_3 <- reg_df_first %>% mutate(sample = "first") %>% table_formating(3) %>% rename("first" = "estimate") %>% select(-term) %>% mutate(obs_first = obs_first_3)
-  table_first_4 <- reg_df_first %>% mutate(sample = "first") %>% table_formating(4) %>% rename("first" = "estimate") %>% select(-term) %>% mutate(obs_first = obs_first_4)
-  
-  
-  obs_second_1 <- reg_df_second %>% slice(1) %>% select(nobs) %>% as.numeric()
-  obs_second_2 <- reg_df_second %>% slice(2) %>% select(nobs) %>% as.numeric()
-  obs_second_3 <- reg_df_second %>% slice(3) %>% select(nobs) %>% as.numeric()
-  obs_second_4 <- reg_df_second %>% slice(4) %>% select(nobs) %>% as.numeric()
-  
-  table_second_1 <- reg_df_second %>% mutate(sample = "second") %>% table_formating(1) %>% rename("second" = "estimate") %>% select(-term) %>% mutate(obs_second = obs_second_1) %>% mutate(spec=1)
-  table_second_2 <- reg_df_second %>% mutate(sample = "second") %>% table_formating(2) %>% rename("second" = "estimate") %>% select(-term) %>% mutate(obs_second = obs_second_2) %>% mutate(spec=2)
-  table_second_3 <- reg_df_second %>% mutate(sample = "second") %>% table_formating(3) %>% rename("second" = "estimate") %>% select(-term) %>% mutate(obs_second = obs_second_3) %>% mutate(spec=3)
-  table_second_4 <- reg_df_second %>% mutate(sample = "second") %>% table_formating(4) %>% rename("second" = "estimate") %>% select(-term) %>% mutate(obs_second = obs_second_4) %>% mutate(spec=4)
-  
-  
-  
-  
-  table_all <- bind_cols(bind_rows(table_all_1,table_all_2,table_all_3,table_all_4),
-                         bind_rows(table_below_1,table_below_2,table_below_3,table_below_4),
-                         bind_rows(table_above_1,table_above_2,table_above_3,table_above_4),
-                         bind_rows(table_low_inc_1,table_low_inc_2,table_low_inc_3,table_low_inc_4),
-                         bind_rows(table_high_inc_1,table_high_inc_2,table_high_inc_3,table_high_inc_4),
-                         bind_rows(table_low_ineq_1,table_low_ineq_2,table_low_ineq_3,table_low_ineq_4),
-                         bind_rows(table_high_ineq_1,table_high_ineq_2,table_high_ineq_3,table_high_ineq_4),
-                         bind_rows(table_first_1,table_first_2,table_first_3,table_first_4),
-                         bind_rows(table_second_1,table_second_2,table_second_3,table_second_4)) 
-  
+  table_all <- bind_cols(table_all,
+                         table_low_ineq %>% select(-term),
+                         table_high_ineq %>% select(-term),
+                         table_low_pov %>% select(-term),
+                         table_high_pov %>% select(-term),
+                         table_low_hi %>% select(-term),
+                         table_high_hi %>% select(-term),
+                         table_first %>% select(-term),
+                         table_second %>% select(-term)
+  )
   
   # assigning objects to the global envir
   assign("table_all",table_all, envir = .GlobalEnv) 
