@@ -151,6 +151,9 @@ for(i in 1){
   source(paste0(dir,scripts,"12_regs_sia.R"))
   scripts <- "ec29/"
   dir <- "C:/Users/Michel/Documents/GitHub/"
+  source(paste0(dir,scripts,"13_regs_ams.R"))
+  scripts <- "ec29/"
+  dir <- "C:/Users/Michel/Documents/GitHub/"
   source(paste0(dir,scripts,"14_regs_imr.R"))
   # scripts <- "ec29/"
   # dir <- "C:/Users/Michel/Documents/GitHub/"
