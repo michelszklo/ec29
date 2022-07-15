@@ -55,9 +55,8 @@ load(paste0(dir,"regs.RData"))
 # 2. Define outcomes output name and output functions
 # =================================================================
 
-var_map <- rbind(cbind('ams_hospital_all_pcapita','N. of Hospitals (per capita*1000)'),
-                 cbind('ams_hospital_pub_pcapita','N. of Public Hospitals (per capita*1000)'),
-                 cbind('ams_hospital_mun_pcapita','N. of Municipal Hospitals (per capita*1000)'),
+var_map <- rbind(cbind('ams_hospital_mun_pcapita','N. of Municipal Hospitals (per capita*1000)'),
+                 cbind('ams_hospital_nmun_pcapita','N. of Federal and State Hospitals (per capita*1000)'),
                  cbind('ams_hospital_pvt_pcapita','N. of Private Hospitals (per capita*1000)'),
                  cbind('ams_unity_mun_pcapita','N. of Health Facilities (per capita*1000)'),
                  cbind('ams_hr_all_pcapita',"N. of Health Professionals (per capita*1000)"),
