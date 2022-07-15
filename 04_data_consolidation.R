@@ -689,7 +689,7 @@ df <- df %>%
 
 
 # per capita figures
-vars <- c(infra_vars,sia_vars,ams_vars,siab_vars,"gdp_mun")
+vars <- c(infra_vars,sia_vars,siab_vars,"gdp_mun")
 vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
 
 df[vars_new] <- df[vars]
@@ -701,7 +701,7 @@ df <- df %>%
 # ams_cnes_vars <- grep("ams_cnes",names(df),value = T)
 sia_ncnes_vars <- grep("sia_ncnes",names(df),value = T)
 
-vars <- sia_ncnes_vars
+vars <- c(sia_ncnes_vars,ams_vars)
 vars_new <- sapply(vars, function(x) paste0(x,"_pcapita"),simplify = "array", USE.NAMES = F)
 df[vars_new] <- df[vars]
 df <- df %>% 
