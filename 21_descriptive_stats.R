@@ -134,12 +134,9 @@ var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spe
                  cbind('siab_accomp_especif_pcapita','N. of People Visited by Primary Care Agents (per capita)'),
                  cbind('siab_accomp_especif_pacs_pcapita','N. of People Visited by Community Health Agents (per capita)'),
                  cbind('siab_accomp_especif_psf_pcapita','N. of People Visited by Family Health Agents (per capita)'),
-                 cbind('siab_visit_cha_pcapita','N. of Household Visits (per capita)'),
-                 cbind('siab_visit_cha_pacs_pcapita','N. of Household Visits by Community Health Agents (per capita)'),
-                 cbind('siab_visit_cha_psf_pcapita','N. of Household Visits by Family Health Agents (per capita)'),
-                 cbind('siab_cons_especif_pcapita','N. of Appointments (per capita)'),
-                 cbind('siab_cons_especif_pacs_pcapita','N. of Appointments from Community Health Program (per capita)'),
-                 cbind('siab_cons_especif_psf_pcapita','N. of Appointments from Family Health Program (per capita)'),
+                 cbind('siab_visit_cons_pcapita','N. of Household Visits and Appointments (per capita)'),
+                 cbind('siab_visit_cons_pacs_pcapita','N. of Household Visits and Appointments from Community Health Agents (per capita)'),
+                 cbind('siab_visit_cons_psf_pcapita','N. of Household Visits and Appointments from Family Health Agents (per capita)'),
                  
                  cbind('sia_ncnes_amb_mun_pcapita','N. of Health Facilities with Ambulatory Service (per capita*1000)'),
                  cbind('sia_ncnes_acs_pcapita','N. of Health Facilities with Ambulatory Service and ACS Teams (per capita*1000)'),
@@ -152,8 +149,20 @@ var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spe
                  cbind('leitos_pc',"N. of Hospital Beds (per capita)"),
                  cbind('hospital','Presence of Hospital'),
                  
+                 cbind('ams_hospital_all_pcapita','N. of Hospitals (per capita*1000)'),
+                 cbind('ams_hospital_pub_pcapita','N. of Public Hospitals (per capita*1000)'),
+                 cbind('ams_hospital_mun_pcapita','N. of Municipal Hospitals (per capita*1000)'),
+                 cbind('ams_hospital_pvt_pcapita','N. of Private Hospitals (per capita*1000)'),
+                 cbind('ams_unity_mun_pcapita','N. of Health Facilities (per capita*1000)'),
+                 cbind('ams_hr_all_pcapita',"N. of Health Professionals (per capita*1000)"),
+                 cbind('ams_hr_superior_pcapita','N. of Doctors (per capita*1000)'),
+                 cbind('ams_hr_technician_pcapita','N. of Nurses (per capita*1000)'),
+                 cbind('ams_hr_elementary_pcapita','N. of Nursing Assistants (per capita*1000)'),
+                 cbind('ams_hr_admin_pcapita','N. of Administrative Professionals (per capita*1000)'),
+                 
                  # access and productivity
                  
+                 cbind('birth_prenat_ig','Prenatal Visits - Ignored'),
                  cbind('birth_prenat_0','Prenatal Visits None'),
                  cbind('birth_prenat_1_6','Prenatal Visits 1-6'),
                  cbind('birth_prenat_7_plus','Prenatal Visits 7+'),
@@ -268,24 +277,47 @@ df_q <- df %>%
   filter(quantile != 'NaN')
 
 
+# adding copying AMS data to 2000
+ams_vars <- grep("_pcapita",grep("ams",names(df),value = T),value = T)
+df <- df %>% 
+  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+
+df_low_ineq <- df_low_ineq %>% 
+  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+df_high_ineq <- df_high_ineq %>% 
+  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+
+df_low_pov <- df_low_pov %>% 
+  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+df_high_pov <- df_high_pov %>% 
+  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+
+df_low_hi <- df_low_hi %>% 
+  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+df_high_hi <- df_high_hi %>% 
+  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+
+df_first <- df_first %>% 
+  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+
+df_second <- df_second %>% 
+  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
 
 
 summary_stat(df %>% mutate(pop = pop/1000),2000,"stats_2000")
 
-# by fiscal index
-summary_stat(df_above %>% mutate(pop = pop/1000),2000,"stats_2000_above")
-summary_stat(df_below %>% mutate(pop = pop/1000),2000,"stats_2000_below")
-
-# by electoral term
-summary_stat(df_first %>% mutate(pop = pop/1000),2000,"stats_2000_first")
-summary_stat(df_second %>% mutate(pop = pop/1000),2000,"stats_2000_second")
-
-# bu omcp,e
-summary_stat(df_low_inc %>%  mutate(pop = pop/1000),2000,"stats_2000_low_inc")
-summary_stat(df_high_inc %>%  mutate(pop = pop/1000),2000,"stats_2000_high_inc")
 
 summary_stat(df_low_ineq %>%  mutate(pop = pop/1000),2000,"stats_2000_low_ineq")
 summary_stat(df_high_ineq %>%  mutate(pop = pop/1000),2000,"stats_2000_high_ineq")
+
+summary_stat(df_low_pov %>%  mutate(pop = pop/1000),2000,"stats_2000_low_pov")
+summary_stat(df_high_pov %>%  mutate(pop = pop/1000),2000,"stats_2000_high_pov")
+
+summary_stat(df_low_hi %>%  mutate(pop = pop/1000),2000,"stats_2000_low_hi")
+summary_stat(df_high_hi %>%  mutate(pop = pop/1000),2000,"stats_2000_high_hi")
+
+summary_stat(df_first %>% mutate(pop = pop/1000),2000,"stats_2000_first")
+summary_stat(df_second %>% mutate(pop = pop/1000),2000,"stats_2000_second")
 
 
 
@@ -295,34 +327,44 @@ summary_stat(df_high_ineq %>%  mutate(pop = pop/1000),2000,"stats_2000_high_ineq
 
 stats <- cbind(
   stats_2000 %>% 
-    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)),
-  stats_2000_above %>% 
     mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
-    select(-Variable),
-  stats_2000_below %>% 
-    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
-    select(-Variable),
-  stats_2000_first %>% 
-    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
-    select(-Variable),
-  stats_2000_second %>% 
-    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
-    select(-Variable),
-  stats_2000_low_inc %>% 
-    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
-    select(-Variable),
-  stats_2000_high_inc %>% 
-    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
-    select(-Variable),
+    select(-Baseline),
   stats_2000_low_ineq %>% 
     mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
-    select(-Variable),
+    select(-Variable,-Baseline),
   stats_2000_high_ineq %>% 
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
+    select(-Variable,-Baseline),
+  stats_2000_low_pov %>% 
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
+    select(-Variable,-Baseline),
+  stats_2000_high_pov %>% 
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
+    select(-Variable,-Baseline),
+  stats_2000_low_hi %>% 
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
+    select(-Variable,-Baseline),
+  stats_2000_high_hi %>% 
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
+    select(-Variable,-Baseline),
+  stats_2000_first %>% 
+    mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
+    select(-Variable,-Baseline),
+  stats_2000_second %>% 
     mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
     select(-Variable)  )
 
+sample <- c("","full","full","full","full","full",
+            "low ineq","low ineq","low ineq","low ineq","low ineq",
+            "high ineq","high ineq","high ineq","high ineq","high ineq",
+            "low pov","low pov","low pov","low pov","low pov",
+            "high pov","high pov","high pov","high pov","high pov",
+            "low hi","low hi","low hi","low hi","low hi",
+            "high hi","high hi","high hi","high hi","high hi",
+            "first","first","first","first","first",
+            "second","second","second","second","second")
 
-
+stats <- rbind(sample,stats)
 
 write.xlsx2(stats, file = paste0(dir,main_folder,output_file),sheetName = "descriptive",row.names = F,append = T)
 
