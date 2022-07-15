@@ -1790,7 +1790,7 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
       table_1 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_1)
       table_2 <- d %>% mutate(sample = sample_name) %>% table_formating(2) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_2)
       table_3 <- d %>% mutate(sample = sample_name) %>% table_formating(3) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_3)
-      table_4 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_4)
+      table_4 <- d %>% mutate(sample = sample_name) %>% table_formating(4) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_4)
       
       
     } else {
@@ -1798,7 +1798,7 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
       table_1 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_1) %>% mutate(spec=1)
       table_2 <- d %>% mutate(sample = sample_name) %>% table_formating(2) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_2) %>% mutate(spec=2)
       table_3 <- d %>% mutate(sample = sample_name) %>% table_formating(3) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_3) %>% mutate(spec=3)
-      table_4 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_4) %>% mutate(spec=4)
+      table_4 <- d %>% mutate(sample = sample_name) %>% table_formating(4) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_4) %>% mutate(spec=4)
       
       
     }
@@ -1908,7 +1908,7 @@ regress_output_imr <- function(var,var_name,transform,year_filter,weight){
       table_1 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_1)
       table_2 <- d %>% mutate(sample = sample_name) %>% table_formating(2) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_2)
       table_3 <- d %>% mutate(sample = sample_name) %>% table_formating(3) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_3)
-      table_4 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_4)
+      table_4 <- d %>% mutate(sample = sample_name) %>% table_formating(4) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_4)
       
       
     } else {
@@ -1916,7 +1916,7 @@ regress_output_imr <- function(var,var_name,transform,year_filter,weight){
       table_1 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_1) %>% mutate(spec=1)
       table_2 <- d %>% mutate(sample = sample_name) %>% table_formating(2) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_2) %>% mutate(spec=2)
       table_3 <- d %>% mutate(sample = sample_name) %>% table_formating(3) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_3) %>% mutate(spec=3)
-      table_4 <- d %>% mutate(sample = sample_name) %>% table_formating(1) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_4) %>% mutate(spec=4)
+      table_4 <- d %>% mutate(sample = sample_name) %>% table_formating(4) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_4) %>% mutate(spec=4)
       
       
     }
