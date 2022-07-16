@@ -80,51 +80,51 @@ var_map <- rbind(cbind('finbra_reccorr_pcapita','Total Revenue per capita (2010 
                  cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (2010 R$)'),
                  cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (2010 R$)'))
 
-# figure 6
+# figure B1 (ex 6)
 
 for (i in seq(1,2,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-7500,2500,1000,"6",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-7500,2500,1000,"B1",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
   
 }
 
-# figure 7
+# figure 
 
-for (i in seq(3,5,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-3000,1000,500,"7",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
-}
+# for (i in seq(3,5,1)){
+#   var <- var_map[i,1]
+#   var_name <- var_map[i,2]
+#   print(var_name)
+#   reduced_yearly(var,var_name,df,3,1998,-3000,1000,500,"",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+# }
 
-# figure 8
+# figure B2 (ex 8 )
 
 for (i in seq(6,11,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-2000,1000,500,"8",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-2000,1000,500,"B2",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
-# figure 9
-
+# figure 6 (ex 9)
+# 
 for (i in c(6,seq(12,14,1))){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-500,800,100,"9",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-500,800,100,"6",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 
-# figure 10
+# figure 7 (ex 10)
 
 for (i in seq(15,18,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-150,350,50,"10",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-150,350,50,"7",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 
@@ -136,51 +136,90 @@ var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community He
                  cbind('siab_accomp_especif_pcapita','N. of People Visited by Primary Care Agents (per capita)'),
                  cbind('siab_accomp_especif_pacs_pcapita','N. of People Visited by Community Health Agents (per capita)'),
                  cbind('siab_accomp_especif_psf_pcapita','N. of People Visited by Family Health Agents (per capita)'),
-                 cbind('siab_visit_cha_pcapita','N. of Household Visits (per capita)'),
-                 cbind('siab_visit_cha_pacs_pcapita','N. of Household Visits by Community Health Agents (per capita)'),
-                 cbind('siab_visit_cha_psf_pcapita','N. of Household Visits by Family Health Agents (per capita)'),
-                 cbind('siab_cons_especif_pcapita','N. of Appointments (per capita)'),
-                 cbind('siab_cons_especif_pacs_pcapita','N. of Appointments from Community Health Program (per capita)'),
-                 cbind('siab_cons_especif_psf_pcapita','N. of Appointments from Family Health Program (per capita)'),
+                 cbind('siab_visit_cons_pcapita','N. of Household Visits and Appointments (per capita)'),
+                 cbind('siab_visit_cons_pacs_pcapita','N. of Household Visits and Appointments from Community Health Agents (per capita)'),
+                 cbind('siab_visit_cons_psf_pcapita','N. of Household Visits and Appointments from Family Health Agents (per capita)'),
+                 
+                 cbind('ams_hr_superior_pcapita','N. of Doctors (per capita*1000)'),
+                 cbind('ams_hr_technician_pcapita','N. of Nurses (per capita*1000)'),
+                 cbind('ams_hr_elementary_pcapita','N. of Nursing Assistants (per capita*1000)'),
+                 cbind('ams_hr_admin_pcapita','N. of Administrative Professionals (per capita*1000)'),
+                 
+                 cbind('ams_hospital_mun_pcapita','N. of Municipal Hospitals (per capita*1000)'),
+                 cbind('ams_hospital_nmun_pcapita','N. of Federal and State Hospitals (per capita*1000)'),
+                 cbind('ams_hospital_pvt_pcapita','N. of Private Hospitals (per capita*1000)'),
+                 
+                 
+                 # cbind('siab_visit_cha_pcapita','N. of Household Visits (per capita)'),
+                 # cbind('siab_visit_cha_pacs_pcapita','N. of Household Visits by Community Health Agents (per capita)'),
+                 # cbind('siab_visit_cha_psf_pcapita','N. of Household Visits by Family Health Agents (per capita)'),
+                 # cbind('siab_cons_especif_pcapita','N. of Appointments (per capita)'),
+                 # cbind('siab_cons_especif_pacs_pcapita','N. of Appointments from Community Health Program (per capita)'),
+                 # cbind('siab_cons_especif_psf_pcapita','N. of Appointments from Family Health Program (per capita)'),
                  
                  cbind('sia_ncnes_amb_mun_pcapita','N. of Health Facilities with Ambulatory Service (per capita*1000)'),
                  cbind('sia_ncnes_acs_pcapita','N. of Health Facilities with Ambulatory Service and ACS Teams (per capita*1000)'),
-                 cbind('sia_ncnes_psf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Teams (per capita*1000)'),
                  cbind('sia_ncnes_medcom_pcapita','N. of Health Facilities with Ambulatory Service and Community Doctors (per capita*1000)'),
-                 cbind('sia_ncnes_medpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Doctors (per capita*1000)'),
                  cbind('sia_ncnes_enfacs_pcapita','N. of Health Facilities with Ambulatory Service and ACS Nurses (per capita*1000)'),
+                 cbind('sia_ncnes_psf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Teams (per capita*1000)'),
+                 cbind('sia_ncnes_medpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Doctors (per capita*1000)'),
                  cbind('sia_ncnes_enfpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Nurses (per capita*1000)'),
-                 cbind('sia_ncnes_outpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Nursing Assistants (per capita*1000)'),
-                 cbind('leitos_pc',"N. of Hospital Beds (per capita)"),
-                 cbind('hospital','Presence of Hospital')
+                 cbind('sia_ncnes_outpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Nursing Assistants (per capita*1000)')
 )
 
 
-# figure 11
+# figure 8 (ex 11)
 
 for (i in seq(1,2,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-0.5,0.5,0.1,"11",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-0.5,0.5,0.1,"8",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 
-# figure 12
-for (i in seq(3,11,1)){
+# figure 9 (ex 12)
+for (i in seq(3,8,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-2,2.5,0.5,"12",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-1.5,2,0.5,"9",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 
-# figure 13
-for (i in seq(12,19,1)){
+# figure 10
+for (i in seq(9,12,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-0.3,0.3,0.1,"13",below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-3,6,1,"10",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+}
+
+
+# figure 11
+for (i in seq(13,15,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,3,1998,-0.3,0.3,0.1,"11",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+}
+
+# figure 11
+for (i in seq(16,16,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,3,1998,-0.3,0.3,0.1,"11",below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
+}
+
+
+
+# figure 12 (ex 13)
+for (i in seq(17,23,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,3,1998,-0.3,0.3,0.1,"12",below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
 }
 
 
@@ -190,7 +229,8 @@ for (i in seq(12,19,1)){
 # 4. Access and Production
 # =================================================================
 
-var_map <- rbind(cbind('birth_prenat_0','Prenatal Visits None'),
+var_map <- rbind(cbind('birth_prenat_ig','Prenatal Visits - Ignored'),
+                 cbind('birth_prenat_0','Prenatal Visits None'),
                  cbind('birth_prenat_1_6','Prenatal Visits 1-6'),
                  cbind('birth_prenat_7_plus','Prenatal Visits 7+'),
                  cbind('sia_pcapita','N. Outpatient Procedures (per capita)'),
@@ -204,28 +244,28 @@ var_map <- rbind(cbind('birth_prenat_0','Prenatal Visits None'),
 
 
 
-# figure 14
-for (i in seq(1,3,1)){
+# figure 13 (ex 14)
+for (i in seq(1,4,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-0.2,0.2,0.05,"14",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-0.2,0.2,0.05,"13",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 
-# figure 15
-for (i in seq(4,5,1)){
+# figure 14 (ex 15)
+for (i in seq(5,6,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-6,10,2,"15",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-6,10,2,"14",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
-for (i in seq(6,9,1)){
+for (i in seq(7,10,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-6,10,2,"15",below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-6,10,2,"14",below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
 }
 
 
@@ -251,7 +291,7 @@ var_map <-  rbind(cbind('tx_mi','Infant Mortality Rate'),
                   cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year'))
 
 
-# figure 16
+# figure 15 (ex 16)
 # for (i in seq(1,3,1)){
 #   var <- var_map[i,1]
 #   var_name <- var_map[i,2]
@@ -263,11 +303,11 @@ for (i in seq(1,3,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-20,10,5,"16",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,3,1998,-20,10,5,"15",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 
-# figure 17
+# figure 16 (ex 17)
 # for (i in seq(12,15,1)){
 #   var <- var_map[i,1]
 #   var_name <- var_map[i,2]
@@ -279,11 +319,11 @@ for (i in seq(12,15,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-10,10,5,"17",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,3,1998,-10,10,5,"16",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 
-# figure 18
+# figure 17 (ex 18)
 # for (i in seq(4,11,1)){
 #   var <- var_map[i,1]
 #   var_name <- var_map[i,2]
@@ -295,7 +335,7 @@ for (i in seq(4,11,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-10,10,5,"18",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,3,1998,-10,10,5,"17",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 
@@ -313,20 +353,21 @@ var_map <- rbind(cbind('birth_fertility','Fertility (N. of Births per 10-49y wom
 
 
 
-# Figure 19
+# Figure 18 (ex 19)
 for (i in c(1,seq(4,6,1))){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-0.2,0.2,0.05,"19",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-0.2,0.2,0.05,"18",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 for (i in seq(2,3,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-1.5,1.5,0.5,"19",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-1.5,1.5,0.5,"18",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
+
 
 
 
