@@ -78,25 +78,40 @@ df_map <- df %>%
   st_transform(4326)
 
 
+df_map_samples <- df %>% 
+  filter(ano==2000) %>% 
+  mutate(term = ifelse(second_term==0,"1. First Term","2. Second Term"),
+         inequality = ifelse(gini_baseline_above==0,"1. Low Inequality","2. High Inequality"),
+         poverty = ifelse(pmpob_baseline_above==0,"1. Low Poverty","2. High Poverty")) %>% 
+  dplyr::select(cod_mun,term,cod_uf,inequality,poverty) %>% 
+  right_join(munbr_shape, by = "cod_mun") %>% 
+  st_as_sf() %>%
+  st_transform(4326)
+
+
 # 3. Plotting map
 # =================================================================
 
 color_map <- c('#d73027','#fc8d59','#fee090','#e0f3f8','#91bfdb','#4575b4')
 
 map <- df_map %>% 
+  filter(!is.na(`% of OR spent in Health`)) %>% 
   ggplot() +
   geom_sf(aes(fill = `% of OR spent in Health`),size = 0.00001,color = NA)+
   geom_sf(data = ufbr_shape,fill=NA,size = 0.00001) +
   scale_fill_manual(values = color_map,na.value = "White") +
   theme_light()+
+  labs(fill = "% of Own Resource spent in Health")+
   theme(legend.position="bottom",
         legend.box = "horizontal",
         legend.text = element_text(size = 6),
         legend.title = element_text(size = 8),
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
-        axis.text = element_blank()) +
-  guides(fill=guide_legend(nrow = 1,byrow=TRUE))
+        axis.text = element_blank(),
+        axis.line =  element_blank(),
+        axis.ticks =  element_blank()) +
+  guides(fill=guide_legend(nrow = 2,byrow=TRUE))
   
 file <- paste0(output,"ec29_map.pdf")
 ggsave(file,
@@ -105,11 +120,169 @@ ggsave(file,
        width = 7, height = 5,
        units = "in")
 
-file <- paste0(output,"ec29_map.pdf.png")
+file <- paste0(output,"ec29_map.png")
 ggsave(file,
        plot = map,
        device = "png",
        width = 7, height = 5,
        units = "in")
+
+
+
+
+# 4. Plotting map to show samples
+# =================================================================
+
+color_map <- c("#67a9cf","#ef8a62")
+
+
+# Electoral Term
+map <- df_map_samples %>%
+  filter(!is.na(term)) %>% 
+  ggplot() +
+  geom_sf(aes(fill = term),size = 0.00001,color = NA)+
+  geom_sf(data = ufbr_shape,fill=NA,size = 0.00001) +
+  scale_fill_manual(values = color_map,na.value = "White") +
+  theme_light()+
+  theme(legend.position="bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 6),
+        legend.title = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.text = element_blank(),
+        axis.line =  element_blank(),
+        axis.ticks =  element_blank()) +
+  guides(fill=guide_legend(nrow = 1,byrow=TRUE))
+
+file <- paste0(output,"term_map.pdf")
+ggsave(file,
+       plot = map,
+       device = "pdf",
+       width = 7, height = 5,
+       units = "in")
+
+file <- paste0(output,"term_map.png")
+ggsave(file,
+       plot = map,
+       device = "png",
+       width = 7, height = 5,
+       units = "in")
+
+
+
+# Inequality
+map <- df_map_samples %>%
+  filter(!is.na(inequality)) %>% 
+  ggplot() +
+  geom_sf(aes(fill = inequality),size = 0.00001,color = NA)+
+  geom_sf(data = ufbr_shape,fill=NA,size = 0.00001) +
+  scale_fill_manual(values = color_map,na.value = "White") +
+  theme_light()+
+  theme(legend.position="bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 6),
+        legend.title = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.text = element_blank(),
+        axis.line =  element_blank(),
+        axis.ticks =  element_blank()) +
+  guides(fill=guide_legend(nrow = 1,byrow=TRUE))
+
+file <- paste0(output,"ineq_map.pdf")
+ggsave(file,
+       plot = map,
+       device = "pdf",
+       width = 7, height = 5,
+       units = "in")
+
+file <- paste0(output,"ineq_map.png")
+ggsave(file,
+       plot = map,
+       device = "png",
+       width = 7, height = 5,
+       units = "in")
+
+
+
+# Poverty
+map <- df_map_samples %>%
+  filter(!is.na(poverty)) %>% 
+  ggplot() +
+  geom_sf(aes(fill = poverty),size = 0.00001,color = NA)+
+  geom_sf(data = ufbr_shape,fill=NA,size = 0.00001) +
+  scale_fill_manual(values = color_map,na.value = "White") +
+  theme_light()+
+  theme(legend.position="bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 6),
+        legend.title = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.text = element_blank(),
+        axis.line =  element_blank(),
+        axis.ticks =  element_blank()) +
+  guides(fill=guide_legend(nrow = 1,byrow=TRUE))
+
+file <- paste0(output,"pov_map.pdf")
+ggsave(file,
+       plot = map,
+       device = "pdf",
+       width = 7, height = 5,
+       units = "in")
+
+file <- paste0(output,"pov_map.png")
+ggsave(file,
+       plot = map,
+       device = "png",
+       width = 7, height = 5,
+       units = "in")
+
+
+
+
+# 5. Within State variation?
+# =================================================================
+
+df_var <- df %>% 
+  filter(ano==2000) %>% 
+  mutate(term = ifelse(second_term==0,"1. First Term","2. Second Term"),
+         inequality = ifelse(gini_baseline_above==0,"1. Low Inequality","2. High Inequality"),
+         poverty = ifelse(pmpob_baseline_above==0,"1. Low Poverty","2. High Poverty")) %>% 
+  dplyr::select(cod_mun,term,cod_uf,inequality,poverty)
+
+
+var_term <- df_var %>% 
+  dplyr::select(cod_uf,term) %>% 
+  group_by(cod_uf,term) %>% 
+  summarise(var = sum(!is.na(term))) %>% 
+  filter(term!="NA") %>% 
+  ungroup() %>% 
+  group_by(cod_uf) %>%
+  mutate(total = sum(var)) %>% 
+  ungroup() %>% 
+  mutate(var = var/total)
+
+
+var_inequality <- df_var %>% 
+  dplyr::select(cod_uf,inequality) %>% 
+  group_by(cod_uf,inequality) %>% 
+  summarise(var = sum(!is.na(inequality))) %>% 
+  ungroup() %>% 
+  group_by(cod_uf) %>%
+  mutate(total = sum(var)) %>% 
+  ungroup() %>% 
+  mutate(var = var/total)
+
+var_poverty <- df_var %>% 
+  dplyr::select(cod_uf,poverty) %>% 
+  group_by(cod_uf,poverty) %>% 
+  summarise(var = sum(!is.na(poverty))) %>% 
+  ungroup() %>% 
+  group_by(cod_uf) %>%
+  mutate(total = sum(var)) %>% 
+  ungroup() %>% 
+  mutate(var = var/total)
 
 
