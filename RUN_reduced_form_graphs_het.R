@@ -54,16 +54,16 @@ dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 load(paste0(dir,"regs.RData"))
 
 
-yearly_folder <- "yearly_reduced_form_dist_ec29_ineq/"
+yearly_folder <- "yearly_reduced_form_dist_ec29_elect/"
 
 dir.create(paste0(dir,main_folder,yearly_folder), showWarnings = FALSE)
 
 df1 <- df_low_ineq
-df1_name <- "1. Low Inequality"
+df1_name <- "1. First Term"
 df2 <- df_high_ineq
-df2_name <- "2. High Inequality"
+df2_name <- "2. Second Term"
 
-gf_name <- "_ineq"
+gf_name <- "_elect"
 
 
 
@@ -93,33 +93,33 @@ var_map <- rbind(cbind('finbra_reccorr_pcapita','Total Revenue per capita (% chg
                  cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (% chg)'),
                  cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (% chg)'))
 
-# # figure 6
-# 
-# for (i in seq(1,2,1)){
-#   var <- var_map[i,1]
-#   var_name <- var_map[i,2]
-#   print(var_name)
-#   reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.8,0.4,0.2,"6",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
-#   
-# }
+# # figure A1
 
-# # figure 7
-# 
-# for (i in seq(3,5,1)){
-#   var <- var_map[i,1]
-#   var_name <- var_map[i,2]
-#   print(var_name)
-#   reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1,0.4,0.2,"7",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
-# }
+for (i in seq(1,2,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.8,0.4,0.2,paste0("A1",gf_name),below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 
-# figure 8
+}
 
-# for (i in seq(6,11,1)){
-#   var <- var_map[i,1]
-#   var_name <- var_map[i,2]
-#   print(var_name)
-#   reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-2.4,0.4,0.2,"8",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
-# }
+# # figure A2
+
+for (i in seq(3,5,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1,0.4,0.2,paste0("A2",gf_name),below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+}
+
+# figure A3
+
+for (i in seq(6,11,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-2.4,0.4,0.2,paste0("A3",gf_name),below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+}
 
 # figure 6 (ex 9)
 
