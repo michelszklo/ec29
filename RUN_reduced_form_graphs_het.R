@@ -58,9 +58,9 @@ yearly_folder <- "yearly_reduced_form_dist_ec29_elect/"
 
 dir.create(paste0(dir,main_folder,yearly_folder), showWarnings = FALSE)
 
-df1 <- df_low_ineq
+df1 <- df_first
 df1_name <- "1. First Term"
-df2 <- df_high_ineq
+df2 <- df_second
 df2_name <- "2. Second Term"
 
 gf_name <- "_elect"
@@ -127,7 +127,7 @@ for (i in c(6,seq(12,14,1))){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.6,0.6,0.2,paste0("6",gf_name),below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.2,0.4,0.1,paste0("6",gf_name),below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 
@@ -137,7 +137,7 @@ for (i in seq(15,18,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.4,1.2,0.2,paste0("7",gf_name),below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.2,1,0.2,paste0("7",gf_name),below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 
