@@ -172,7 +172,8 @@ colors <-  c("#67a9cf","#ef8a62")
 
 scatter_elect <- ggplot(df_plot %>% 
                          filter(change05_siops_despsaude_pcapita<1000) %>% 
-                         filter(dist_ec29_baseline>-0.5) %>% 
+                         filter(dist_ec29_baseline>-0.5) %>%
+                         filter(!is.na(second_term)) %>% 
                          mutate(`Electoral Term` = ifelse(second_term==0,"1. First Term","2. Second Term"))
                        ,
                        aes(x = dist_ec29_baseline, y = change05_siops_despsaude_pcapita, color = `Electoral Term`,group = `Electoral Term`)) +
@@ -187,7 +188,9 @@ scatter_elect <- ggplot(df_plot %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
-        legend.position="bottom", legend.box = "horizontal")
+        legend.text = element_text(size = 10),
+        legend.position="bottom", legend.box = "horizontal")+
+  guides(color = guide_legend(override.aes = list(size = 3)))
 
 
 
