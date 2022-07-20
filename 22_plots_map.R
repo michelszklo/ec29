@@ -147,20 +147,21 @@ map <- df_map %>%
         axis.text = element_blank(),
         axis.line =  element_blank(),
         axis.ticks =  element_blank()) +
+  coord_sf(ndiscr = F) +
   guides(fill=guide_legend(nrow = 2,byrow=TRUE))
 
 file <- paste0(output,"ec29_elect1_map.pdf")
 ggsave(file,
        plot = map,
        device = "pdf",
-       width = 7, height = 5,
+       width = 4, height = 4.5,
        units = "in")
 
 file <- paste0(output,"ec29_elect1_map.png")
 ggsave(file,
        plot = map,
        device = "png",
-       width = 7, height = 5,
+       width = 4, height = 4.5,
        units = "in")
 
 
@@ -188,14 +189,14 @@ file <- paste0(output,"ec29_elect2_map.pdf")
 ggsave(file,
        plot = map,
        device = "pdf",
-       width = 7, height = 5,
+       width = 4, height = 4.5,
        units = "in")
 
 file <- paste0(output,"ec29_elect2_map.png")
 ggsave(file,
        plot = map,
        device = "png",
-       width = 7, height = 5,
+       width = 4, height = 4.5,
        units = "in")
 
 
