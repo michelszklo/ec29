@@ -66,7 +66,7 @@ ufbr_shape <- read_sf(paste0(dir,"data/shapefiles/br_estados/estados_2010.shp"))
 df_map <- df %>% 
   right_join(munbr_shape, by = "cod_mun") %>% 
   filter(ano==2000) %>% 
-  dplyr::select(cod_mun,ec29_baseline,geometry) %>% 
+  dplyr::select(cod_mun,ec29_baseline,geometry,second_term) %>% 
   mutate(`% of OR spent in Health` = "",
          `% of OR spent in Health` = ifelse(ec29_baseline<0.05,"0-5%",`% of OR spent in Health`),
          `% of OR spent in Health` = ifelse(ec29_baseline>=0.05 & ec29_baseline<0.1,"05-10%",`% of OR spent in Health`),
@@ -121,6 +121,77 @@ ggsave(file,
        units = "in")
 
 file <- paste0(output,"ec29_map.png")
+ggsave(file,
+       plot = map,
+       device = "png",
+       width = 7, height = 5,
+       units = "in")
+
+
+
+map <- df_map %>% 
+  filter(!is.na(`% of OR spent in Health`)) %>%
+  filter(second_term==0) %>% 
+  ggplot() +
+  geom_sf(aes(fill = `% of OR spent in Health`),size = 0.00001,color = NA)+
+  geom_sf(data = ufbr_shape,fill=NA,size = 0.00001) +
+  scale_fill_manual(values = color_map,na.value = "White") +
+  theme_light()+
+  labs(fill = "% of Own Resource spent in Health")+
+  theme(legend.position="bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 6),
+        legend.title = element_text(size = 8),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.text = element_blank(),
+        axis.line =  element_blank(),
+        axis.ticks =  element_blank()) +
+  guides(fill=guide_legend(nrow = 2,byrow=TRUE))
+
+file <- paste0(output,"ec29_elect1_map.pdf")
+ggsave(file,
+       plot = map,
+       device = "pdf",
+       width = 7, height = 5,
+       units = "in")
+
+file <- paste0(output,"ec29_elect1_map.png")
+ggsave(file,
+       plot = map,
+       device = "png",
+       width = 7, height = 5,
+       units = "in")
+
+
+map <- df_map %>% 
+  filter(!is.na(`% of OR spent in Health`)) %>%
+  filter(second_term==1) %>% 
+  ggplot() +
+  geom_sf(aes(fill = `% of OR spent in Health`),size = 0.00001,color = NA)+
+  geom_sf(data = ufbr_shape,fill=NA,size = 0.00001) +
+  scale_fill_manual(values = color_map,na.value = "White") +
+  theme_light()+
+  labs(fill = "% of Own Resource spent in Health")+
+  theme(legend.position="bottom",
+        legend.box = "horizontal",
+        legend.text = element_text(size = 6),
+        legend.title = element_text(size = 8),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.text = element_blank(),
+        axis.line =  element_blank(),
+        axis.ticks =  element_blank()) +
+  guides(fill=guide_legend(nrow = 2,byrow=TRUE))
+
+file <- paste0(output,"ec29_elect2_map.pdf")
+ggsave(file,
+       plot = map,
+       device = "pdf",
+       width = 7, height = 5,
+       units = "in")
+
+file <- paste0(output,"ec29_elect2_map.png")
 ggsave(file,
        plot = map,
        device = "png",
