@@ -599,10 +599,10 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
              year = seq.int(year_filter,2010),
              spec = as.character(spec)) %>% 
       mutate(spec = ifelse(spec=="1","Baseline",spec),
-             spec = ifelse(spec=="4","+ Baseline, Time Varying and Fiscal Controls",spec)) %>% 
+             spec = ifelse(spec=="3","+ Baseline and Time Varying Controls",spec)) %>% 
       mutate(spec = as.factor(spec)) 
     
-    out$spec <- factor(out$spec,levels = c("Baseline","+ Baseline, Time Varying and Fiscal Controls"))  
+    out$spec <- factor(out$spec,levels = c("Baseline","+ Baseline and Time Varying Controls"))  
     
     if(spec==1){
       table <- out
@@ -886,10 +886,10 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
              year = seq.int(year_filter,2010),
              spec = as.character(spec)) %>% 
       mutate(spec = ifelse(spec=="1","Baseline",spec),
-             spec = ifelse(spec=="4","+ Baseline, Time Varying and Fiscal Controls",spec)) %>% 
+             spec = ifelse(spec=="3","+ Baseline and Time Varying Controls",spec)) %>% 
       mutate(spec = as.factor(spec)) 
     
-    out$spec <- factor(out$spec,levels = c("Baseline","+ Baseline, Time Varying and Fiscal Controls"))  
+    out$spec <- factor(out$spec,levels = c("Baseline","+ Baseline and Time Varying Controls"))  
     
     if(spec==1){
       table <- out
