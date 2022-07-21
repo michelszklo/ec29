@@ -73,7 +73,7 @@ var_map <- rbind(cbind('birth_prenat_ig','Prenatal Visits - Ignored'),
 # 3. Run and ouput
 # =================================================================
 
-for (i in seq(1,12,1)){
+for (i in seq(1,4,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -91,6 +91,46 @@ for (i in seq(1,12,1)){
   }
   
 }
+
+
+for (i in seq(5,5,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  
+  regress_output(var,var_name,3,1998,"peso_m")
+  
+  
+  if(exists("df_table_all")){
+    df_table_all <- rbind(df_table_all,table_all)
+    
+  } else {
+    
+    df_table_all <- table_all
+    
+  }
+  
+}
+
+for (i in seq(6,12,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  
+  regress_output(var,var_name,3,1998,"peso_b")
+  
+  
+  if(exists("df_table_all")){
+    df_table_all <- rbind(df_table_all,table_all)
+    
+  } else {
+    
+    df_table_all <- table_all
+    
+  }
+  
+}
+
 
 
 
