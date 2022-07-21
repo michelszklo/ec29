@@ -202,7 +202,11 @@ var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spe
                  cbind('birth_premature','Premature Birth'),
                  cbind('birth_sexratio',"Sex Ratio at Birth"),
                  
-                 
+                 # Maternal and Infant Hospitalizatio
+                 cbind('tx_sih_infant','Infant Hospitalization Rate (pop 0-1y * 1000)'),
+                 cbind('tx_sih_infant_icsap','Infant Hospitalization Rate - APC (pop 0-1y * 1000)'),
+                 cbind('tx_sih_infant_nicsap','Infant Hospitalization Rate - non-APC (pop 0-1y * 1000)'),
+                 cbind('tx_sih_maternal','Maternal Hospitalization Rate (women 10-49y * 1000)'),
                  
                  
                  cbind('pop','Population'),

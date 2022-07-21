@@ -361,10 +361,26 @@ censo <- data.frame(read.dta13(paste0(raw,"censo/censo.dta"))) %>%
 second_term <- read.csv(paste0(raw,"TSE/second_term.csv"), encoding = "UTF-8") %>% 
   distinct(cod_mun, .keep_all = T)
 
-# # 11. AMS-CNES merge INFRA data
-# # ==============================================================
-# ams_cnes <- read.csv(paste0(raw,"AMS_CNES/AMS_CNES_2002_2010.csv"), encoding = "UTF-8") %>% select(-uf)
-# names(ams_cnes)[3:22] <- paste("ams_cnes",names(ams_cnes)[3:22], sep = "_")
+# 11. SIH - Hospitalization - Maternal and Infant
+# ==============================================================
+
+load(paste0(raw,"SIH/sih_98_18.RData")) 
+
+
+sih <- sih_98_18 %>% 
+  select(mun_code,year,nh_u1y,nh_amen_u1y,nh_icd_pregn_puerp) %>% 
+  rename(cod_mun = mun_code,
+         ano = year,
+         sih_infant = nh_u1y,
+         sih_infant_icsap = nh_amen_u1y,
+         sih_maternal = nh_icd_pregn_puerp) %>% 
+  mutate(sih_infant_nicsap = sih_infant - sih_infant_icsap) %>% 
+  filter(ano<=2010) %>% 
+  mutate(cod_mun = as.numeric(cod_mun)) 
+
+
+rm(sih_98_18)
+
 
 
 # 12. SIAB HR data
@@ -487,8 +503,8 @@ df <- mun_list %>%
   mutate(ams_hospital_nmun = ifelse(!is.na(ams_hospital_est) & !is.na(ams_hospital_fed),0,NA)) %>%
   mutate(ams_hospital_nmun = ams_hospital_est + ams_hospital_fed) %>% 
   mutate(ams_hr_all = ams_hr_superior + ams_hr_technician + ams_hr_elementary + ams_hr_admin) %>% 
-  # ams + cnes data
-  # left_join(ams_cnes,by = c("ano","cod_mun")) %>% 
+  # SIH
+  left_join(sih,by = c("ano","cod_mun")) %>% 
   # siab data
   left_join(siab, by = c("ano","cod_mun")) %>% 
   left_join(firjan, by = "cod_mun") %>% 
@@ -669,6 +685,36 @@ df <- df %>%
   mutate_at(sim_vars_new, `*`, quote(1000))
 
 df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x),0))
+
+
+
+
+
+# 20. Creating hospitalization rates
+# ==============================================================
+
+
+# mortality (infant,maternal,child adult, adult 1, adult 2, elderly)
+sih_vars <- c("sih_infant","sih_maternal","sih_infant_icsap","sih_infant_nicsap")
+
+# transforming NA mi into 0
+df <- df %>% 
+  mutate_at(sih_vars, ~ if_else(is.na(.), 0, .))
+
+
+df <- df %>% 
+  mutate(tx_sih_infant = sih_infant/birth_nasc_vivos*1000,
+         tx_sih_infant_icsap = sih_infant_icsap/birth_nasc_vivos*1000,
+         tx_sih_infant_nicsap = sih_infant_nicsap/birth_nasc_vivos*1000,
+         tx_sih_maternal = sih_maternal/pop_fem_10_49*1000)
+
+
+sih_vars_new <- sapply(sih_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F)
+df[sih_vars_new] <- lapply(df[sih_vars_new], function(x) replace(x,is.infinite(x),0))
+
+
+
+
 
 
 
