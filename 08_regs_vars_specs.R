@@ -578,7 +578,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   # Regressions
   # ------------------------------------
   
-  for (spec in c(1,4)){
+  for (spec in c(1,3)){
     
     spec_reduced<- get(paste0("spec",spec,"_post_y"))
     
@@ -865,7 +865,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   # Regressions
   # ------------------------------------
   
-  for (spec in c(1,4)){
+  for (spec in c(1,3)){
     
     spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
     
@@ -1166,7 +1166,7 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
   # Regressions
   # ------------------------------------
   
-  for (spec in c(4)){
+  for (spec in c(3)){
     
     spec_reduced<- get(paste0("spec",spec,"_post_y"))
     
@@ -1192,7 +1192,7 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
     
   }
   
-  for (spec in c(4)){
+  for (spec in c(3)){
     
     spec_reduced<- get(paste0("spec",spec,"_post_y"))
     
@@ -1476,7 +1476,7 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
   # Regressions
   # ------------------------------------
   
-  for (spec in c(4)){
+  for (spec in c(3)){
     
     spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
     
@@ -1502,7 +1502,7 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
     
   }
   
-  for (spec in c(4)){
+  for (spec in c(3)){
     
     spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
     
