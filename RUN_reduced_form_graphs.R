@@ -249,7 +249,7 @@ for (i in seq(1,4,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-0.2,0.2,0.05,"13",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-0.2,0.2,0.05,"14",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 
@@ -258,15 +258,44 @@ for (i in seq(5,6,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-6,10,2,"14",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-6,10,2,"13",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 for (i in seq(7,10,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-6,10,2,"14",below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-6,10,2,"13",below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
 }
+
+
+
+# 7. Hospitalization
+# =================================================================
+
+var_map <- rbind(cbind('tx_sih_infant','Infant Hospitalization Rate (pop 0-1y * 1000)'),
+                 cbind('tx_sih_infant_icsap','Infant Hospitalization Rate - APC (pop 0-1y * 1000)'),
+                 cbind('tx_sih_infant_nicsap','Infant Hospitalization Rate - non-APC (pop 0-1y * 1000)'),
+                 cbind('tx_sih_maternal','Maternal Hospitalization Rate (women 10-49y * 1000)')
+)
+
+
+for (i in seq(1,3,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,3,1998,-200,400,50,"15",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+}
+
+for (i in seq(4,4,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,3,1998,-50,50,10,"15",below = below,weight = "peso_m",year_cap = 2010) # ec29baseline
+}
+
+
+
 
 
 
@@ -303,7 +332,7 @@ for (i in seq(1,3,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-20,10,5,"15",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,3,1998,-20,10,5,"16",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 
@@ -319,7 +348,7 @@ for (i in seq(12,15,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-10,10,5,"16",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,3,1998,-10,10,5,"17",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 
@@ -335,7 +364,7 @@ for (i in seq(4,11,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-10,10,5,"17",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,3,1998,-10,10,5,"18",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 
@@ -358,19 +387,15 @@ for (i in c(1,seq(4,6,1))){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-0.2,0.2,0.05,"18",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-0.2,0.2,0.05,"19",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 for (i in seq(2,3,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-1.5,1.5,0.5,"18",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-1.5,1.5,0.5,"19",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
-
-
-
-
 
 
 
