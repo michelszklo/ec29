@@ -323,9 +323,76 @@ summary_stat(df_first %>% mutate(pop = pop/1000),2000,"stats_2000_first")
 summary_stat(df_second %>% mutate(pop = pop/1000),2000,"stats_2000_second")
 
 
+# 6. Two sample t-test (first and second term)
+# =================================================================
+
+var <- var_map[1,1]
+s1 <- df_first[var]
+s2 <- df_second[var]
 
 
-# 6. final table and export
+for (i in 1:nrow(var_map)){
+  var <- var_map[i,1]
+  
+  stats_first <- stats_2000_first[i,]
+  stats_second <- stats_2000_second[i,]
+  
+  pcent_dif <- (stats_first$Mean-stats_second$Mean)/stats_first$Mean
+  
+  stats_sample_elect <- bind_cols(bind_rows(stats_first %>%
+                                              select(Variable,Mean,Obs) %>% 
+                                              mutate(Mean = as.character(Mean)) %>% 
+                                              rename(Mean_1 = Mean,
+                                                     Obs_1 = Obs),
+                                            stats_first %>%
+                                              select(Std.Dev,Obs) %>% 
+                                              mutate(Std.Dev = paste0("(",round(Std.Dev,digits = 3),")")) %>% 
+                                              rename(Mean_1 = Std.Dev,
+                                                     Obs_1 = Obs)),
+                                  bind_rows(stats_second %>%
+                                              select(Mean,Obs) %>% 
+                                              mutate(Mean = as.character(Mean)) %>% 
+                                              rename(Mean_2 = Mean,
+                                                     Obs_2 = Obs),
+                                            stats_second %>%
+                                              select(Std.Dev,Obs) %>% 
+                                              mutate(Std.Dev = paste0("(",round(Std.Dev,digits = 3),")")) %>% 
+                                              rename(Mean_2 = Std.Dev,
+                                                     Obs_2 = Obs)),
+                                  pcent_dif)
+  
+  s1 <- df_first[var]
+  s2 <- df_second[var]
+  
+  test <- t.test(s1,s2,alternative = "two.sided",mu = 0)
+  
+  stats_sample_elect <- bind_cols(stats_sample_elect,
+                                  paste0(round(test$statistic, digits = 3)),
+                                  paste0(round(test$p.value, digits = 3)))
+  if(i == 1){
+    final_stats_sample_elect <-stats_sample_elect
+  }else{
+    final_stats_sample_elect <- bind_rows(final_stats_sample_elect,stats_sample_elect)
+  }
+  
+  
+}
+
+names(final_stats_sample_elect)[6:8] <- c("pcent_dif","t_statistic","p_value")
+final_stats_sample_elect <- final_stats_sample_elect %>% 
+  mutate(Obs_1 = ifelse(is.na(Variable),"",Obs_1),
+         Obs_2 = ifelse(is.na(Variable),"",Obs_2),
+         t_statistic = ifelse(is.na(Variable),"",t_statistic),
+         p_value = ifelse(is.na(Variable),"",p_value),
+         pcent_dif = ifelse(is.na(Variable),"",pcent_dif),
+         Variable = ifelse(is.na(Variable),"",Variable)) %>% 
+  select(Variable,Obs_1,Obs_2,Mean_1,Mean_2,pcent_dif,t_statistic,p_value)
+
+
+write.xlsx2(final_stats_sample_elect, file = paste0(dir,main_folder,output_file),sheetName = "descriptive_ttest",row.names = F,append = T)
+
+
+# 7. final table and export
 # =================================================================
 
 stats <- cbind(
