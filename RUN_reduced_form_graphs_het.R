@@ -262,7 +262,7 @@ for (i in seq(1,4,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.4,0.2,0.05,paste0("13",gf_name),below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.5,0.4,0.05,paste0("13",gf_name),below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
 
@@ -271,14 +271,14 @@ for (i in seq(5,6,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.4,0.4,0.05,paste0("14",gf_name),below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.2,0.1,0.05,paste0("14",gf_name),below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 for (i in seq(7,10,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.4,0.4,0.05,paste0("14",gf_name),below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.2,0.1,0.05,paste0("14",gf_name),below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
 }
 
 
