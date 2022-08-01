@@ -62,17 +62,17 @@ reelect <- read.csv(paste0(dir,"data/TSE/reelect.csv"), encoding = "UTF-8")
 df_reelect <- reelect %>% 
   mutate(ano=2004) %>% 
   left_join(df, by = c("cod_mun","ano")) %>% 
-  select(cod_mun,ano,reelect,pop,iv,all_of(controls))
+  select(cod_mun,ano,reelect,pop,iv,all_of(controls),cod_uf)
 
 
 
 # 3. regression specs
 # =================================================================
 
-spec1 <- as.formula("reelect ~ iv")
-spec2 <- as.formula(paste("reelect ~ iv + ",paste(baseline_controls, collapse = " + ")))
-spec3 <- as.formula(paste("reelect ~ iv + ",paste(c(baseline_controls,tvarying_controls), collapse = " + ")))
-spec4 <- as.formula(paste("reelect ~ iv + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls), collapse = " + ")))
+spec1 <- as.formula("reelect ~ iv + cod_uf")
+spec2 <- as.formula(paste("reelect ~ iv + ",paste(c(baseline_controls,"cod_uf"), collapse = " + ")))
+spec3 <- as.formula(paste("reelect ~ iv + ",paste(c(baseline_controls,tvarying_controls,"cod_uf"), collapse = " + ")))
+spec4 <- as.formula(paste("reelect ~ iv + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls,"cod_uf"), collapse = " + ")))
 
 
 
