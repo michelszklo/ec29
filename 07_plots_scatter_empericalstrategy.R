@@ -76,7 +76,7 @@ df_plot <- df_plot %>%
 
 
 corr(df_plot %>% 
-       select(c("dist_ec29_baseline","change05_siops_despsaude_pcapita")) %>% 
+       select(c("dist_ec29_baseline","change05_siops_despsaude_pcapita","pop")) %>% 
        rename(ec29 = 1,
               spending = 2) %>% 
        filter(!is.na(spending)) %>% 
@@ -92,8 +92,10 @@ scatter <- ggplot(df_plot %>%
                     filter(dist_ec29_baseline>-0.5)
                   ,
                   aes(x = dist_ec29_baseline, y = change05_siops_despsaude_pcapita)) +
-  geom_point(color = "steelblue4", size = 0.7, alpha = 0.5) +
-  # geom_smooth(method='lm', color = "sienna2",fill = "sienna2", alpha = 0.1, se = F, size = 0.5)+
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
+  geom_smooth(method='loess', se = T,color = "sienna2",fill = "sienna2", alpha = 0.5, size = 0.5)+
   scale_y_continuous(limits = c(-400,950), breaks = seq(-400,900,100)) +
   scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
   labs(y = "Change in Health Spending per capita 2000-2005",
