@@ -31,7 +31,8 @@ packages<-c('readr',
             'httr',
             'mapview',
             'stringdist',
-            'gridExtra')
+            'gridExtra',
+            'binsreg')
 to_install<-packages[!(packages %in% installed.packages()[,"Package"])]
 if(length(to_install)>0) install.packages(to_install)
 
@@ -86,7 +87,6 @@ corr(df_plot %>%
 
 # full sample
 
-
 scatter <- ggplot(df_plot %>% 
                     filter(change05_siops_despsaude_pcapita<1000) %>% 
                     filter(dist_ec29_baseline>-0.5)
@@ -95,7 +95,6 @@ scatter <- ggplot(df_plot %>%
   geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
   geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
   geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
-  geom_smooth(method='loess', se = T,color = "sienna2",fill = "sienna2", alpha = 0.5, size = 0.5)+
   scale_y_continuous(limits = c(-400,950), breaks = seq(-400,900,100)) +
   scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
   labs(y = "Change in Health Spending per capita 2000-2005",
@@ -104,8 +103,7 @@ scatter <- ggplot(df_plot %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
-        legend.position="bottom", legend.box = "horizontal",
-        legend.title = element_blank())
+        legend.position="none")
 
 
 
@@ -130,11 +128,11 @@ ggsave(filePDF,
 colors <-  c("#67a9cf","#ef8a62")
 
 scatter_ineq <- ggplot(df_plot %>% 
-                    filter(change05_siops_despsaude_pcapita<1000) %>% 
-                    filter(dist_ec29_baseline>-0.5) %>% 
-                    mutate(Inequality = ifelse(gini_baseline_above==1,"2. High","1. Low"))
-                  ,
-                  aes(x = dist_ec29_baseline, y = change05_siops_despsaude_pcapita, color = Inequality,group = Inequality)) +
+                         filter(change05_siops_despsaude_pcapita<1000) %>% 
+                         filter(dist_ec29_baseline>-0.5) %>% 
+                         mutate(Inequality = ifelse(gini_baseline_above==1,"2. High","1. Low"))
+                       ,
+                       aes(x = dist_ec29_baseline, y = change05_siops_despsaude_pcapita, color = Inequality,group = Inequality)) +
   geom_point(size = 0.7, alpha = 0.5) +
   # geom_smooth(method='lm', color = "sienna2",fill = "sienna2", alpha = 0.1, se = F, size = 0.5)+
   scale_y_continuous(limits = c(-400,950), breaks = seq(-400,900,100)) +
@@ -173,12 +171,12 @@ ggsave(filePDF,
 colors <-  c("#67a9cf","#ef8a62")
 
 scatter_elect <- ggplot(df_plot %>% 
-                         filter(change05_siops_despsaude_pcapita<1000) %>% 
-                         filter(dist_ec29_baseline>-0.5) %>%
-                         filter(!is.na(second_term)) %>% 
-                         mutate(`Electoral Term` = ifelse(second_term==0,"1. First Term","2. Second Term"))
-                       ,
-                       aes(x = dist_ec29_baseline, y = change05_siops_despsaude_pcapita, color = `Electoral Term`,group = `Electoral Term`)) +
+                          filter(change05_siops_despsaude_pcapita<1000) %>% 
+                          filter(dist_ec29_baseline>-0.5) %>%
+                          filter(!is.na(second_term)) %>% 
+                          mutate(`Electoral Term` = ifelse(second_term==0,"1. First Term","2. Second Term"))
+                        ,
+                        aes(x = dist_ec29_baseline, y = change05_siops_despsaude_pcapita, color = `Electoral Term`,group = `Electoral Term`)) +
   geom_point(size = 0.7, alpha = 0.5) +
   # geom_smooth(method='lm', color = "sienna2",fill = "sienna2", alpha = 0.1, se = F, size = 0.5)+
   scale_y_continuous(limits = c(-400,950), breaks = seq(-400,900,100)) +
@@ -209,6 +207,66 @@ ggsave(filePDF,
        device = "pdf",
        width = 7, height = 6,
        units = "in")
+
+
+
+# Binscatter
+
+df_bins <- df_plot %>% 
+  filter(change05_siops_despsaude_pcapita<1000) %>% 
+  filter(dist_ec29_baseline>-0.5)
+
+binscatter <- binsreg(y = df_bins$change05_siops_despsaude_pcapita,
+                      x = df_bins$dist_ec29_baseline,
+                      line=c(3,3),
+                      ci=c(3,3),
+                      cb=c(3,3))
+
+bins_ci <- binscatter$data.plot$`Group Full Sample`$data.ci
+bins_dots <- binscatter$data.plot$`Group Full Sample`$data.dots
+bins_cb <- binscatter$data.plot$`Group Full Sample`$data.cb
+bins_line <- binscatter$data.plot$`Group Full Sample`$data.line
+
+bins_dots <- bins_dots %>% cbind(bins_ci %>% select(ci.l,ci.r))
+bins_line <- bins_line %>% cbind(bins_cb %>% select(cb.l,cb.r))
+
+
+
+
+scatter <- ggplot(bins_line,
+                  aes(x = x, y = fit)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_line(color = "sienna2", alpha = 1) +
+  geom_ribbon(aes(ymin = cb.l, ymax = cb.r),alpha = 0.3, fill = "sienna2") +
+  geom_pointrange(size = 0.1, alpha = 1,color = "steelblue4",data = bins_dots,aes(x = x, y = fit, ymin = ci.l, ymax = ci.r)) +
+  scale_y_continuous(limits = c(-250,250), breaks = seq(-250,250,50)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  labs(y = "Change in Health Spending per capita 2000-2005",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=12),
+        legend.position="bottom", legend.box = "horizontal",
+        legend.title = element_blank())
+
+
+
+filePNG <- paste0(output,"binscatter_dist_ec29_baseline_change05.png")
+filePDF <- paste0(output,"binscatter_dist_ec29_baseline_change05.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
 
 
 
