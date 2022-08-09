@@ -56,13 +56,13 @@ df_plot <- df
 for (i in seq(1,10,1)){
   varname1 <- paste0("change0",i,"_","finbra_desp_saude_san_pcapita")
   varname2 <- paste0("change0",i,"_","siops_despsaude_pcapita")
-  varname3 <- paste0("change0",i,"_","siops_desprecpropriosaude_pcapita")
+  varname3 <- paste0("change0",i,"_","siops_pct_recproprios_ec29")
   
   df_plot <- df_plot %>% 
     group_by(cod_mun) %>% 
     mutate(!!varname1 := dplyr::lead(finbra_desp_saude_san_pcapita,i) - finbra_desp_saude_san_pcapita,
            !!varname2 := dplyr::lead(siops_despsaude_pcapita,i) - siops_despsaude_pcapita,
-           !!varname3 := dplyr::lead(siops_desprecpropriosaude_pcapita,i) - siops_desprecpropriosaude_pcapita) %>% 
+           !!varname3 := dplyr::lead(siops_pct_recproprios_ec29,i) - siops_pct_recproprios_ec29) %>% 
     ungroup()
   
 }
@@ -120,6 +120,41 @@ ggsave(filePDF,
        device = "pdf",
        width = 7, height = 6,
        units = "in")
+
+
+
+scatter <- ggplot(df_plot %>% 
+                    filter(dist_ec29_baseline>-0.5)
+                  ,
+                  aes(x = dist_ec29_baseline, y = change05_siops_pct_recproprios_ec29)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
+  scale_y_continuous(limits = c(-0.4,0.4), breaks = seq(-0.4,0.4,0.1)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  labs(y = "Change (p.p.) in % of Own Resource Spent on Health 2000-2005",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=12),
+        legend.position="none")
+
+
+filePNG <- paste0(output,"scatter_dist_ec29_baseline_change05_share.png")
+filePDF <- paste0(output,"scatter_dist_ec29_baseline_change05_share.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
 
 
 
@@ -266,6 +301,65 @@ ggsave(filePDF,
        device = "pdf",
        width = 7, height = 6,
        units = "in")
+
+
+
+
+
+df_bins <- df_plot %>% 
+  filter(dist_ec29_baseline>-0.5)
+
+binscatter <- binsreg(y = df_bins$change05_siops_pct_recproprios_ec29,
+                      x = df_bins$dist_ec29_baseline,
+                      line=c(3,3),
+                      ci=c(3,3),
+                      cb=c(3,3))
+
+bins_ci <- binscatter$data.plot$`Group Full Sample`$data.ci
+bins_dots <- binscatter$data.plot$`Group Full Sample`$data.dots
+bins_cb <- binscatter$data.plot$`Group Full Sample`$data.cb
+bins_line <- binscatter$data.plot$`Group Full Sample`$data.line
+
+bins_dots <- bins_dots %>% cbind(bins_ci %>% select(ci.l,ci.r))
+bins_line <- bins_line %>% cbind(bins_cb %>% select(cb.l,cb.r))
+
+
+
+
+scatter <- ggplot(bins_line,
+                  aes(x = x, y = fit)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_line(color = "sienna2", alpha = 1) +
+  geom_ribbon(aes(ymin = cb.l, ymax = cb.r),alpha = 0.3, fill = "sienna2") +
+  geom_pointrange(size = 0.1, alpha = 1,color = "steelblue4",data = bins_dots,aes(x = x, y = fit, ymin = ci.l, ymax = ci.r)) +
+  scale_y_continuous(limits = c(-0.5,0.3), breaks = seq(-0.5,0.3,0.1)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  labs(y = "Change (p.p.) in % of Own Resource Spent on Health 2000-2005",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=12),
+        legend.position="bottom", legend.box = "horizontal",
+        legend.title = element_blank())
+
+
+
+filePNG <- paste0(output,"binscatter_dist_ec29_baseline_change05_share.png")
+filePDF <- paste0(output,"binscatter_dist_ec29_baseline_change05_share.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
 
 
 
