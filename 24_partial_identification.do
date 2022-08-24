@@ -69,6 +69,19 @@ swindex _ivar*, generate(health_index) normby(pre)
 sum health_index
 drop _ivar*
     
+**Birth index
+#delimit ;
+local birth birth_fertility birth_apgar1 birth_apgar5 birth_low_weight_2500g
+            birth_premature birth_sexratio;
+#delimit cr
+local j=1
+foreach var of varlist `birth' {
+    gen _ivar`j' = `var'
+    local ++j
+}
+swindex _ivar*, generate(birth_index) normby(pre) flip(_ivar1 _ivar6)
+sum birth_index
+drop _ivar*
 
 
 *-------------------------------------------------------------------------------
@@ -78,7 +91,7 @@ gen post = ano >= 2001
 gen z    = post*dist_ec29
 
 #delimit ;
-local y input_index access_index health_index;
+local y input_index access_index health_index birth_index;
 local x finbra_desp_saude_san_pcapita;
 local z z;
 local cov t_analf18m_baseline t_espvida_baseline t_e_anosestudo_baseline
@@ -98,6 +111,7 @@ local X (r_finbra_desp_saude_san_pcapita = r_z)
 ivregress 2sls r_input_index  `X' `wt', vce(cluster cod_mun) first
 ivregress 2sls r_access_index `X' `wt', vce(cluster cod_mun) first
 ivregress 2sls r_health_index `X' [aw=peso_b], vce(cluster cod_mun) first
+ivregress 2sls r_birth_index  `X' [aw=peso_b], vce(cluster cod_mun) first
 
 rename r_finbra_desp_saude_san_pcapita W
 plausexog ltz r_access_index (W=r_z) `wt', vce(cluster cod_mun) mu(-0.1) omega(0.01)
