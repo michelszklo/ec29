@@ -283,6 +283,35 @@ for (i in seq(7,10,1)){
 
 
 
+# 7. Hospitalization
+# =================================================================
+
+var_map <- rbind(cbind('tx_sih_infant','Infant Hospitalization Rate (pop 0-1y * 1000)'),
+                 cbind('tx_sih_infant_icsap','Infant Hospitalization Rate - APC (pop 0-1y * 1000)'),
+                 cbind('tx_sih_infant_nicsap','Infant Hospitalization Rate - non-APC (pop 0-1y * 1000)'),
+                 cbind('tx_sih_maternal','Maternal Hospitalization Rate (women 10-49y * 1000)')
+)
+
+
+for (i in seq(1,3,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.2,0.25,0.05,paste0("19",gf_name),below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+}
+
+for (i in seq(4,4,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.2,0.25,0.05,paste0("19",gf_name),below = below,weight = "peso_m",year_cap = 2010) # ec29baseline
+}
+
+
+
+
+
+
 
 # 6. IMR
 # =================================================================
