@@ -8,38 +8,57 @@ set more off
 cap log close
 
 
+
 *-------------------------------------------------------------------------------
 *--- (1) Setup and generate indexes
 *-------------------------------------------------------------------------------
 set maxvar 10000
 set matsize 10000
-use data
+
+cd "C:\Users\Michel\Documents\GitHub\ec29"
+
+use data, clear
 
 gen pre = ano<2001
 
 **Spending index
-**Input index
+**PC index
 #delimit ;
 local coverE ACS_popprop eSF_popprop;
 local coverI siab_accomp_especif_pcapita siab_accomp_especif_pacs_pcapit
              siab_accomp_especif_psf_pcapita siab_visit_cons_pcapita
              siab_visit_cons_pacs_pcapita siab_visit_cons_psf_pcapita; 
-local humanR ams_hr_superior_pcapita ams_hr_technician_pcapita
-             ams_hr_elementary_pcapita ams_hr_admin_pcapita;
-local infras ams_hospital_mun_pcapita ams_hospital_nmun_pcapita
-             ams_hospital_pvt_pcapita sia_ncnes_amb_mun_pcapita;
 local primI  sia_ncnes_acs_pcapita sia_ncnes_medcom_pcapita sia_ncnes_enfacs_pcapita
              sia_ncnes_psf_pcapita sia_ncnes_medpsf_pcapita sia_ncnes_enfpsf_pcapita
              sia_ncnes_outpsf_pcapita;
 #delimit cr
 local j=1
-foreach var of varlist `coverE' `coverI' `humanR' `infras' `primI' {
+foreach var of varlist `coverE' `coverI' `primI' {
+    gen _ivar`j' = `var'
+    local ++j
+}
+swindex _ivar*, generate(pc_index) normby(pre)
+sum pc_index
+drop _ivar*
+
+
+**Input index
+#delimit ;
+local humanR ams_hr_superior_pcapita ams_hr_technician_pcapita
+             ams_hr_elementary_pcapita ams_hr_admin_pcapita;
+local infras ams_hospital_mun_pcapita ams_hospital_nmun_pcapita
+             ams_hospital_pvt_pcapita;
+
+#delimit cr
+local j=1
+foreach var of varlist `humanR' `infras' {
     gen _ivar`j' = `var'
     local ++j
 }
 swindex _ivar*, generate(input_index) normby(pre)
 sum input_index
 drop _ivar*
+
 
 **Access index
 #delimit ;
@@ -57,19 +76,34 @@ swindex _ivar*, generate(access_index) normby(pre) flip(_ivar5 _ivar6)
 sum access_index
 drop _ivar*
 
-**Output index
+**Hosp index
 local hosp tx_sih_maternal tx_sih_infant tx_sih_infant_icsap tx_sih_infant_nicsap
-local inf  tx_mi
 local j=1
 foreach var of varlist `hosp' {
     gen _ivar`j' = `var'
     local ++j
 }
-swindex _ivar*, generate(health_index) normby(pre)
-sum health_index
+swindex _ivar*, generate(hosp_index) normby(pre)
+sum hosp_index
 drop _ivar*
+
+
+**IMR index
+local imr  tx_mi tx_mi_icsap tx_mi_nicsap
+local j=1
+foreach var of varlist `imr' {
+    gen _ivar`j' = `var'
+    local ++j
+}
+swindex _ivar*, generate(imr_index) normby(pre)
+sum imr_index
+drop _ivar*
+
+
     
 **Birth index
+replace birth_low_weight_2500g = -birth_low_weight_2500g
+replace birth_premature = -birth_premature
 #delimit ;
 local birth birth_fertility birth_apgar1 birth_apgar5 birth_low_weight_2500g
             birth_premature birth_sexratio;
@@ -82,6 +116,10 @@ foreach var of varlist `birth' {
 swindex _ivar*, generate(birth_index) normby(pre) flip(_ivar1 _ivar6)
 sum birth_index
 drop _ivar*
+
+
+keep  ano cod_mun cod_uf pc_index input_index access_index hosp_index imr_index birth_index
+save indexes.dta, replace
 
 
 *-------------------------------------------------------------------------------

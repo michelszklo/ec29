@@ -1,6 +1,6 @@
 #######################################################################################################
 # Author: Michel Szklo
-# April 2021
+# September 2022
 # 
 # This scripts runs regressions for variables index created based on Anderson (2008)
 #
@@ -71,17 +71,19 @@ for(d in all_df){
 # 2. Define outcomes output name and output functions
 # =================================================================
 
-var_map <-  rbind(cbind('input_index','Health Inputs Index (Primary Care, HR, Infra)','peso_eq'),
+var_map <-  rbind(cbind('pc_index','Primary Care Index','peso_eq'),
+                  cbind('input_index','Health Inputs Index (HR, Infra)','peso_eq'),
                   cbind('access_index','Access to Health Care Index','peso_eq'),
+                  cbind('hosp_index','Hospitalization Index','peso_eq'),
                   cbind('birth_index','Birth Outcomes Index','peso_b'),
-                  cbind('health_index','Health Outputs Index (Hospitalization and Mortality)','peso_b')
+                  cbind('imr_index','Infant Mortality Index','peso_b')
           )
 
 
 # 3. Run and ouput
 # =================================================================
 
-for (i in seq(1,3,1)){
+for (i in seq(1,5,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   w <- var_map[i,3]
@@ -101,7 +103,7 @@ for (i in seq(1,3,1)){
   
 }
 
-i <- 4
+i <- 6
 var <- var_map[i,1]
 var_name <- var_map[i,2]
 w <- var_map[i,3]
@@ -131,54 +133,19 @@ write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName =
 # 4. Regressions Graph
 # =================================================================
 
-# inputs
-i <- 1
-var <- var_map[i,1]
-var_name <- var_map[i,2]
-w <- var_map[i,3]
-print(var_name)
-reduced_yearly(var,var_name,df,3,1998,-1,1,0.5,"20",below = below,weight = w,year_cap = 2010)
-
-# access
-i <- 2
-var <- var_map[i,1]
-var_name <- var_map[i,2]
-w <- var_map[i,3]
-print(var_name)
-reduced_yearly(var,var_name,df,3,1998,-1,1,0.5,"20",below = below,weight = w,year_cap = 2010)
-
-# birth
-i <- 3
-var <- var_map[i,1]
-var_name <- var_map[i,2]
-w <- var_map[i,3]
-print(var_name)
-reduced_yearly(var,var_name,df,3,1998,-1,1,0.5,"20",below = below,weight = w,year_cap = 2010)
-
-# Outputs
-i <- 4
-var <- var_map[i,1]
-var_name <- var_map[i,2]
-w <- var_map[i,3]
-print(var_name)
-reduced_yearly_imr(var,var_name,df,3,1998,-1,1,0.5,"20",below = below,weight = w,year_cap = 2010)
-
-
-
-
-
-for (i in seq(1,3,1)){
+for (i in seq(1,5,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
+  w <- var_map[i,3]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-200,400,50,"15",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-1.25,1.25,0.25,"20",below = below,weight = w,year_cap = 2010) # ec29baseline
 }
 
-for (i in seq(4,4,1)){
+for (i in seq(6,6,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-50,50,10,"15",below = below,weight = "peso_m",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-1.25,1.25,0.25,"20",below = below,weight = w,year_cap = 2010) # ec29baseline
 }
 
 
