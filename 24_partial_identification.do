@@ -60,7 +60,31 @@ sum input_index
 drop _ivar*
 
 
+local j=1
+foreach var of varlist `humanR' {
+    gen _ivar`j' = `var'
+    local ++j
+}
+swindex _ivar*, generate(hr_index) normby(pre)
+sum hr_index
+drop _ivar*
+
+local j=1
+foreach var of varlist `infras' {
+    gen _ivar`j' = `var'
+    local ++j
+}
+swindex _ivar*, generate(hospital_index) normby(pre)
+sum hospital_index
+drop _ivar*
+
+
+
 **Access index
+
+replace birth_prenat_ig = -birth_prenat_ig
+replace birth_prenat_0 = -birth_prenat_0
+
 #delimit ;
 local amb sia_pcapita sia_ab_pcapita sia_nprod_amb_lc_mun_pcapita
           sia_nprod_amb_hc_mun_pcapita;
@@ -77,6 +101,8 @@ sum access_index
 drop _ivar*
 
 **Hosp index
+replace tx_sih_maternal = -tx_sih_maternal
+
 local hosp tx_sih_maternal tx_sih_infant tx_sih_infant_icsap tx_sih_infant_nicsap
 local j=1
 foreach var of varlist `hosp' {
@@ -118,7 +144,7 @@ sum birth_index
 drop _ivar*
 
 
-keep  ano cod_mun cod_uf pc_index input_index access_index hosp_index imr_index birth_index
+keep  ano cod_mun cod_uf pc_index input_index hospital_index hr_index access_index hosp_index imr_index birth_index
 save indexes.dta, replace
 
 

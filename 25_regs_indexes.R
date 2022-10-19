@@ -72,7 +72,9 @@ for(d in all_df){
 # =================================================================
 
 var_map <-  rbind(cbind('pc_index','Primary Care Index','peso_eq'),
-                  cbind('input_index','Health Inputs Index (HR, Infra)','peso_eq'),
+                  cbind('input_index','Health Inputs Index (HR, Hopsitals)','peso_eq'),
+                  cbind('hr_index','Human Resources Index','peso_eq'),
+                  cbind('hospital_index','Hospitals Index','peso_eq'),
                   cbind('access_index','Access to Health Care Index','peso_eq'),
                   cbind('hosp_index','Hospitalization Index','peso_eq'),
                   cbind('birth_index','Birth Outcomes Index','peso_b'),
@@ -83,7 +85,7 @@ var_map <-  rbind(cbind('pc_index','Primary Care Index','peso_eq'),
 # 3. Run and ouput
 # =================================================================
 
-for (i in seq(1,5,1)){
+for (i in seq(1,7,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   w <- var_map[i,3]
@@ -103,7 +105,7 @@ for (i in seq(1,5,1)){
   
 }
 
-i <- 6
+i <- 8
 var <- var_map[i,1]
 var_name <- var_map[i,2]
 w <- var_map[i,3]
@@ -133,19 +135,19 @@ write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName =
 # 4. Regressions Graph
 # =================================================================
 
-for (i in seq(1,5,1)){
+for (i in seq(1,7,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   w <- var_map[i,3]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-1.25,1.25,0.25,"20",below = below,weight = w,year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-1.0,1.75,0.25,"20",below = below,weight = w,year_cap = 2010) # ec29baseline
 }
 
-for (i in seq(6,6,1)){
+for (i in seq(8,8,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-1.25,1.25,0.25,"20",below = below,weight = w,year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-1.0,1.75,0.25,"20",below = below,weight = w,year_cap = 2010) # ec29baseline
 }
 
 

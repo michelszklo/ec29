@@ -420,7 +420,9 @@ var_map <- rbind(cbind('siops_despsaude_pcapita','Health Spending per capita - T
                  
                  
                  cbind('pc_index','Primary Care Index'),
-                 cbind('input_index','Health Inputs Index (HR, Infra)'),
+                 cbind('input_index','Health Inputs Index (HR, Hopsitals)'),
+                 cbind('hr_index','Human Resources Index'),
+                 cbind('hospital_index','Hospitals Index'),
                  cbind('access_index','Access to Health Care Index'),
                  cbind('hosp_index','Hospitalization Index'),
                  cbind('birth_index','Birth Outcomes Index'),
@@ -431,7 +433,7 @@ var_map <- rbind(cbind('siops_despsaude_pcapita','Health Spending per capita - T
 
 
 
-for (i in seq(1,11,1)){
+for (i in seq(1,13,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -451,7 +453,7 @@ for (i in seq(1,11,1)){
 }
 
 
-for (i in seq(12,12,1)){
+for (i in seq(14,14,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -471,7 +473,7 @@ for (i in seq(12,12,1)){
 }
 
 
-for (i in seq(13,13,1)){
+for (i in seq(15,15,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -489,6 +491,13 @@ for (i in seq(13,13,1)){
   }
   
 }
+
+
+
+# 4. Exporting Table
+# =================================================================
+write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName = "discrete",row.names = F,append = T)
+
 
 
 
