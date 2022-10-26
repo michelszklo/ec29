@@ -48,6 +48,9 @@ dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 # ------------------------------------
 
 
+# choose step
+step <- 0.05
+
 # 1. Load data
 # =================================================================
 load(paste0(dir,"regs.RData"))
@@ -55,31 +58,71 @@ load(paste0(dir,"regs.RData"))
 # creating discrete treatment variable
 all_df <- c("df","df_low_ineq","df_high_ineq","df_low_pov","df_high_pov","df_low_hi","df_high_hi","df_first","df_second")
 
-discrete <- function(df){
-  df <- df %>% 
-    mutate(iv_p1 = 0,
-           iv_p2 = 0,
-           iv_p3 = 0,
-           iv_0 = 0,
-           iv_m1 = 0,
-           iv_m2 = 0,
-           iv_m3 = 0,
-           iv_m4 = 0) %>% 
-    mutate(iv_p1 = ifelse(dist_ec29_baseline>0 & dist_ec29_baseline<=0.05 & ano>2000,1,iv_p1),
-           iv_p2 = ifelse(dist_ec29_baseline>0.05 & dist_ec29_baseline<=0.1 & ano>2000,1,iv_p2),
-           iv_p3 = ifelse(dist_ec29_baseline>0.1 & dist_ec29_baseline<=0.15 & ano>2000,1,iv_p3),
-           iv_m1 = ifelse(dist_ec29_baseline<0 & dist_ec29_baseline>-0.05 & ano>2000,1,iv_m1),
-           iv_m2 = ifelse(dist_ec29_baseline<=-0.05 & dist_ec29_baseline>-0.1 & ano>2000,1,iv_m2),
-           iv_m3 = ifelse(dist_ec29_baseline<=-0.1 & dist_ec29_baseline>-0.15 & ano>2000,1,iv_m3),
-           iv_m4 = ifelse(dist_ec29_baseline<=-0.15 & ano>2000,1,iv_m4)) %>% 
-    mutate(iv_m1 = 0)
+discrete <- function(df,step){
+
+  nplus <- 0.3/step/2 
+  nminus <- 0.3/step/2 + 1
+  
+  for (i in 1:nplus){
+    i <- round(i)
+    first <- round((i-1)*step,2)
+    second <- round(i * step,2)
+
+    varname <- paste0("iv_p",i)
+    df <- df %>%
+      mutate(!!varname := ifelse(dist_ec29_baseline>first & dist_ec29_baseline<=second & ano>2000,1,0))
+  }
+  
+  for (i in nminus:1){
+    i <- round(i)
+    first <- round((1-i) * step,2)
+    second <- round(-i * step,2)
+    
+    print(first)
+    print(second)
+    
+    if (second >= -0.15){
+      varname <- paste0("iv_m",i)
+      df <- df %>%
+        mutate(!!varname := ifelse(dist_ec29_baseline<=first & dist_ec29_baseline>second & ano>2000,1,0))
+    }else{
+      
+      varname <- paste0("iv_m",i)
+      df <- df %>% 
+        mutate(!!varname := ifelse(dist_ec29_baseline<=-0.15 & ano>2000,1,0))
+    }
+    
+
+  }
+  
+  df <- df %>% mutate(iv_m1 = 0)
+  
+  # df <- df %>% 
+  #   mutate(iv_p1 = 0,
+  #          iv_p2 = 0,
+  #          iv_p3 = 0,
+  #          iv_0 = 0,
+  #          iv_m1 = 0,
+  #          iv_m2 = 0,
+  #          iv_m3 = 0,
+  #          iv_m4 = 0) %>% 
+  #   mutate(iv_p1 = ifelse(dist_ec29_baseline>0 & dist_ec29_baseline<=0.05 & ano>2000,1,iv_p1),
+  #          iv_p2 = ifelse(dist_ec29_baseline>0.05 & dist_ec29_baseline<=0.1 & ano>2000,1,iv_p2),
+  #          iv_p3 = ifelse(dist_ec29_baseline>0.1 & dist_ec29_baseline<=0.15 & ano>2000,1,iv_p3),
+  #          iv_m1 = ifelse(dist_ec29_baseline<0 & dist_ec29_baseline>-0.05 & ano>2000,1,iv_m1),
+  #          iv_m2 = ifelse(dist_ec29_baseline<=-0.05 & dist_ec29_baseline>-0.1 & ano>2000,1,iv_m2),
+  #          iv_m3 = ifelse(dist_ec29_baseline<=-0.1 & dist_ec29_baseline>-0.15 & ano>2000,1,iv_m3),
+  #          iv_m4 = ifelse(dist_ec29_baseline<=-0.15 & ano>2000,1,iv_m4)) %>% 
+  #   mutate(iv_m1 = 0)
 }
 
 for(d in all_df){
   df_add <- get(d)
-  df_add <- df_add %>% discrete()
+  df_add <- df_add %>% discrete(step = step)
   assign(d,df_add,envir = .GlobalEnv)
 }
+
+discrete <- c(grep("^iv_m",names(df),value = T),grep("^iv_p",names(df),value = T))
 
 
 # merging indexes
@@ -110,23 +153,26 @@ for(d in all_df){
 # spec4_post <- paste(" ~ ","iv_m4 + iv_m3 + iv_m2 + iv_m1 + iv_0 + iv_p1 + iv_p2 + iv_p3"," + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
-spec1_post_d <- paste(" ~ ","iv_m4 + iv_m3 + iv_m2 + iv_m1 + iv_p1 + iv_p2 + iv_p3"," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec2_post_d <- paste(" ~ ","iv_m4 + iv_m3 + iv_m2 + iv_m1 + iv_p1 + iv_p2 + iv_p3"," + ", paste(baseline_controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3_post_d <- paste(" ~ ","iv_m4 + iv_m3 + iv_m2 + iv_m1 + iv_p1 + iv_p2 + iv_p3"," + ", paste(c(baseline_controls,tvarying_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec4_post_d <- paste(" ~ ","iv_m4 + iv_m3 + iv_m2 + iv_m1 + iv_p1 + iv_p2 + iv_p3"," + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec1_post_d <- paste(" ~ ",paste(discrete,collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec2_post_d <- paste(" ~ ",paste(discrete,collapse = " + ")," + ", paste(baseline_controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post_d <- paste(" ~ ",paste(discrete,collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec4_post_d <- paste(" ~ ",paste(discrete,collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 
-spec1_post_imr_d <- paste(" ~ ","iv_m4 + iv_m3 + iv_m2 + iv_m1 + iv_p1 + iv_p2 + iv_p3"," + ",imr_controls," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec2_post_imr_d <- paste(" ~ ","iv_m4 + iv_m3 + iv_m2 + iv_m1 + iv_p1 + iv_p2 + iv_p3"," + ", paste(c(baseline_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec3_post_imr_d <- paste(" ~ ","iv_m4 + iv_m3 + iv_m2 + iv_m1 + iv_p1 + iv_p2 + iv_p3"," + ", paste(c(baseline_controls,tvarying_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
-spec4_post_imr_d <- paste(" ~ ","iv_m4 + iv_m3 + iv_m2 + iv_m1 + iv_p1 + iv_p2 + iv_p3"," + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec1_post_imr_d <- paste(" ~ ",paste(discrete,collapse = " + ")," + ",imr_controls," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec2_post_imr_d <- paste(" ~ ",paste(discrete,collapse = " + ")," + ", paste(c(baseline_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post_imr_d <- paste(" ~ ",paste(discrete,collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec4_post_imr_d <- paste(" ~ ",paste(discrete,collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 # 2. Regression formulas
 # =================================================================
 
-reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,weight){
+reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,weight,step){
+  
+  
+  slice <- 0.3/step + 1
   
   df_reg <- df
   
@@ -156,7 +202,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
   # filtering regression variables
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),
-           iv,iv_m4,iv_m3,iv_m2,iv_m1,iv_0,iv_p1,iv_p2,iv_p3,
+           all_of(discrete),
            all_of(controls),pop,
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r,peso_m,
            finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
@@ -183,7 +229,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
     regformula <- as.formula(paste(ln_outcome,spec_reduced))
     fit <- felm(regformula, data = df_reg,weights = weight_vector,exactDOF = T)
     
-    out <- cbind(fit %>% broom::tidy() %>% slice(1:7),fit %>% broom::glance() %>% select(nobs))
+    out <- cbind(fit %>% broom::tidy() %>% slice(1:slice),fit %>% broom::glance() %>% select(nobs))
     
     out <- cbind(out,spec)
     
@@ -205,13 +251,13 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
   
   table_graph <- table %>% filter(spec==1 | spec == 3) %>% 
     mutate(estimate = ifelse(term=="iv_m1",0,estimate)) %>% 
-    mutate(term = ifelse(term=="iv_m4","< -0.15",term),
-           term = ifelse(term=="iv_m3","-0.15 to -0.10",term),
-           term = ifelse(term=="iv_m2","-0.10 to -0.05",term),
-           term = ifelse(term=="iv_m1","-0.05 to 0",term),
-           term = ifelse(term=="iv_p1","0 to 0.05",term),
-           term = ifelse(term=="iv_p2","0.05 to 0.10",term),
-           term = ifelse(term=="iv_p3","0.10 to 0.15",term)) %>% 
+    # mutate(term = ifelse(term=="iv_m4","< -0.15",term),
+    #        term = ifelse(term=="iv_m3","-0.15 to -0.10",term),
+    #        term = ifelse(term=="iv_m2","-0.10 to -0.05",term),
+    #        term = ifelse(term=="iv_m1","-0.05 to 0",term),
+    #        term = ifelse(term=="iv_p1","0 to 0.05",term),
+    #        term = ifelse(term=="iv_p2","0.05 to 0.10",term),
+    #        term = ifelse(term=="iv_p3","0.10 to 0.15",term)) %>% 
     mutate(spec = as.character(spec)) %>% 
     mutate(spec = ifelse(spec=="1","Baseline",spec),
            spec = ifelse(spec=="3","+ Baseline and Time Varying Controls",spec)) %>% 
@@ -220,8 +266,10 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
     mutate(lb = estimate - 1.96 * std.error,
            ub = estimate + 1.96 * std.error)
   
-  table_graph$term <- factor(table_graph$term, levels = c("< -0.15","-0.15 to -0.10","-0.10 to -0.05","-0.05 to 0",
-                                                          "0 to 0.05","0.05 to 0.10","0.10 to 0.15"))
+  # table_graph$term <- factor(table_graph$term, levels = c("< -0.15","-0.15 to -0.10","-0.10 to -0.05","-0.05 to 0",
+  #                                                         "0 to 0.05","0.05 to 0.10","0.10 to 0.15"))
+  
+  table_graph$term <- factor(table_graph$term, levels = discrete)
 
   
   # GRAPHS
@@ -251,12 +299,12 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
   
   
   
-  ggsave(paste0(dir,main_folder,"discrete_treatment/",i,"_",outcome,"_",instrument,".png"),
+  ggsave(paste0(dir,main_folder,"discrete_treatment/",i,"_",step,"_",outcome,"_",instrument,".png"),
          plot = graph,
          device = "png",
          width = 7, height = 5,
          units = "in")
-  ggsave(paste0(dir,main_folder,"discrete_treatment/",i,"_",outcome,"_",instrument,".pdf"),
+  ggsave(paste0(dir,main_folder,"discrete_treatment/",i,"_",step,"_",outcome,"_",instrument,".pdf"),
          plot = graph,
          device = "pdf",
          width = 7, height = 5,
@@ -265,7 +313,10 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
   
 }
 
-reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_filter,weight){
+reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_filter,weight,step){
+  
+  slice <- 0.3/step + 1
+  
   
   df_reg <- df
   
@@ -295,7 +346,7 @@ reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_fil
   # filtering regression variables
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),
-           iv,iv_m4,iv_m3,iv_m2,iv_m1,iv_0,iv_p1,iv_p2,iv_p3,
+           all_of(discrete),
            all_of(controls),pop,
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r,peso_m,
            finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
@@ -322,7 +373,7 @@ reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_fil
     regformula <- as.formula(paste(ln_outcome,spec_reduced))
     fit <- felm(regformula, data = df_reg,weights = weight_vector,exactDOF = T)
     
-    out <- cbind(fit %>% broom::tidy() %>% slice(1:7),fit %>% broom::glance() %>% select(nobs))
+    out <- cbind(fit %>% broom::tidy() %>% slice(1:slice),fit %>% broom::glance() %>% select(nobs))
     
     out <- cbind(out,spec)
     
@@ -344,13 +395,13 @@ reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_fil
   
   table_graph <- table %>% filter(spec==1 | spec == 3) %>% 
     mutate(estimate = ifelse(term=="iv_m1",0,estimate)) %>% 
-    mutate(term = ifelse(term=="iv_m4","< -0.15",term),
-           term = ifelse(term=="iv_m3","-0.15 to -0.10",term),
-           term = ifelse(term=="iv_m2","-0.10 to -0.05",term),
-           term = ifelse(term=="iv_m1","-0.05 to 0",term),
-           term = ifelse(term=="iv_p1","0 to 0.05",term),
-           term = ifelse(term=="iv_p2","0.05 to 0.10",term),
-           term = ifelse(term=="iv_p3","0.10 to 0.15",term)) %>% 
+    # mutate(term = ifelse(term=="iv_m4","< -0.15",term),
+    #        term = ifelse(term=="iv_m3","-0.15 to -0.10",term),
+    #        term = ifelse(term=="iv_m2","-0.10 to -0.05",term),
+    #        term = ifelse(term=="iv_m1","-0.05 to 0",term),
+    #        term = ifelse(term=="iv_p1","0 to 0.05",term),
+    #        term = ifelse(term=="iv_p2","0.05 to 0.10",term),
+    #        term = ifelse(term=="iv_p3","0.10 to 0.15",term)) %>% 
     mutate(spec = as.character(spec)) %>% 
     mutate(spec = ifelse(spec=="1","Baseline",spec),
            spec = ifelse(spec=="3","+ Baseline and Time Varying Controls",spec)) %>% 
@@ -359,9 +410,10 @@ reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_fil
     mutate(lb = estimate - 1.96 * std.error,
            ub = estimate + 1.96 * std.error)
   
-  table_graph$term <- factor(table_graph$term, levels = c("< -0.15","-0.15 to -0.10","-0.10 to -0.05","-0.05 to 0",
-                                                          "0 to 0.05","0.05 to 0.10","0.10 to 0.15"))
+  # table_graph$term <- factor(table_graph$term, levels = c("< -0.15","-0.15 to -0.10","-0.10 to -0.05","-0.05 to 0",
+  #                                                         "0 to 0.05","0.05 to 0.10","0.10 to 0.15"))
   
+  table_graph$term <- factor(table_graph$term, levels = discrete)
   
   # GRAPHS
   # ---------
@@ -390,12 +442,12 @@ reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_fil
   
   
   
-  ggsave(paste0(dir,main_folder,"discrete_treatment/",i,"_",outcome,"_",instrument,".png"),
+  ggsave(paste0(dir,main_folder,"discrete_treatment/",i,"_",step,"_",outcome,"_",instrument,".png"),
          plot = graph,
          device = "png",
          width = 7, height = 5,
          units = "in")
-  ggsave(paste0(dir,main_folder,"discrete_treatment/",i,"_",outcome,"_",instrument,".pdf"),
+  ggsave(paste0(dir,main_folder,"discrete_treatment/",i,"_",step,"_",outcome,"_",instrument,".pdf"),
          plot = graph,
          device = "pdf",
          width = 7, height = 5,
@@ -419,13 +471,14 @@ var_map <- rbind(cbind('siops_despsaude_pcapita','Health Spending per capita - T
                  cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (2010 R$)'),
                  
                  
-                 cbind('pc_index','Primary Care Index'),
-                 cbind('input_index','Health Inputs Index (HR, Hopsitals)'),
+                 cbind('access_index','Access and Production of Health Services Index'),
+                 cbind('access_pc_index','Primary Care Access and Production Index'),
+                 cbind('access_npc_index','Non-Primary Care Access and Production Index'),
+                 cbind('input_index','Health Inputs Index'),
                  cbind('hr_index','Human Resources Index'),
                  cbind('hospital_index','Hospitals Index'),
-                 cbind('access_index','Access to Health Care Index'),
-                 cbind('hosp_index','Hospitalization Index'),
                  cbind('birth_index','Birth Outcomes Index'),
+                 cbind('birth_others_index','Other Birth Outcomes Index'),
                  cbind('imr_index','Infant Mortality Index')
                  
 )
@@ -438,7 +491,7 @@ for (i in seq(1,13,1)){
   var_name <- var_map[i,2]
   print(var_name)
   
-  reduced(var,var_name,df,"table_all",3,1998,"peso_eq")
+  reduced(var,var_name,df,"table_all",3,1998,"peso_eq",step = step)
   
   
   if(exists("df_table_all")){
@@ -453,12 +506,12 @@ for (i in seq(1,13,1)){
 }
 
 
-for (i in seq(14,14,1)){
+for (i in seq(14,15,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   
-  reduced(var,var_name,df,"table_all",3,1998,"peso_b")
+  reduced(var,var_name,df,"table_all",3,1998,"peso_b",step = step)
   
   
   if(exists("df_table_all")){
@@ -473,12 +526,12 @@ for (i in seq(14,14,1)){
 }
 
 
-for (i in seq(15,15,1)){
+for (i in seq(16,16,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   
-  reduced_imr(var,var_name,df,"table_all",3,1998,"peso_b")
+  reduced_imr(var,var_name,df,"table_all",3,1998,"peso_b",step = step)
   
   
   if(exists("df_table_all")){
