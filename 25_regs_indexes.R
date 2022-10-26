@@ -77,10 +77,10 @@ var_map <-  rbind(cbind('access_index','Access and Production of Health Services
                   cbind('input_index','Health Inputs Index','peso_eq'),
                   cbind('hr_index','Human Resources Index','peso_eq'),
                   cbind('hospital_index','Hospitals Index','peso_eq'),
-                  cbind('birth_index','Birth Outcomes Index','peso_eq'),
+                  cbind('birth_index','Birth Outcomes Index','peso_b'),
                   cbind('imr_index','Infant Mortality Index','peso_b'),
-                  cbind('birth_others_index','Other Birth Outcomes Index','peso_eq')
-          )
+                  cbind('birth_others_index','Other Birth Outcomes Index','peso_b')
+)
 
 
 # 3. Run and ouput
