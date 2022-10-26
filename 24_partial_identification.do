@@ -22,7 +22,8 @@ use data, clear
 gen pre = ano<2001
 
 **Spending index
-**PC index
+
+** Access and production of health services
 #delimit ;
 local coverE ACS_popprop eSF_popprop;
 local coverI siab_accomp_especif_pcapita siab_accomp_especif_pacs_pcapit
@@ -31,15 +32,55 @@ local coverI siab_accomp_especif_pcapita siab_accomp_especif_pacs_pcapit
 local primI  sia_ncnes_acs_pcapita sia_ncnes_medcom_pcapita sia_ncnes_enfacs_pcapita
              sia_ncnes_psf_pcapita sia_ncnes_medpsf_pcapita sia_ncnes_enfpsf_pcapita
              sia_ncnes_outpsf_pcapita;
+local amb sia_pcapita sia_ab_pcapita sia_nprod_amb_lc_mun_pcapita
+          sia_nprod_amb_hc_mun_pcapita;
+local acc birth_prenat_ig birth_prenat_0 birth_prenat_1_6 birth_prenat_7_plus;
+local hosp tx_sih_maternal tx_sih_infant_icsap tx_sih_infant_nicsap;
 #delimit cr
 local j=1
-foreach var of varlist `coverE' `coverI' `primI' {
+foreach var of varlist `coverE' `coverI' `primI' `amb' `acc' `hosp' {
     gen _ivar`j' = `var'
     local ++j
 }
-swindex _ivar*, generate(pc_index) normby(pre)
-sum pc_index
+swindex _ivar*, generate(access_index) normby(pre) flip(_ivar20 _ivar21 _ivar25)
+sum access_index
 drop _ivar*
+
+** Access and production of health services SPLIT primary vs non primary care
+* PRIMARY CARE
+#delimit ;
+local coverE ACS_popprop eSF_popprop;
+local coverI siab_accomp_especif_pcapita siab_accomp_especif_pacs_pcapit
+             siab_accomp_especif_psf_pcapita siab_visit_cons_pcapita
+             siab_visit_cons_pacs_pcapita siab_visit_cons_psf_pcapita; 
+local primI  sia_ncnes_acs_pcapita sia_ncnes_medcom_pcapita sia_ncnes_enfacs_pcapita
+             sia_ncnes_psf_pcapita sia_ncnes_medpsf_pcapita sia_ncnes_enfpsf_pcapita
+             sia_ncnes_outpsf_pcapita;
+local amb    sia_ab_pcapita sia_nprod_amb_lc_mun_pcapita;
+local acc birth_prenat_ig birth_prenat_0 birth_prenat_1_6 birth_prenat_7_plus;
+local hosp tx_sih_maternal tx_sih_infant_icsap;
+#delimit cr
+local j=1
+foreach var of varlist `coverE' `coverI' `primI' `amb' `acc' `hosp' {
+    gen _ivar`j' = `var'
+    local ++j
+}
+swindex _ivar*, generate(access_pc_index) normby(pre) flip(_ivar18 _ivar19 _ivar23)
+sum access_pc_index
+drop _ivar*
+
+
+* NON-PRIMARY CARE
+local j=1
+foreach var of varlist sia_pcapita sia_nprod_amb_hc_mun_pcapita tx_sih_infant_nicsap {
+    gen _ivar`j' = `var'
+    local ++j
+}
+swindex _ivar*, generate(access_npc_index) normby(pre)
+sum access_npc_index
+drop _ivar*
+
+
 
 
 **Input index
@@ -78,58 +119,36 @@ swindex _ivar*, generate(hospital_index) normby(pre)
 sum hospital_index
 drop _ivar*
 
+    
 
 
-**Access index
+**Birth index
+#delimit ;
+local birth birth_fertility birth_apgar1 birth_apgar5 birth_low_weight_2500g
+            birth_premature birth_sexratio tx_mi;
+#delimit cr
+local j=1
+foreach var of varlist `birth' {
+    gen _ivar`j' = `var'
+    local ++j
+}
+swindex _ivar*, generate(birth_index) normby(pre) flip(_ivar4 _ivar5 _ivar6 _ivar7)
+sum birth_index
+drop _ivar*
 
-replace birth_prenat_ig = -birth_prenat_ig
-replace birth_prenat_0 = -birth_prenat_0
 
 #delimit ;
-local amb sia_pcapita sia_ab_pcapita sia_nprod_amb_lc_mun_pcapita
-          sia_nprod_amb_hc_mun_pcapita;
-local acc birth_prenat_ig birth_prenat_0 birth_prenat_1_6 birth_prenat_7_plus;
+local birth tx_mi;
 #delimit cr
-
 local j=1
-foreach var of varlist `amb' `acc' {
+foreach var of varlist `birth' {
     gen _ivar`j' = `var'
     local ++j
 }
-swindex _ivar*, generate(access_index) normby(pre) flip(_ivar5 _ivar6)
-sum access_index
-drop _ivar*
-
-**Hosp index
-replace tx_sih_maternal = -tx_sih_maternal
-
-local hosp tx_sih_maternal tx_sih_infant tx_sih_infant_icsap tx_sih_infant_nicsap
-local j=1
-foreach var of varlist `hosp' {
-    gen _ivar`j' = `var'
-    local ++j
-}
-swindex _ivar*, generate(hosp_index) normby(pre)
-sum hosp_index
-drop _ivar*
-
-
-**IMR index
-local imr  tx_mi tx_mi_icsap tx_mi_nicsap
-local j=1
-foreach var of varlist `imr' {
-    gen _ivar`j' = `var'
-    local ++j
-}
-swindex _ivar*, generate(imr_index) normby(pre)
+swindex _ivar*, generate(imr_index) normby(pre) flip(_ivar1)
 sum imr_index
 drop _ivar*
 
-
-    
-**Birth index
-replace birth_low_weight_2500g = -birth_low_weight_2500g
-replace birth_premature = -birth_premature
 #delimit ;
 local birth birth_fertility birth_apgar1 birth_apgar5 birth_low_weight_2500g
             birth_premature birth_sexratio;
@@ -139,12 +158,13 @@ foreach var of varlist `birth' {
     gen _ivar`j' = `var'
     local ++j
 }
-swindex _ivar*, generate(birth_index) normby(pre) flip(_ivar1 _ivar6)
-sum birth_index
+swindex _ivar*, generate(birth_others_index) normby(pre) flip(_ivar4 _ivar5 _ivar6)
+sum birth_others_index
 drop _ivar*
 
 
-keep  ano cod_mun cod_uf pc_index input_index hospital_index hr_index access_index hosp_index imr_index birth_index
+
+keep  ano cod_mun cod_uf access_index access_pc_index access_npc_index input_index hr_index hospital_index birth_index imr_index birth_others_index
 save indexes.dta, replace
 
 

@@ -71,14 +71,15 @@ for(d in all_df){
 # 2. Define outcomes output name and output functions
 # =================================================================
 
-var_map <-  rbind(cbind('pc_index','Primary Care Index','peso_eq'),
-                  cbind('input_index','Health Inputs Index (HR, Hopsitals)','peso_eq'),
+var_map <-  rbind(cbind('access_index','Access and Production of Health Services Index','peso_eq'),
+                  cbind('access_pc_index','Primary Care Access and Production Index','peso_eq'),
+                  cbind('access_npc_index','Non-Primary Care Access and Production Index','peso_eq'),
+                  cbind('input_index','Health Inputs Index','peso_eq'),
                   cbind('hr_index','Human Resources Index','peso_eq'),
                   cbind('hospital_index','Hospitals Index','peso_eq'),
-                  cbind('access_index','Access to Health Care Index','peso_eq'),
-                  cbind('hosp_index','Hospitalization Index','peso_eq'),
-                  cbind('birth_index','Birth Outcomes Index','peso_b'),
-                  cbind('imr_index','Infant Mortality Index','peso_b')
+                  cbind('birth_index','Birth Outcomes Index','peso_eq'),
+                  cbind('imr_index','Infant Mortality Index','peso_b'),
+                  cbind('birth_others_index','Other Birth Outcomes Index','peso_eq')
           )
 
 
@@ -124,6 +125,26 @@ if(exists("df_table_all")){
 }
 
 
+
+i <- 9
+var <- var_map[i,1]
+var_name <- var_map[i,2]
+w <- var_map[i,3]
+print(var_name)
+
+regress_output(var,var_name,3,1998,w)
+
+
+if(exists("df_table_all")){
+  df_table_all <- rbind(df_table_all,table_all)
+  
+} else {
+  
+  df_table_all <- table_all
+  
+}
+
+
 # exporting results
 # ---------------------
 
@@ -146,11 +167,18 @@ for (i in seq(1,7,1)){
 for (i in seq(8,8,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
+  w <- var_map[i,3]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-1.0,1.75,0.25,"20",below = below,weight = w,year_cap = 2010) # ec29baseline
+}
+
+for (i in 9){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  w <- var_map[i,3]
   print(var_name)
   reduced_yearly(var,var_name,df,3,1998,-1.0,1.75,0.25,"20",below = below,weight = w,year_cap = 2010) # ec29baseline
 }
-
-
 
 
 
