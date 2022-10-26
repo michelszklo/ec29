@@ -54,13 +54,18 @@ load(paste0(dir,"regs.RData"))
 
 reelect <- read.csv(paste0(dir,"data/TSE/reelect.csv"), encoding = "UTF-8") 
   
-
+reelect2008 <- read.csv(paste0(dir,"data/TSE/reelect2008.csv"), encoding = "UTF-8") 
 
 # 2. Reelection data
 # =================================================================
 
 df_reelect <- reelect %>% 
   mutate(ano=2004) %>% 
+  left_join(df, by = c("cod_mun","ano")) %>% 
+  select(cod_mun,ano,reelect,pop,iv,all_of(controls),cod_uf)
+
+df_reelect2 <- reelect2008 %>% 
+  mutate(ano=2008) %>% 
   left_join(df, by = c("cod_mun","ano")) %>% 
   select(cod_mun,ano,reelect,pop,iv,all_of(controls),cod_uf)
 
@@ -130,14 +135,15 @@ table_final <- bind_cols(table %>% table_formating_elect(1) %>% rename(spec1=est
                          table %>% table_formating_elect(3) %>% rename(spec3=estimate) %>% select(-term),
                          table %>% table_formating_elect(4) %>% rename(spec4=estimate) %>% select(-term))
 
-# pop<=50,000
+
+
 
 for(i in seq.int(1,4)){
   
   spec <- get(paste0("spec",i))
   fit <- glm(spec,
              family = binomial(link = "probit"), 
-             data = df_reelect %>% filter(pop<=50000))
+             data = df_reelect2)
   
   out <- cbind(fit %>% broom::tidy() %>% slice(2), fit %>% broom::glance() %>% select(nobs)) %>% 
     mutate(spec = i)
@@ -152,45 +158,77 @@ for(i in seq.int(1,4)){
 }
 
 
-table_final_50 <- bind_cols(table %>% table_formating_elect(1) %>% rename(spec1=estimate),
+table_final2 <- bind_cols(table %>% table_formating_elect(1) %>% rename(spec1=estimate),
                          table %>% table_formating_elect(2) %>% rename(spec2=estimate) %>% select(-term),
                          table %>% table_formating_elect(3) %>% rename(spec3=estimate) %>% select(-term),
                          table %>% table_formating_elect(4) %>% rename(spec4=estimate) %>% select(-term))
 
 
-# pop<=50,000
-
-for(i in seq.int(1,4)){
-  
-  spec <- get(paste0("spec",i))
-  fit <- glm(spec,
-             family = binomial(link = "probit"), 
-             data = df_reelect %>% filter(pop<=30000))
-  
-  out <- cbind(fit %>% broom::tidy() %>% slice(2), fit %>% broom::glance() %>% select(nobs)) %>% 
-    mutate(spec = i)
-  
-  if(i==1){
-    table <- out
-  }
-  else{
-    table <- rbind(table,out)
-  }
-  
-}
 
 
-table_final_30 <- bind_cols(table %>% table_formating_elect(1) %>% rename(spec1=estimate),
-                            table %>% table_formating_elect(2) %>% rename(spec2=estimate) %>% select(-term),
-                            table %>% table_formating_elect(3) %>% rename(spec3=estimate) %>% select(-term),
-                            table %>% table_formating_elect(4) %>% rename(spec4=estimate) %>% select(-term))
 
+# # pop<=50,000
+# 
+# for(i in seq.int(1,4)){
+#   
+#   spec <- get(paste0("spec",i))
+#   fit <- glm(spec,
+#              family = binomial(link = "probit"), 
+#              data = df_reelect %>% filter(pop<=50000))
+#   
+#   out <- cbind(fit %>% broom::tidy() %>% slice(2), fit %>% broom::glance() %>% select(nobs)) %>% 
+#     mutate(spec = i)
+#   
+#   if(i==1){
+#     table <- out
+#   }
+#   else{
+#     table <- rbind(table,out)
+#   }
+#   
+# }
+# 
+# 
+# table_final_50 <- bind_cols(table %>% table_formating_elect(1) %>% rename(spec1=estimate),
+#                          table %>% table_formating_elect(2) %>% rename(spec2=estimate) %>% select(-term),
+#                          table %>% table_formating_elect(3) %>% rename(spec3=estimate) %>% select(-term),
+#                          table %>% table_formating_elect(4) %>% rename(spec4=estimate) %>% select(-term))
+# 
+# 
+# # pop<=50,000
+# 
+# for(i in seq.int(1,4)){
+#   
+#   spec <- get(paste0("spec",i))
+#   fit <- glm(spec,
+#              family = binomial(link = "probit"), 
+#              data = df_reelect %>% filter(pop<=30000))
+#   
+#   out <- cbind(fit %>% broom::tidy() %>% slice(2), fit %>% broom::glance() %>% select(nobs)) %>% 
+#     mutate(spec = i)
+#   
+#   if(i==1){
+#     table <- out
+#   }
+#   else{
+#     table <- rbind(table,out)
+#   }
+#   
+# }
+# 
+# 
+# table_final_30 <- bind_cols(table %>% table_formating_elect(1) %>% rename(spec1=estimate),
+#                             table %>% table_formating_elect(2) %>% rename(spec2=estimate) %>% select(-term),
+#                             table %>% table_formating_elect(3) %>% rename(spec3=estimate) %>% select(-term),
+#                             table %>% table_formating_elect(4) %>% rename(spec4=estimate) %>% select(-term))
+# 
 
 
 # exporting results
 # ---------------------
 
 write.xlsx2(table_final, file = paste0(dir,main_folder,output_file),sheetName = "reelect",row.names = F,append = T)
+write.xlsx2(table_final2, file = paste0(dir,main_folder,output_file),sheetName = "reelect_placebo",row.names = F,append = T)
 
 
 
