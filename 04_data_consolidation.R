@@ -436,6 +436,15 @@ gdp <- gdp %>%
 pbf <- read.csv(file = paste0(raw,"PBF/pbf.csv"), encoding = "UTF-8", sep = ",") %>% 
   rename(pbf_pcapita = pbf_pc)
 
+# 16. Health system data
+# ==============================================================
+# private insurance
+insurance <- data.frame(read.dta13(paste0(raw,"insurance.dta")))
+
+
+# hospitalization flows
+sih_flow <- read.csv(file = paste0(raw,"SIH/sih_flows.csv")) %>% rename(ano = year)
+
 
 # 17. Merging all
 # ==============================================================
@@ -509,7 +518,9 @@ df <- mun_list %>%
   left_join(siab, by = c("ano","cod_mun")) %>% 
   left_join(firjan, by = "cod_mun") %>% 
   left_join(gdp, by = c("ano","cod_mun")) %>% 
-  left_join(pbf, by = c("ano","cod_mun"))
+  left_join(pbf, by = c("ano","cod_mun")) %>% 
+  left_join(insurance, by = c("ano","cod_mun")) %>% 
+  left_join(sih_flow, by = c("ano","cod_mun"))
 
 
 # creating dummies for the presence of hospitals
@@ -694,7 +705,7 @@ df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x
 # ==============================================================
 
 
-# mortality (infant,maternal,child adult, adult 1, adult 2, elderly)
+# hospitalization (infant,maternal,child adult, adult 1, adult 2, elderly)
 sih_vars <- c("sih_infant","sih_maternal","sih_infant_icsap","sih_infant_nicsap")
 
 # transforming NA mi into 0
@@ -713,9 +724,16 @@ sih_vars_new <- sapply(sih_vars, function(x) paste0("tx_",x),simplify = "array",
 df[sih_vars_new] <- lapply(df[sih_vars_new], function(x) replace(x,is.infinite(x),0))
 
 
+sih_vars <- c(grep("sih_in_",names(df),value = T),grep("sih_out",names(df),value = T))
 
+sih_vars_new <- sapply(sih_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F)
+df[sih_vars_new] <- df[sih_vars]
 
+df <- df %>% 
+  mutate_at(sih_vars_new, `/`, quote(pop)) %>% 
+  mutate_at(sih_vars_new, `*`, quote(1000))
 
+df[sih_vars_new] <- lapply(df[sih_vars_new], function(x) replace(x,is.infinite(x),0))
 
 
 
