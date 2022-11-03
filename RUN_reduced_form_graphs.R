@@ -276,7 +276,10 @@ for (i in seq(7,10,1)){
 var_map <- rbind(cbind('tx_sih_infant','Infant Hospitalization Rate (pop 0-1y * 1000)'),
                  cbind('tx_sih_infant_icsap','Infant Hospitalization Rate - APC (pop 0-1y * 1000)'),
                  cbind('tx_sih_infant_nicsap','Infant Hospitalization Rate - non-APC (pop 0-1y * 1000)'),
-                 cbind('tx_sih_maternal','Maternal Hospitalization Rate (women 10-49y * 1000)')
+                 cbind('tx_sih_maternal','Maternal Hospitalization Rate (women 10-49y * 1000)'),
+                 cbind('tx_sih_adult','Adult Hospitalization Rate (pop 25-54y * 1000)'),
+                 cbind('tx_sih_adult_icsap','Adult Hospitalization Rate - APC (pop 25-54y * 1000)'),
+                 cbind('tx_sih_adult_nicsap','Adult Hospitalization Rate - non-APC (pop 25-54y * 1000)')
 )
 
 
@@ -295,6 +298,12 @@ for (i in seq(4,4,1)){
 }
 
 
+for (i in seq(5,7,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,3,1998,-50,50,10,"15",below = below,weight = "peso_ha",year_cap = 2010) # ec29baseline
+}
 
 
 
@@ -369,6 +378,22 @@ for (i in seq(4,11,1)){
 
 
 
+# 6. AMR
+# =================================================================
+
+var_map <- rbind(cbind('tx_ma3','25-59y Mortality Rate'),
+                 cbind('tx_ma3_icsap','25-59y Mortality Rate - APC'),
+                 cbind('tx_ma3_nicsap','25-59y Mortality Rate - non-APC'))
+
+
+for (i in seq(1,3,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-3,3,0.5,"22",below = below,weight = "peso_a",year_cap = 2010) # ec29baseline
+}
+
+
 
 # 7. Fertility and Birth
 # =================================================================
@@ -398,5 +423,36 @@ for (i in seq(2,3,1)){
 }
 
 
+
+
+# 8. Health System
+# =================================================================
+
+
+
+var_map <- rbind(cbind('tx_sih_in_hosp_total','Hospitalization Outflow rate (pop * 1000)'),
+                 cbind('tx_sih_in_hosp_icsap','Hospitalization Outflow rate - APC (pop * 1000)'),
+                 cbind('tx_sih_in_hosp_nicsap','Hospitalization Outflow rate - non-APC (pop * 1000)'),
+                 cbind('tx_sih_out_hosp_total','Hospitalization Inflow rate (pop * 1000)'),
+                 cbind('tx_sih_out_hosp_icsap','Hospitalization Inflow rate - APC (pop * 1000)'),
+                 cbind('tx_sih_out_hosp_nicsap','Hospitalization Inflow rate - non-APC (pop * 1000)'),
+                 cbind('cobertura_plano','Private Insurance Coverage')
+                 
+                 
+)
+
+for (i in seq(1,6,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,3,1998,-10,10,5,"21",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+}
+
+for (i in 7){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,3,1998,-0.05,0.05,0.01,"21",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+}
 
 
