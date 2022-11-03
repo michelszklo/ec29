@@ -124,7 +124,7 @@ drop _ivar*
 
 **Birth index
 #delimit ;
-local birth birth_fertility birth_apgar1 birth_apgar5 birth_low_weight_2500g
+local birth birth_apgar1 birth_apgar5 birth_low_weight_2500g
             birth_premature birth_sexratio tx_mi_icsap tx_mi_nicsap;
 #delimit cr
 local j=1
@@ -132,7 +132,7 @@ foreach var of varlist `birth' {
     gen _ivar`j' = `var'
     local ++j
 }
-swindex _ivar*, generate(birth_index) normby(pre) flip(_ivar4 _ivar5 _ivar6 _ivar7 _ivar8)
+swindex _ivar*, generate(birth_index) normby(pre) flip(_ivar3 _ivar4 _ivar5 _ivar6 _ivar7)
 sum birth_index
 drop _ivar*
 
@@ -150,7 +150,7 @@ sum imr_index
 drop _ivar*
 
 #delimit ;
-local birth birth_fertility birth_apgar1 birth_apgar5 birth_low_weight_2500g
+local birth birth_apgar1 birth_apgar5 birth_low_weight_2500g
             birth_premature birth_sexratio;
 #delimit cr
 local j=1
@@ -158,7 +158,7 @@ foreach var of varlist `birth' {
     gen _ivar`j' = `var'
     local ++j
 }
-swindex _ivar*, generate(birth_others_index) normby(pre) flip(_ivar4 _ivar5 _ivar6)
+swindex _ivar*, generate(birth_others_index) normby(pre) flip(_ivar3 _ivar4 _ivar5)
 sum birth_others_index
 drop _ivar*
 
