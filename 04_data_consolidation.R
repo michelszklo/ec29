@@ -298,6 +298,15 @@ import_treat_tabnet_pop(paste0(raw,"SIM/pop_60.csv"),"pop_60",1998,2012,"pop_60"
 import_treat_tabnet_pop(paste0(raw,"pop/pop_fem_1049.csv"),"pop_fem_10_49",1998,2010,"pop_fem_10_49",5)
 
 
+# pop 25-44 years
+import_treat_tabnet_pop(paste0(raw,"SIM/pop_25_44.csv"),"pop_25_44",1998,2010,"pop_25_44",4)
+
+# pop 45-54 years
+import_treat_tabnet_pop(paste0(raw,"SIM/pop_45_54.csv"),"pop_45_54",1998,2010,"pop_45_54",4)
+
+# pop 25-54 years
+import_treat_tabnet_pop(paste0(raw,"SIM/pop_25_54.csv"),"pop_25_54",1998,2010,"pop_25_54",4)
+
 # pop_40 <- read.csv(paste0(raw,"SIM/pop40.csv")) %>% rename(pop40=pop)
 # 
 # pop_40_96 <- read.csv(paste0(raw,"pop/pop40_1996.csv")) %>% rename(pop40_96 = pop40)
@@ -368,12 +377,22 @@ load(paste0(raw,"SIH/sih_98_18.RData"))
 
 
 sih <- sih_98_18 %>% 
-  select(mun_code,year,nh_u1y,nh_amen_u1y,nh_icd_pregn_puerp) %>% 
+  select(mun_code,year,nh_u1y,nh_amen_u1y,nh_icd_pregn_puerp,nh_25to44y,nh_45to54y,nh_amen_pc_25to44y,nh_amen_pc_45to54y,
+         nh_notamen_pc_25to44y,nh_notamen_pc_45to54y) %>% 
+  mutate(sih_adult = nh_25to44y + nh_45to54y,
+         sih_adult_icsap = nh_amen_pc_25to44y + nh_amen_pc_45to54y,
+         sih_adult_nicsap = nh_notamen_pc_25to44y + nh_notamen_pc_45to54y) %>% 
   rename(cod_mun = mun_code,
          ano = year,
          sih_infant = nh_u1y,
          sih_infant_icsap = nh_amen_u1y,
          sih_maternal = nh_icd_pregn_puerp) %>% 
+  rename(sih_25_44 = nh_25to44y,
+         sih_25_44_icsap = nh_amen_pc_25to44y,
+         sih_25_44_nicsap = nh_notamen_pc_25to44y,
+         sih_45_54 = nh_45to54y,
+         sih_45_54_icsap = nh_amen_pc_45to54y,
+         sih_45_54_nicsap = nh_notamen_pc_45to54y) %>% 
   mutate(sih_infant_nicsap = sih_infant - sih_infant_icsap) %>% 
   filter(ano<=2010) %>% 
   mutate(cod_mun = as.numeric(cod_mun)) 
@@ -483,6 +502,9 @@ df <- mun_list %>%
   left_join(pop_40_59, by = c("ano","cod_mun")) %>%
   left_join(pop_60, by = c("ano","cod_mun")) %>%
   left_join(pop_fem_10_49, by = c("ano","cod_mun")) %>%
+  left_join(pop_25_44, by = c("ano","cod_mun")) %>%
+  left_join(pop_25_54, by = c("ano","cod_mun")) %>%
+  left_join(pop_45_54, by = c("ano","cod_mun")) %>%
   mutate(birth_fertility = birth_nasc_vivos / pop_fem_10_49) %>% 
   # left_join(pop_40, by = c("ano","cod_mun")) %>%
   # left_join(pop_40_96 %>% select(-ano), by = c("cod_mun")) %>%
@@ -706,7 +728,8 @@ df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x
 
 
 # hospitalization (infant,maternal,child adult, adult 1, adult 2, elderly)
-sih_vars <- c("sih_infant","sih_maternal","sih_infant_icsap","sih_infant_nicsap")
+sih_vars <- c("sih_infant","sih_maternal","sih_infant_icsap","sih_infant_nicsap","sih_25_44","sih_45_54","sih_25_44_icsap",
+              "sih_45_54_icsap","sih_25_44_nicsap","sih_45_54_nicsap","sih_adult","sih_adult_icsap","sih_adult_nicsap")
 
 # transforming NA mi into 0
 df <- df %>% 
@@ -717,7 +740,16 @@ df <- df %>%
   mutate(tx_sih_infant = sih_infant/birth_nasc_vivos*1000,
          tx_sih_infant_icsap = sih_infant_icsap/birth_nasc_vivos*1000,
          tx_sih_infant_nicsap = sih_infant_nicsap/birth_nasc_vivos*1000,
-         tx_sih_maternal = sih_maternal/pop_fem_10_49*1000)
+         tx_sih_maternal = sih_maternal/pop_fem_10_49*1000,
+         tx_sih_25_44 = sih_25_44/pop_25_44*1000,
+         tx_sih_45_54 = sih_45_54/pop_45_54*1000,
+         tx_sih_25_44_icsap = sih_25_44_icsap/pop_25_44*1000,
+         tx_sih_45_54_icsap = sih_45_54_icsap/pop_45_54*1000,
+         tx_sih_25_44_nicsap = sih_25_44_nicsap/pop_25_44*1000,
+         tx_sih_45_54_nicsap = sih_45_54_nicsap/pop_45_54*1000,
+         tx_sih_adult = sih_adult/pop_25_54*1000,
+         tx_sih_adult_icsap = sih_adult_icsap/pop_25_54*1000,
+         tx_sih_adult_nicsap = sih_adult_nicsap/pop_25_54*1000)
 
 
 sih_vars_new <- sapply(sih_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F)
