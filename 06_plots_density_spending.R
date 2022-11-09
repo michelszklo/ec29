@@ -66,6 +66,7 @@ hist_ec29 <- SIOPS_temp %>% ggplot(aes(x = pct_recproprios_ec29, color = ano, fi
         panel.grid.minor = element_blank(),
         legend.title = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal") +
   guides(color=guide_legend(nrow=1,byrow=TRUE))
 
@@ -112,6 +113,7 @@ hist_pc <- SIOPS_temp %>% ggplot(aes(x = despsaude_pcapita, color = ano, fill = 
         panel.grid.minor = element_blank(),
         legend.title = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal") +
   guides(color=guide_legend(nrow=1,byrow=TRUE))
 

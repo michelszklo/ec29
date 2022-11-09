@@ -672,6 +672,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
             axis.title.y = element_text(size=6),
+            axis.text = element_text(size = 10),
             legend.position="bottom")
     
     
@@ -715,6 +716,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
             axis.title.y = element_text(size=6),
+            axis.text = element_text(size = 10),
             legend.position="bottom")
     
     
@@ -758,6 +760,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
             axis.title.y = element_text(size=6),
+            axis.text = element_text(size = 10),
             legend.position="bottom")
     
     
@@ -807,6 +810,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
             axis.title.y = element_text(size=6),
+            axis.text = element_text(size = 10),
             legend.position="bottom")
     
     
@@ -959,6 +963,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
             axis.title.y = element_text(size=6),
+            axis.text = element_text(size = 10),
             legend.position="bottom")
     
     
@@ -1002,6 +1007,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
             axis.title.y = element_text(size=6),
+            axis.text = element_text(size = 10),
             legend.position="bottom")
     
     
@@ -1045,6 +1051,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
             axis.title.y = element_text(size=6),
+            axis.text = element_text(size = 10),
             legend.position="bottom")
     
     
@@ -1094,6 +1101,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
             axis.title.y = element_text(size=6),
+            axis.text = element_text(size = 10),
             legend.position="bottom")
     
     

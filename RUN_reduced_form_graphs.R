@@ -327,7 +327,8 @@ var_map <-  rbind(cbind('tx_mi','Infant Mortality Rate'),
                   cbind('tx_mi_fet','Infant Mortality Rate - Fetal'),
                   cbind('tx_mi_24h','Infant Mortality Rate - Within 24h'),
                   cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days'),
-                  cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year'))
+                  cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year'),
+                  cbind('tx_mm',"Maternal Mortality Rate"))
 
 
 # figure 15 (ex 16)
@@ -376,6 +377,14 @@ for (i in seq(4,11,1)){
   print(var_name)
   reduced_yearly_imr(var,var_name,df,3,1998,-10,10,5,"18",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
+
+for (i in seq(12,12,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-10,10,5,"22",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
+}
+
 
 
 

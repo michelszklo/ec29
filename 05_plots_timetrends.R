@@ -135,6 +135,7 @@ plot1 <- SIOPS_temp %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank())
 
@@ -153,6 +154,7 @@ plot2 <- SIOPS_temp %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank())
 
@@ -173,6 +175,7 @@ plot3 <- SIOPS_temp %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank())
 
@@ -345,6 +348,7 @@ plot4 <- df_plot_finbra %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -366,6 +370,7 @@ plot5 <- df_plot_finbra_top %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -388,6 +393,7 @@ plot6 <- df_plot_finbra_bottom %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -460,6 +466,7 @@ plot7 <- df_plot_finbra %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -481,6 +488,7 @@ plot8 <- df_plot_finbra_top %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -503,6 +511,7 @@ plot9 <- df_plot_finbra_bottom %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -574,6 +583,7 @@ plot10 <- df_plot_siops %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -594,6 +604,7 @@ plot11 <- df_plot_siops_top %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -615,6 +626,7 @@ plot12 <- df_plot_siops_bottom %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -685,6 +697,7 @@ plot13 <- df_plot_siops %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -705,6 +718,7 @@ plot14 <- df_plot_siops_top %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -726,6 +740,7 @@ plot15 <- df_plot_siops_bottom %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -897,6 +912,7 @@ plot16 <- df_plot_finbra %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -918,6 +934,7 @@ plot17 <- df_plot_finbra_top %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -940,6 +957,7 @@ plot18 <- df_plot_finbra_bottom %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -1012,6 +1030,7 @@ plot19 <- df_plot_finbra %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -1033,6 +1052,7 @@ plot20 <- df_plot_finbra_top %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -1055,6 +1075,7 @@ plot21 <- df_plot_finbra_bottom %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -1125,6 +1146,7 @@ plot22 <- df_plot_siops %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -1144,6 +1166,7 @@ plot23 <- df_plot_siops_top %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -1164,6 +1187,7 @@ plot24 <- df_plot_siops_bottom %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -1235,6 +1259,7 @@ plot25 <- df_plot_siops %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -1256,6 +1281,7 @@ plot26 <- df_plot_siops_top %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +
@@ -1278,6 +1304,7 @@ plot27 <- df_plot_siops_bottom %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 10),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank(),
         legend.text = element_text(size=7)) +

@@ -103,6 +103,7 @@ scatter <- ggplot(df_plot %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 12),
         legend.position="none")
 
 
@@ -138,6 +139,7 @@ scatter <- ggplot(df_plot %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 12),
         legend.position="none")
 
 
@@ -179,6 +181,7 @@ scatter_ineq <- ggplot(df_plot %>%
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 12),
         legend.position="bottom", legend.box = "horizontal")
 
 
@@ -283,6 +286,7 @@ scatter <- ggplot(bins_line,
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 12),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank())
 
@@ -341,6 +345,7 @@ scatter <- ggplot(bins_line,
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.title = element_text(size=12),
+        axis.text = element_text(size = 12),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank())
 
