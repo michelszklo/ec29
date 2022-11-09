@@ -276,21 +276,22 @@ for (i in seq(7,10,1)){
 var_map <- rbind(cbind('tx_sih_infant','Infant Hospitalization Rate (pop 0-1y * 1000)'),
                  cbind('tx_sih_infant_icsap','Infant Hospitalization Rate - APC (pop 0-1y * 1000)'),
                  cbind('tx_sih_infant_nicsap','Infant Hospitalization Rate - non-APC (pop 0-1y * 1000)'),
+                 cbind('tx_sih_maternal2','Maternal Hospitalization Rate (pop 0-1y * 1000)'),
                  cbind('tx_sih_maternal','Maternal Hospitalization Rate (women 10-49y * 1000)'),
                  cbind('tx_sih_adult','Adult Hospitalization Rate (pop 25-54y * 1000)'),
-                 cbind('tx_sih_adult_icsap','Adult Hospitalization Rate - APC (pop 25-54y * 1000)'),
-                 cbind('tx_sih_adult_nicsap','Adult Hospitalization Rate - non-APC (pop 25-54y * 1000)')
+                 cbind('tx_sih_adult_icsap','Adult Hospitalization Rate - APC (pop 40+y * 1000)'),
+                 cbind('tx_sih_adult_nicsap','Adult Hospitalization Rate - non-APC (pop 40+y * 1000)')
 )
 
 
-for (i in seq(1,3,1)){
+for (i in seq(1,4,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   reduced_yearly(var,var_name,df,3,1998,-200,400,50,"15",below = below,weight = "peso_b",year_cap = 2010) # ec29baseline
 }
 
-for (i in seq(4,4,1)){
+for (i in seq(5,5,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -298,7 +299,7 @@ for (i in seq(4,4,1)){
 }
 
 
-for (i in seq(5,7,1)){
+for (i in seq(6,8,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -381,16 +382,16 @@ for (i in seq(4,11,1)){
 # 6. AMR
 # =================================================================
 
-var_map <- rbind(cbind('tx_ma3','25-59y Mortality Rate'),
-                 cbind('tx_ma3_icsap','25-59y Mortality Rate - APC'),
-                 cbind('tx_ma3_nicsap','25-59y Mortality Rate - non-APC'))
+var_map <- rbind(cbind('tx_ma5','Adult Mortality Rate (40+ y)'),
+                 cbind('tx_ma5_icsap','Adult Mortality Rate (40+ y) - APC'),
+                 cbind('tx_ma5_nicsap','Adult Mortality Rate (40+ y) - non-APC'))
 
 
 for (i in seq(1,3,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-3,3,0.5,"22",below = below,weight = "peso_a",year_cap = 2010) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,3,1998,-3,3,0.5,"22",below = below,weight = "peso_a3",year_cap = 2010) # ec29baseline
 }
 
 

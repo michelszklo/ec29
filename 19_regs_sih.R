@@ -58,16 +58,17 @@ load(paste0(dir,"regs.RData"))
 var_map <- rbind(cbind('tx_sih_infant','Infant Hospitalization Rate (pop 0-1y * 1000)'),
                  cbind('tx_sih_infant_icsap','Infant Hospitalization Rate - APC (pop 0-1y * 1000)'),
                  cbind('tx_sih_infant_nicsap','Infant Hospitalization Rate - non-APC (pop 0-1y * 1000)'),
+                 cbind('tx_sih_maternal2','Maternal Hospitalization Rate (pop 0-1y * 1000)'),
                  cbind('tx_sih_maternal','Maternal Hospitalization Rate (women 10-49y * 1000)'),
                  cbind('tx_sih_adult','Adult Hospitalization Rate (pop 25-54y * 1000)'),
-                 cbind('tx_sih_adult_icsap','Adult Hospitalization Rate - APC (pop 25-54y * 1000)'),
-                 cbind('tx_sih_adult_nicsap','Adult Hospitalization Rate - non-APC (pop 25-54y * 1000)'),
-                 cbind('tx_sih_25_44','Adult Hospitalization Rate (pop 25-44y * 1000)'),
-                 cbind('tx_sih_25_44_icsap','Adult Hospitalization Rate - APC (pop 25-44y * 1000)'),
-                 cbind('tx_sih_25_44_nicsap','Adult Hospitalization Rate - non-APC (pop 25-44y * 1000)'),
-                 cbind('tx_sih_45_54','Adult Hospitalization Rate (pop 45-54y * 1000)'),
-                 cbind('tx_sih_45_54_icsap','Adult Hospitalization Rate - APC (pop 45-54y * 1000)'),
-                 cbind('tx_sih_45_54_nicsap','Adult Hospitalization Rate - non-APC (pop 45-54y * 1000)')
+                 cbind('tx_sih_adult_icsap','Adult Hospitalization Rate - APC (pop 40+y * 1000)'),
+                 cbind('tx_sih_adult_nicsap','Adult Hospitalization Rate - non-APC (pop 40+y * 1000)')
+                 # cbind('tx_sih_25_44','Adult Hospitalization Rate (pop 25-44y * 1000)'),
+                 # cbind('tx_sih_25_44_icsap','Adult Hospitalization Rate - APC (pop 25-44y * 1000)'),
+                 # cbind('tx_sih_25_44_nicsap','Adult Hospitalization Rate - non-APC (pop 25-44y * 1000)'),
+                 # cbind('tx_sih_45_54','Adult Hospitalization Rate (pop 45-54y * 1000)'),
+                 # cbind('tx_sih_45_54_icsap','Adult Hospitalization Rate - APC (pop 45-54y * 1000)'),
+                 # cbind('tx_sih_45_54_nicsap','Adult Hospitalization Rate - non-APC (pop 45-54y * 1000)')
                  
 )
 
@@ -76,7 +77,7 @@ var_map <- rbind(cbind('tx_sih_infant','Infant Hospitalization Rate (pop 0-1y * 
 # 3. Run and ouput
 # =================================================================
 
-for (i in seq(1,3,1)){
+for (i in seq(1,4,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -95,7 +96,7 @@ for (i in seq(1,3,1)){
   
 }
 
-for (i in seq(4,4,1)){
+for (i in seq(5,5,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -115,7 +116,7 @@ for (i in seq(4,4,1)){
 }
 
 
-for (i in seq(5,7,1)){
+for (i in seq(6,8,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -134,44 +135,44 @@ for (i in seq(5,7,1)){
   
 }
 
-
-for (i in seq(8,10,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  
-  regress_output(var,var_name,3,1998,"peso_ha1")
-  
-  
-  if(exists("df_table_all")){
-    df_table_all <- rbind(df_table_all,table_all)
-    
-  } else {
-    
-    df_table_all <- table_all
-    
-  }
-  
-}
-
-for (i in seq(11,13,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  
-  regress_output(var,var_name,3,1998,"peso_ha2")
-  
-  
-  if(exists("df_table_all")){
-    df_table_all <- rbind(df_table_all,table_all)
-    
-  } else {
-    
-    df_table_all <- table_all
-    
-  }
-  
-}
+# 
+# for (i in seq(8,10,1)){
+#   var <- var_map[i,1]
+#   var_name <- var_map[i,2]
+#   print(var_name)
+#   
+#   regress_output(var,var_name,3,1998,"peso_ha1")
+#   
+#   
+#   if(exists("df_table_all")){
+#     df_table_all <- rbind(df_table_all,table_all)
+#     
+#   } else {
+#     
+#     df_table_all <- table_all
+#     
+#   }
+#   
+# }
+# 
+# for (i in seq(11,13,1)){
+#   var <- var_map[i,1]
+#   var_name <- var_map[i,2]
+#   print(var_name)
+#   
+#   regress_output(var,var_name,3,1998,"peso_ha2")
+#   
+#   
+#   if(exists("df_table_all")){
+#     df_table_all <- rbind(df_table_all,table_all)
+#     
+#   } else {
+#     
+#     df_table_all <- table_all
+#     
+#   }
+#   
+# }
 
 
 

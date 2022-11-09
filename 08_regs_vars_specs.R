@@ -171,9 +171,10 @@ df <- df %>%
          peso_a = mean(pop_25_59, na.rm = T),
          peso_a1 = mean(pop_25_39, na.rm = T),
          peso_a2 = mean(pop_40_59, na.rm = T),
+         peso_a3 = mean(pop_40, na.rm = T),
          peso_r = mean(finbra_reccorr_pcapita,na.rm = T),
          peso_m = mean(pop_fem_10_49,na.rm = T),
-         peso_ha = mean(pop_25_54,na.rm = T),
+         peso_ha = mean(pop_45,na.rm = T),
          peso_ha1 = mean(pop_25_44,na.rm = T),
          peso_ha2 = mean(pop_45_54,na.rm = T)) %>% 
   ungroup() %>% 
@@ -415,7 +416,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
   # filtering regression variables
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,all_of(controls),pop,
-           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,
            finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
     filter(ano>=year_filter)
   
@@ -492,7 +493,7 @@ reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_fil
   # filtering regression variables
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,all_of(controls),pop,
-           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r,peso_m,
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,
            finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
     filter(ano>=year_filter)
   
@@ -570,7 +571,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   # filtering regression variables
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
-           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,
            finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
     filter(ano>=year_filter)
   
@@ -857,7 +858,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   # filtering regression variables
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
-           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r,peso_m,
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,
            finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
     filter(ano>=year_filter)
   
@@ -1144,7 +1145,7 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
     # filtering regression variables
     df_reg <- df_reg %>% 
       select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
-             peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r,peso_m,
+             peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,
              finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
       filter(ano>=year_filter)
     
@@ -1456,7 +1457,7 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
     # filtering regression variables
     df_reg <- df_reg %>% 
       select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
-             peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_r,peso_m,
+             peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,
              finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
       filter(ano>=year_filter)
     

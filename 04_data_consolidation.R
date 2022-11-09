@@ -242,6 +242,8 @@ sim_ma_3 <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_adult_3.dta")))
 
 sim_ma_4 <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_adult_4.dta")))
 
+sim_ma_5 <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_adult_5.dta")))
+
 sim_me <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_elderly.dta")))
 
 # population
@@ -291,7 +293,7 @@ import_treat_tabnet_pop(paste0(raw,"SIM/pop_25_39.csv"),"pop_25_39",1998,2012,"p
 # pop 40-59 years
 import_treat_tabnet_pop(paste0(raw,"SIM/pop_40_59.csv"),"pop_40_59",1998,2012,"pop_40_59",4)
 
-# pop 40-59 years
+# pop 60 years
 import_treat_tabnet_pop(paste0(raw,"SIM/pop_60.csv"),"pop_60",1998,2012,"pop_60",4)
 
 # pop women 10-49 years
@@ -306,6 +308,10 @@ import_treat_tabnet_pop(paste0(raw,"SIM/pop_45_54.csv"),"pop_45_54",1998,2010,"p
 
 # pop 25-54 years
 import_treat_tabnet_pop(paste0(raw,"SIM/pop_25_54.csv"),"pop_25_54",1998,2010,"pop_25_54",4)
+
+
+# pop 55 years
+import_treat_tabnet_pop(paste0(raw,"SIM/pop_55.csv"),"pop_55",1998,2010,"pop_55",4)
 
 # pop_40 <- read.csv(paste0(raw,"SIM/pop40.csv")) %>% rename(pop40=pop)
 # 
@@ -377,11 +383,13 @@ load(paste0(raw,"SIH/sih_98_18.RData"))
 
 
 sih <- sih_98_18 %>% 
-  select(mun_code,year,nh_u1y,nh_amen_u1y,nh_icd_pregn_puerp,nh_25to44y,nh_45to54y,nh_amen_pc_25to44y,nh_amen_pc_45to54y,
-         nh_notamen_pc_25to44y,nh_notamen_pc_45to54y) %>% 
-  mutate(sih_adult = nh_25to44y + nh_45to54y,
-         sih_adult_icsap = nh_amen_pc_25to44y + nh_amen_pc_45to54y,
-         sih_adult_nicsap = nh_notamen_pc_25to44y + nh_notamen_pc_45to54y) %>% 
+  select(mun_code,year,nh_u1y,nh_amen_u1y,nh_icd_pregn_puerp,
+         nh_25to44y,nh_45to54y,nh_55to64y,nh_65to74y,nh_75more,
+         nh_amen_pc_25to44y,nh_amen_pc_45to54y,nh_amen_pc_55to64y,nh_amen_pc_65to74y,nh_amen_pc_75more,
+         nh_notamen_pc_25to44y,nh_notamen_pc_45to54y,nh_notamen_pc_55to64y,nh_notamen_pc_65to74y,nh_notamen_pc_75more) %>% 
+  mutate(sih_adult = nh_25to44y + nh_45to54y + nh_55to64y + nh_65to74y + nh_75more,
+         sih_adult_icsap = nh_amen_pc_25to44y + nh_amen_pc_45to54y + nh_amen_pc_55to64y + nh_amen_pc_65to74y + nh_amen_pc_75more,
+         sih_adult_nicsap = nh_notamen_pc_25to44y + nh_notamen_pc_45to54y + nh_notamen_pc_55to64y + nh_notamen_pc_65to74y + nh_notamen_pc_75more) %>% 
   rename(cod_mun = mun_code,
          ano = year,
          sih_infant = nh_u1y,
@@ -492,6 +500,7 @@ df <- mun_list %>%
   left_join(sim_ma_2, by = c("ano","cod_mun")) %>%
   left_join(sim_ma_3, by = c("ano","cod_mun")) %>%
   left_join(sim_ma_4, by = c("ano","cod_mun")) %>%
+  left_join(sim_ma_5, by = c("ano","cod_mun")) %>%
   left_join(sim_me, by = c("ano","cod_mun")) %>%
   mutate(mm = ifelse(is.na(mm),0,mm)) %>% 
   left_join(pop_1_4, by = c("ano","cod_mun")) %>% 
@@ -505,6 +514,8 @@ df <- mun_list %>%
   left_join(pop_25_44, by = c("ano","cod_mun")) %>%
   left_join(pop_25_54, by = c("ano","cod_mun")) %>%
   left_join(pop_45_54, by = c("ano","cod_mun")) %>%
+  left_join(pop_55, by = c("ano","cod_mun")) %>%
+  mutate(pop_45 = pop_45_54 + pop_55) %>% 
   mutate(birth_fertility = birth_nasc_vivos / pop_fem_10_49) %>% 
   # left_join(pop_40, by = c("ano","cod_mun")) %>%
   # left_join(pop_40_96 %>% select(-ano), by = c("cod_mun")) %>%
@@ -705,6 +716,19 @@ df <- df %>%
 
 df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x),0))
 
+# Adult Mortality 5 (40 plus)
+sim_vars <- grep("^ma5",names(df), value = T)
+
+sim_vars_new <- sapply(sim_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F)
+df[sim_vars_new] <- df[sim_vars]
+
+df <- df %>% 
+  mutate(pop_40 = pop_40_59 + pop_60) %>% 
+  mutate_at(sim_vars_new, `/`, quote(pop_40)) %>% 
+  mutate_at(sim_vars_new, `*`, quote(1000))
+
+df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x),0))
+
 
 
 # Elderly Mortality
@@ -741,18 +765,19 @@ df <- df %>%
          tx_sih_infant_icsap = sih_infant_icsap/birth_nasc_vivos*1000,
          tx_sih_infant_nicsap = sih_infant_nicsap/birth_nasc_vivos*1000,
          tx_sih_maternal = sih_maternal/pop_fem_10_49*1000,
+         tx_sih_maternal2 = sih_maternal/birth_nasc_vivos*1000,
          tx_sih_25_44 = sih_25_44/pop_25_44*1000,
          tx_sih_45_54 = sih_45_54/pop_45_54*1000,
          tx_sih_25_44_icsap = sih_25_44_icsap/pop_25_44*1000,
          tx_sih_45_54_icsap = sih_45_54_icsap/pop_45_54*1000,
          tx_sih_25_44_nicsap = sih_25_44_nicsap/pop_25_44*1000,
          tx_sih_45_54_nicsap = sih_45_54_nicsap/pop_45_54*1000,
-         tx_sih_adult = sih_adult/pop_25_54*1000,
-         tx_sih_adult_icsap = sih_adult_icsap/pop_25_54*1000,
-         tx_sih_adult_nicsap = sih_adult_nicsap/pop_25_54*1000)
+         tx_sih_adult = sih_adult/pop_55*1000,
+         tx_sih_adult_icsap = sih_adult_icsap/pop_55*1000,
+         tx_sih_adult_nicsap = sih_adult_nicsap/pop_55*1000)
 
 
-sih_vars_new <- sapply(sih_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F)
+sih_vars_new <- c(sapply(sih_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F),"tx_sih_maternal2")
 df[sih_vars_new] <- lapply(df[sih_vars_new], function(x) replace(x,is.infinite(x),0))
 
 

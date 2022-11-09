@@ -57,9 +57,12 @@ load(paste0(dir,"regs.RData"))
 # =================================================================
 
 var_map <-  rbind(
-  cbind('tx_ma3','25-59y Mortality Rate'),
-  cbind('tx_ma3_icsap','25-59y Mortality Rate - APC'),
-  cbind('tx_ma3_nicsap','25-59y Mortality Rate - non-APC'),
+  cbind('tx_ma5','Adult Mortality Rate (40+ y)'),
+  cbind('tx_ma5_icsap','Adult Mortality Rate (40+ y) - APC'),
+  cbind('tx_ma5_nicsap','Adult Mortality Rate (40+ y) - non-APC')
+  # cbind('tx_ma3','25-59y Mortality Rate'),
+  # cbind('tx_ma3_icsap','25-59y Mortality Rate - APC'),
+  # cbind('tx_ma3_nicsap','25-59y Mortality Rate - non-APC'),
   # cbind('tx_ma3_circ','25-59y Mortality Rate - Circulatory'),
   # cbind('tx_ma3_neop','25-59y Mortality Rate - Neoplasm'),
   # cbind('tx_ma3_resp','25-59y Mortality Rate - Respiratory'),
@@ -71,9 +74,9 @@ var_map <-  rbind(
   # cbind('tx_ma3_diab','25-59y Mortality Rate - Diabetes'),
   # cbind('tx_ma3_hyper','25-59y Mortality Rate - Hypertension'),
   
-  cbind('tx_ma4','25-39y Mortality Rate'),
-  cbind('tx_ma4_icsap','25-39y Mortality Rate - APC'),
-  cbind('tx_ma4_nicsap','25-39y Mortality Rate - non-APC'),
+  # cbind('tx_ma4','25-39y Mortality Rate'),
+  # cbind('tx_ma4_icsap','25-39y Mortality Rate - APC'),
+  # cbind('tx_ma4_nicsap','25-39y Mortality Rate - non-APC'),
   # cbind('tx_ma4_circ','25-39y Mortality Rate - Circulatory'),
   # cbind('tx_ma4_neop','25-39y Mortality Rate - Neoplasm'),
   # cbind('tx_ma4_resp','25-39y Mortality Rate - Respiratory'),
@@ -85,9 +88,9 @@ var_map <-  rbind(
   # cbind('tx_ma4_diab','25-39y Mortality Rate - Diabetes'),
   # cbind('tx_ma4_hyper','25-39y Mortality Rate - Hypertension'),
   
-  cbind('tx_ma2','40-59y Mortality Rate'),
-  cbind('tx_ma2_icsap','40-59y Mortality Rate - APC'),
-  cbind('tx_ma2_nicsap','40-59y Mortality Rate - non-APC')
+  # cbind('tx_ma2','40-59y Mortality Rate'),
+  # cbind('tx_ma2_icsap','40-59y Mortality Rate - APC'),
+  # cbind('tx_ma2_nicsap','40-59y Mortality Rate - non-APC')
   # cbind('tx_ma2_circ','40-59y Mortality Rate - Circulatory'),
   # cbind('tx_ma2_neop','40-59y Mortality Rate - Neoplasm'),
   # cbind('tx_ma2_resp','40-59y Mortality Rate - Respiratory'),
@@ -112,7 +115,7 @@ for (i in seq(1,3,1)){
   var_name <- var_map[i,2]
   print(var_name)
   
-  regress_output(var,var_name,3,1998,"peso_a")
+  regress_output(var,var_name,3,1998,"peso_a3")
   
   
   if(exists("df_table_all")){
@@ -126,43 +129,43 @@ for (i in seq(1,3,1)){
   
 }
 
-for (i in seq(4,6,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  
-  regress_output(var,var_name,3,1998,"peso_a1")
-  
-  
-  if(exists("df_table_all")){
-    df_table_all <- rbind(df_table_all,table_all)
-    
-  } else {
-    
-    df_table_all <- table_all
-    
-  }
-  
-}
-
-for (i in seq(7,9,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  
-  regress_output(var,var_name,3,1998,"peso_a2")
-  
-  
-  if(exists("df_table_all")){
-    df_table_all <- rbind(df_table_all,table_all)
-    
-  } else {
-    
-    df_table_all <- table_all
-    
-  }
-  
-}
+# for (i in seq(4,6,1)){
+#   var <- var_map[i,1]
+#   var_name <- var_map[i,2]
+#   print(var_name)
+#   
+#   regress_output(var,var_name,3,1998,"peso_a1")
+#   
+#   
+#   if(exists("df_table_all")){
+#     df_table_all <- rbind(df_table_all,table_all)
+#     
+#   } else {
+#     
+#     df_table_all <- table_all
+#     
+#   }
+#   
+# }
+# 
+# for (i in seq(7,9,1)){
+#   var <- var_map[i,1]
+#   var_name <- var_map[i,2]
+#   print(var_name)
+#   
+#   regress_output(var,var_name,3,1998,"peso_a2")
+#   
+#   
+#   if(exists("df_table_all")){
+#     df_table_all <- rbind(df_table_all,table_all)
+#     
+#   } else {
+#     
+#     df_table_all <- table_all
+#     
+#   }
+#   
+# }
 
 
 
