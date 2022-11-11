@@ -56,12 +56,12 @@ load(paste0(dir,"regs.RData"))
 # 2. Define outcomes output name and output functions
 # =================================================================
 
-var_map <- rbind(cbind('tx_sih_in_hosp_total','Hospitalization Outflow rate (pop * 1000)'),
-                 cbind('tx_sih_in_hosp_icsap','Hospitalization Outflow rate - APC (pop * 1000)'),
-                 cbind('tx_sih_in_hosp_nicsap','Hospitalization Outflow rate - non-APC (pop * 1000)'),
-                 cbind('tx_sih_out_hosp_total','Hospitalization Inflow rate (pop * 1000)'),
-                 cbind('tx_sih_out_hosp_icsap','Hospitalization Inflow rate - APC (pop * 1000)'),
-                 cbind('tx_sih_out_hosp_nicsap','Hospitalization Inflow rate - non-APC (pop * 1000)'),
+var_map <- rbind(cbind('tx_sih_in_hosp_total','Hospitalization Inflow rate (pop * 1000)'),
+                 cbind('tx_sih_in_hosp_icsap','Hospitalization Inflow rate - APC (pop * 1000)'),
+                 cbind('tx_sih_in_hosp_nicsap','Hospitalization Inflow rate - non-APC (pop * 1000)'),
+                 cbind('tx_sih_out_hosp_total','Hospitalization Outflow rate (pop * 1000)'),
+                 cbind('tx_sih_out_hosp_icsap','Hospitalization Outflow rate - APC (pop * 1000)'),
+                 cbind('tx_sih_out_hosp_nicsap','Hospitalization Outflow rate - non-APC (pop * 1000)'),
                  cbind('cobertura_plano','Private Insurance Coverage')
                  
 
