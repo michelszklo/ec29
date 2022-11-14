@@ -53,17 +53,19 @@ dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 # =================================================================
 load(paste0(dir,"regs.RData"))
 
+df_low_ineq <- df_below
+df_high_ineq <- df_above
 
-yearly_folder <- "yearly_reduced_form_dist_ec29_elect/"
+# yearly_folder <- "yearly_reduced_form_dist_ec29_elect/"
+# 
+# dir.create(paste0(dir,main_folder,yearly_folder), showWarnings = FALSE)
 
-dir.create(paste0(dir,main_folder,yearly_folder), showWarnings = FALSE)
+df1 <- df_low_ineq
+df1_name <- "1. Below Target"
+df2 <- df_high_ineq
+df2_name <- "2. Above Target"
 
-df1 <- df_first
-df1_name <- "1. First Term"
-df2 <- df_second
-df2_name <- "2. Second Term"
-
-gf_name <- "_elect"
+gf_name <- "_abovebelow"
 
 
 
@@ -71,27 +73,29 @@ gf_name <- "_elect"
 # =================================================================
 
 
-var_map <- rbind(cbind('finbra_reccorr_pcapita','Total Revenue per capita (% chg)'),
+
+var_map <- rbind(cbind('finbra_reccorr_pcapita','Total Revenue per capita (2010 R$)'),
                  
-                 cbind('finbra_desp_o_pcapita','Total Spending per capita (% chg)'),
-                 cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita (% chg)'),
-                 cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (% chg)'),
-                 cbind('finbra_desp_outros_nature_pcapita','Other Spending per capita (% chg)'),
+                 cbind('finbra_desp_o_pcapita','Total Spending per capita (2010 R$)'),
+                 cbind('finbra_desp_pessoal_pcapita','Human Resources Spending per capita (2010 R$)'),
+                 cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (2010 R$)'),
+                 cbind('finbra_desp_outros_nature_pcapita','Other Spending per capita (2010 R$)'),
                  
-                 cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (% chg)'),
-                 cbind('finbra_desp_transporte_pcapita','Transport Spending per capita (% chg)'),
-                 cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (% chg)'),
-                 cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (% chg)'),
-                 cbind('finbra_desp_assist_prev_pcapita','Social Assistance Spending per capita (% chg)'),
-                 cbind('finbra_desp_outros_area_pcapita','Other Areas Spending per capita (% chg)'),
+                 cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (2010 R$)'),
+                 cbind('finbra_desp_nao_saude_pcapita','All Other Spending per capita (2010 R$)'),
+                 cbind('finbra_desp_transporte_pcapita','Transport Spending per capita (2010 R$)'),
+                 cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (2010 R$)'),
+                 cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (2010 R$)'),
+                 cbind('finbra_desp_assist_prev_pcapita','Social Assistance Spending per capita (2010 R$)'),
+                 cbind('finbra_desp_outros_area_pcapita','Other Areas Spending per capita (2010 R$)'),
                  
-                 cbind('siops_despsaude_pcapita','Health Spending per capita - Total (% chg)'),
-                 cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (% chg)'),
-                 cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Transfers (% chg)'),
-                 cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources (% chg)'),
-                 cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (% chg)'),
-                 cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (% chg)'),
-                 cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (% chg)'))
+                 cbind('siops_despsaude_pcapita','Health Spending per capita - Total (2010 R$)'),
+                 cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (2010 R$)'),
+                 cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Transfers (2010 R$)'),
+                 cbind('siops_desppessoal_pcapita','Health Spending per capita - Human Resources (2010 R$)'),
+                 cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (2010 R$)'),
+                 cbind('siops_despservicoster_pcapita','Health Spending per capita - 3rd parties services (2010 R$)'),
+                 cbind('siops_despoutros_pcapita','Health Spending per capita - other expenditures (2010 R$)'))
 
 # # figure A1
 
@@ -100,7 +104,7 @@ for (i in seq(1,2,1)){
   var_name <- var_map[i,2]
   print(var_name)
   reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-0.8,0.4,0.2,paste0("A1",gf_name),below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
-
+  
 }
 
 # # figure A2
@@ -114,7 +118,7 @@ for (i in seq(3,5,1)){
 
 # figure A3
 
-for (i in seq(6,11,1)){
+for (i in seq(6,12,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -123,7 +127,7 @@ for (i in seq(6,11,1)){
 
 # figure 6 (ex 9)
 
-for (i in c(6,seq(12,14,1))){
+for (i in c(6,seq(13,15,1))){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -133,7 +137,7 @@ for (i in c(6,seq(12,14,1))){
 
 # figure 7 (ex 10)
 
-for (i in seq(15,18,1)){
+for (i in seq(16,19,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)

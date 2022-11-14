@@ -66,6 +66,7 @@ var_map <- rbind(cbind('finbra_reccorr_pcapita','Total Revenue per capita (2010 
                  cbind('finbra_desp_outros_nature_pcapita','Other Spending per capita (2010 R$)'),
                  
                  cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (2010 R$)'),
+                 cbind('finbra_desp_nao_saude_pcapita','All Other Spending per capita (2010 R$)'),
                  cbind('finbra_desp_transporte_pcapita','Transport Spending per capita (2010 R$)'),
                  cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (2010 R$)'),
                  cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (2010 R$)'),
@@ -101,16 +102,16 @@ for (i in seq(1,2,1)){
 
 # figure B2 (ex 8 )
 
-for (i in seq(6,11,1)){
+for (i in seq(6,12,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-2000,1000,500,"B2",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+  reduced_yearly(var,var_name,df,3,1998,-4000,2000,500,"B2",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
 }
 
 # figure 6 (ex 9)
 # 
-for (i in c(6,seq(12,14,1))){
+for (i in c(6,seq(13,15,1))){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -120,7 +121,7 @@ for (i in c(6,seq(12,14,1))){
 
 # figure 7 (ex 10)
 
-for (i in seq(15,18,1)){
+for (i in seq(16,19,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -148,6 +149,7 @@ var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community He
                  cbind('ams_hospital_mun_pcapita','N. of Municipal Hospitals (per capita*1000)'),
                  cbind('ams_hospital_nmun_pcapita','N. of Federal and State Hospitals (per capita*1000)'),
                  cbind('ams_hospital_pvt_pcapita','N. of Private Hospitals (per capita*1000)'),
+                 cbind('ams_hospital_mun_esp_pcapita', 'N. of Specialty Hospitals (per capita*1000)'),
                  
                  
                  # cbind('siab_visit_cha_pcapita','N. of Household Visits (per capita)'),
@@ -197,7 +199,7 @@ for (i in seq(9,12,1)){
 
 
 # figure 11
-for (i in seq(13,15,1)){
+for (i in seq(13,16,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -205,7 +207,7 @@ for (i in seq(13,15,1)){
 }
 
 # figure 11
-for (i in seq(16,16,1)){
+for (i in seq(17,17,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -215,7 +217,7 @@ for (i in seq(16,16,1)){
 
 
 # figure 12 (ex 13)
-for (i in seq(17,23,1)){
+for (i in seq(18,24,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
