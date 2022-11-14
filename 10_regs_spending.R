@@ -64,7 +64,9 @@ var_map <- rbind(cbind('finbra_reccorr_pcapita','Total Revenue per capita (2010 
                  cbind('finbra_desp_investimento_pcapita','Investment Spending per capita (2010 R$)'),
                  cbind('finbra_desp_outros_nature_pcapita','Other Spending per capita (2010 R$)'),
                  
+                 
                  cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (2010 R$)'),
+                 cbind('finbra_desp_nao_saude_pcapita','All Other Spending per capita (2010 R$)'),
                  cbind('finbra_desp_transporte_pcapita','Transport Spending per capita (2010 R$)'),
                  cbind('finbra_desp_educ_cultura_pcapita','Education and Culture Spending per capita (2010 R$)'),
                  cbind('finbra_desp_hab_urb_pcapita','Housing and Urban Spending per capita (2010 R$)'),
@@ -83,7 +85,7 @@ var_map <- rbind(cbind('finbra_reccorr_pcapita','Total Revenue per capita (2010 
 # 3. Run and ouput
 # =================================================================
 
-for (i in seq(1,18,1)){
+for (i in seq(1,19,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -93,13 +95,13 @@ for (i in seq(1,18,1)){
   
   if(exists("df_table_all")){
     df_table_all <- rbind(df_table_all,table_all)
-  
+    
   } else {
     
     df_table_all <- table_all
-
+    
   }
-
+  
 }
 
 

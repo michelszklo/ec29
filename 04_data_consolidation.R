@@ -104,7 +104,8 @@ finbra <- finbra %>%
   mutate(finbra_desp_outros_nature = finbra_desp_o - (finbra_desp_pessoal + finbra_desp_investimento),
          finbra_desp_outros_area =  finbra_desp_o - 
            (finbra_desp_saude_san + finbra_desp_transporte + finbra_desp_educ_cultura + finbra_desp_assist_prev),
-         finbra_rec_outros = finbra_reccorr - (finbra_rectribut + finbra_rectransf))
+         finbra_rec_outros = finbra_reccorr - (finbra_rectribut + finbra_rectransf),
+         finbra_desp_nao_saude = finbra_desp_o - finbra_desp_saude_san)
 
 
 # 4. Importing SIOPS data
