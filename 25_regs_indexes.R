@@ -53,6 +53,8 @@ dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 load(paste0(dir,"regs.RData"))
 index <- data.frame(read.dta13("C:/Users/Michel/Documents/GitHub/ec29/indexes.dta"))
 
+df_low_ineq <- df_below
+df_high_ineq <- df_above
 
 # merge indexes to main df
 all_df <- c("df","df_low_ineq","df_high_ineq","df_low_pov","df_high_pov","df_low_hi","df_high_hi","df_first","df_second")
@@ -179,6 +181,36 @@ for (i in 9){
   print(var_name)
   reduced_yearly(var,var_name,df,3,1998,-1.0,1.75,0.25,"20",below = below,weight = w,year_cap = 2010) # ec29baseline
 }
+
+
+
+# 4. Regressions Graph - HETEROGENEITY
+# =================================================================
+
+
+df1 <- df_low_ineq
+df1_name <- "1. Below Target"
+df2 <- df_high_ineq
+df2_name <- "2. Above Target"
+
+gf_name <- "_abovebelow"
+
+for (i in seq(1,7,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  w <- var_map[i,3]
+  print(var_name)
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1.0,1.75,0.25,paste0("20",gf_name),below = below,weight = w,year_cap = 2010) 
+}
+
+
+var <- var_map[i,1]
+var_name <- var_map[i,2]
+print(var_name)
+reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1.0,1.75,0.25,paste0("20",gf_name),below = below,weight = w,year_cap = 2010) 
+
+
+
 
 
 
