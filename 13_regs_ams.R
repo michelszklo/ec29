@@ -58,19 +58,23 @@ load(paste0(dir,"regs.RData"))
 var_map <- rbind(cbind('ams_hospital_mun_pcapita','N. of Municipal Hospitals (per capita*1000)'),
                  cbind('ams_hospital_nmun_pcapita','N. of Federal and State Hospitals (per capita*1000)'),
                  cbind('ams_hospital_pvt_pcapita','N. of Private Hospitals (per capita*1000)'),
-                 cbind('ams_unity_mun_pcapita','N. of Health Facilities (per capita*1000)'),
+
                  cbind('ams_hr_all_pcapita',"N. of Health Professionals (per capita*1000)"),
                  cbind('ams_hr_superior_pcapita','N. of Doctors (per capita*1000)'),
                  cbind('ams_hr_technician_pcapita','N. of Nurses (per capita*1000)'),
                  cbind('ams_hr_elementary_pcapita','N. of Nursing Assistants (per capita*1000)'),
-                 cbind('ams_hr_admin_pcapita','N. of Administrative Professionals (per capita*1000)'))
+                 cbind('ams_hr_admin_pcapita','N. of Administrative Professionals (per capita*1000)'),
+                 
+                 cbind('ams_hospital_mun_esp_pcapita', 'N. of Specialty Hospitals (per capita*1000)'),
+                 cbind('ams_unity_mun_pcapita','N. of Health Facilities (per capita*1000)'),
+                 cbind('ams_therapy_mun_pcapita','N. of Therapy Units (per capita*1000)'))
 
 
 
 # 3. Run and ouput
 # =================================================================
 
-for (i in seq(1,10,1)){
+for (i in seq(1,11,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
