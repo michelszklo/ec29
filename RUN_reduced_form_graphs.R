@@ -181,7 +181,22 @@ for (i in seq(1,2,1)){
 
 
 # figure 9 (ex 12)
-for (i in seq(3,8,1)){
+for (i in seq(3,6,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,3,1998,-1.5,2,0.5,"9",below = below,weight = "peso_eq",year_cap = 2010) # ec29baseline
+}
+
+for (i in seq(7,7,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,3,1998,-1.5,2,0.5,"9",below = below,weight = "peso_eq",year_cap = 2010,label_size = 6.9) # ec29baseline
+}
+
+
+for (i in seq(8,8,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
@@ -217,11 +232,32 @@ for (i in seq(17,17,1)){
 
 
 # figure 12 (ex 13)
-for (i in seq(18,24,1)){
+for (i in seq(18,18,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   reduced_yearly(var,var_name,df,3,1998,-0.3,0.3,0.1,"12",below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
+}
+
+for (i in seq(19,19,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,3,1998,-0.3,0.3,0.1,"12",below = below,weight = "peso_eq",year_cap = 2007,label_size = 7) # ec29baseline
+}
+
+for (i in seq(20,23,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,3,1998,-0.3,0.3,0.1,"12",below = below,weight = "peso_eq",year_cap = 2007) # ec29baseline
+}
+
+for (i in seq(24,24,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,3,1998,-0.3,0.3,0.1,"12",below = below,weight = "peso_eq",year_cap = 2007, label_size = 7) # ec29baseline
 }
 
 
