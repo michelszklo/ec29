@@ -200,18 +200,28 @@ for (i in seq(1,7,1)){
   var_name <- var_map[i,2]
   w <- var_map[i,3]
   print(var_name)
-  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1.0,1.75,0.25,paste0("20",gf_name),below = below,weight = w,year_cap = 2010) 
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1.5,1.75,0.25,paste0("20",gf_name),below = below,weight = w,year_cap = 2010) 
 }
 
 
-var <- var_map[i,1]
-var_name <- var_map[i,2]
-print(var_name)
-reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1.0,1.75,0.25,paste0("20",gf_name),below = below,weight = w,year_cap = 2010) 
+
+for (i in seq(8,8,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  w <- var_map[i,3]
+  print(var_name)
+  reduced_yearly_imr_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1.5,1.75,0.25,paste0("20",gf_name),below = below,weight = w,year_cap = 2010) 
+}
 
 
+for (i in 9){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  w <- var_map[i,3]
+  print(var_name)
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1.5,1.75,0.25,paste0("20",gf_name),below = below,weight = w,year_cap = 2010) 
+}
 
 
-
-
+df %>% filter(dist_ec29_baseline<0 & dist_ec29_baseline>-0.025) %>% filter(ano==2000)
 
