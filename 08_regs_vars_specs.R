@@ -541,7 +541,15 @@ reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_fil
 }
 
 
-reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below,weight,year_cap){
+reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below,weight,year_cap,label_size){
+  
+  
+  if(missing(label_size)){
+    ylabel <- 8
+  }else{
+    ylabel <-  label_size
+  }
+  
   
   df_reg <- df
   
@@ -671,7 +679,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             axis.text = element_text(size = 10),
             legend.position="bottom")
     
@@ -715,7 +723,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             axis.text = element_text(size = 10),
             legend.position="bottom")
     
@@ -759,7 +767,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             axis.text = element_text(size = 10),
             legend.position="bottom")
     
@@ -809,7 +817,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             axis.text = element_text(size = 10),
             legend.position="bottom")
     
@@ -832,7 +840,14 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   
 }
 
-reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below,weight,year_cap){
+reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sample,below,weight,year_cap,label_size){
+  
+  if(missing(label_size)){
+    ylabel <- 8
+  }else{
+    ylabel <-  label_size
+  }
+  
   
   df_reg <- df
   
@@ -962,7 +977,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             axis.text = element_text(size = 10),
             legend.position="bottom")
     
@@ -1006,7 +1021,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             axis.text = element_text(size = 10),
             legend.position="bottom")
     
@@ -1050,7 +1065,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             axis.text = element_text(size = 10),
             legend.position="bottom")
     
@@ -1100,7 +1115,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             axis.text = element_text(size = 10),
             legend.position="bottom")
     
@@ -1125,8 +1140,15 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
 
 
 # regs + graph function for heterogeneity analysis. 
-reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transform,year_filter,y0,yf,ys,sample,below,weight,year_cap){
+reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transform,year_filter,y0,yf,ys,sample,below,weight,year_cap,label_size){
+
+  if(missing(label_size)){
+    ylabel <- 8
+  }else{
+    ylabel <-  label_size
+  }
   
+    
   transformations <- function(df_reg,transform){
     
     if(transform==1){
@@ -1287,7 +1309,7 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             legend.position="bottom")
     
     
@@ -1328,7 +1350,7 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             legend.position="bottom")
     
     
@@ -1369,7 +1391,7 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             legend.position="bottom")
     
     
@@ -1415,7 +1437,7 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             legend.position="bottom")
     
     
@@ -1437,7 +1459,14 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
   
 }
 
-reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transform,year_filter,y0,yf,ys,sample,below,weight,year_cap){
+reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transform,year_filter,y0,yf,ys,sample,below,weight,year_cap,label_size){
+  
+  if(missing(label_size)){
+    ylabel <- 8
+  }else{
+    ylabel <-  label_size
+  }
+  
   
   transformations <- function(df_reg,transform){
     
@@ -1597,7 +1626,7 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             legend.position="bottom")
     
     
@@ -1638,7 +1667,7 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             legend.position="bottom")
     
     
@@ -1679,7 +1708,7 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             legend.position="bottom")
     
     
@@ -1725,7 +1754,7 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
             panel.grid.minor = element_blank(),
             plot.title = element_text(size = 10, face = "bold"),
             axis.title.x = element_text(size=10),
-            axis.title.y = element_text(size=6),
+            axis.title.y = element_text(size=ylabel),
             legend.position="bottom")
     
     
