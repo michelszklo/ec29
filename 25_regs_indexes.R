@@ -193,7 +193,7 @@ df1_name <- "1. Below Target"
 df2 <- df_high_ineq
 df2_name <- "2. Above Target"
 
-gf_name <- "_abovebelow"
+gf_name <- "_abovebelow_alt"
 
 for (i in seq(1,7,1)){
   var <- var_map[i,1]
