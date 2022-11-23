@@ -76,7 +76,7 @@ df_plot <- df_plot %>%
 # =================================================================
 
 
-corr(df_plot %>% 
+cor(df_plot %>% 
        select(c("dist_ec29_baseline","change05_siops_despsaude_pcapita","pop")) %>% 
        rename(ec29 = 1,
               spending = 2) %>% 
@@ -369,3 +369,132 @@ ggsave(filePDF,
 
 
 
+# distance to ec29 vs baseline per capita spending 
+# ------------------------------------------------------
+# total spending
+cor(df_plot %>% 
+       select(c("dist_ec29_baseline","siops_despsaude_pcapita","pop")) %>% 
+       rename(ec29 = 1,
+              spending = 2) %>% 
+       filter(!is.na(spending)) %>% 
+       filter(!is.nan(ec29)))
+
+
+scatter <- ggplot(df_plot,
+                  aes(x = dist_ec29_baseline, y = siops_despsaude_pcapita)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
+  scale_y_continuous(limits = c(0,1000), breaks = seq(0,1000,100)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  labs(y = "Health Spending per capita in 2000",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=12),
+        axis.text = element_text(size = 12),
+        legend.position="none")
+
+
+
+filePNG <- paste0(output,"scatter_dist_ec29_baseline_spending.png")
+filePDF <- paste0(output,"scatter_dist_ec29_baseline_spending.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
+
+
+# transfers
+cor(df_plot %>% 
+      select(c("dist_ec29_baseline","siops_despexrecproprio_pcapita","pop")) %>% 
+      rename(ec29 = 1,
+             spending = 2) %>% 
+      filter(!is.na(spending)) %>% 
+      filter(!is.nan(ec29)))
+
+
+scatter <- ggplot(df_plot,
+                  aes(x = dist_ec29_baseline, y = siops_despexrecproprio_pcapita)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
+  scale_y_continuous(limits = c(0,1000), breaks = seq(0,1000,100)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  labs(y = "Health Spending per capita in 2000 - Transfers",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=12),
+        axis.text = element_text(size = 12),
+        legend.position="none")
+
+
+
+filePNG <- paste0(output,"scatter_dist_ec29_baseline_transfers.png")
+filePDF <- paste0(output,"scatter_dist_ec29_baseline_transfers.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
+
+
+
+# own resources
+cor(df_plot %>% 
+      select(c("dist_ec29_baseline","siops_desprecpropriosaude_pcapita","pop")) %>% 
+      rename(ec29 = 1,
+             spending = 2) %>% 
+      filter(!is.na(spending)) %>% 
+      filter(!is.nan(ec29)))
+
+
+scatter <- ggplot(df_plot,
+                  aes(x = dist_ec29_baseline, y = siops_desprecpropriosaude_pcapita)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
+  scale_y_continuous(limits = c(0,1000), breaks = seq(0,1000,100)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  labs(y = "Health Spending per capita in 2000 - Own Resource",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=12),
+        axis.text = element_text(size = 12),
+        legend.position="none")
+
+
+
+filePNG <- paste0(output,"scatter_dist_ec29_baseline_own.png")
+filePDF <- paste0(output,"scatter_dist_ec29_baseline_own.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
