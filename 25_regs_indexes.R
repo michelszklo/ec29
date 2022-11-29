@@ -195,7 +195,23 @@ df2_name <- "2. Above Target"
 
 gf_name <- "_abovebelow_alt"
 
-for (i in seq(1,7,1)){
+for (i in seq(1,3,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  w <- var_map[i,3]
+  print(var_name)
+  reduced_yearly_het(var,var_name,df1,df1_name,df2,df2_name,3,1998,-1.5,1.75,0.25,paste0("20",gf_name),below = below,weight = w,year_cap = 2010) 
+}
+
+for (i in seq(4,6,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  w <- var_map[i,3]
+  print(var_name)
+  reduced_yearly_het(var,var_name,df1 %>% mutate(pre_99_dist_ec29_baseline=0),df1_name,df2 %>% mutate(pre_99_dist_ec29_baseline=0),df2_name,3,1998,-1.5,2,0.25,paste0("20",gf_name),below = below,weight = w,year_cap = 2010) 
+}
+
+for (i in seq(7,7,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   w <- var_map[i,3]
