@@ -101,17 +101,17 @@ map <- df_map %>%
   geom_sf(data = ufbr_shape,fill=NA,size = 0.00001) +
   scale_fill_manual(values = color_map,na.value = "White") +
   theme_light()+
-  labs(fill = "% of Own Resource spent in Health")+
+  labs(fill = "% of Own Resource spent on Health")+
   theme(legend.position="bottom",
         legend.box = "horizontal",
-        legend.text = element_text(size = 6),
-        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 9),
+        legend.title = element_text(size = 12),
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
         axis.text = element_blank(),
         axis.line =  element_blank(),
         axis.ticks =  element_blank()) +
-  guides(fill=guide_legend(nrow = 2,byrow=TRUE))
+  guides(fill=guide_legend(nrow = 2,byrow=TRUE,title.position="top"))
   
 file <- paste0(output,"ec29_map.pdf")
 ggsave(file,

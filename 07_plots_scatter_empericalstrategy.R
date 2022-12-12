@@ -77,13 +77,13 @@ df_plot <- df_plot %>%
 
 
 cor(df_plot %>% 
-       select(c("dist_ec29_baseline","change05_siops_despsaude_pcapita","pop")) %>% 
-       rename(ec29 = 1,
-              spending = 2) %>% 
-       filter(!is.na(spending)) %>% 
-       filter(!is.nan(ec29)) %>% 
-       filter(spending<1000) %>% 
-       filter(ec29>-0.5))
+      select(c("dist_ec29_baseline","change05_siops_despsaude_pcapita","pop")) %>% 
+      rename(ec29 = 1,
+             spending = 2) %>% 
+      filter(!is.na(spending)) %>% 
+      filter(!is.nan(ec29)) %>% 
+      filter(spending<1000) %>% 
+      filter(ec29>-0.5))
 
 # full sample
 
@@ -97,13 +97,13 @@ scatter <- ggplot(df_plot %>%
   geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
   scale_y_continuous(limits = c(-400,950), breaks = seq(-400,900,100)) +
   scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
-  labs(y = "Change in Health Spending per capita 2000-2005",
+  labs(y = "Change in Health Spending per capita \n 2000-2005",
        x = "Distance to the EC29 target") +
   theme_light() +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
-        axis.title = element_text(size=12),
-        axis.text = element_text(size = 12),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 13),
         legend.position="none")
 
 
@@ -133,13 +133,13 @@ scatter <- ggplot(df_plot %>%
   geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
   scale_y_continuous(limits = c(-0.4,0.4), breaks = seq(-0.4,0.4,0.1)) +
   scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
-  labs(y = "Change (p.p.) in % of Own Resource Spent on Health 2000-2005",
+  labs(y = "Change (p.p.) in % of Own Resource Spent on Health \n 2000-2005",
        x = "Distance to the EC29 target") +
   theme_light() +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
-        axis.title = element_text(size=12),
-        axis.text = element_text(size = 12),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 13),
         legend.position="none")
 
 
@@ -280,13 +280,13 @@ scatter <- ggplot(bins_line,
   geom_pointrange(size = 0.1, alpha = 1,color = "steelblue4",data = bins_dots,aes(x = x, y = fit, ymin = ci.l, ymax = ci.r)) +
   scale_y_continuous(limits = c(-250,250), breaks = seq(-250,250,50)) +
   scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
-  labs(y = "Change in Health Spending per capita 2000-2005",
+  labs(y = "Change in Health Spending per capita \n 2000-2005",
        x = "Distance to the EC29 target") +
   theme_light() +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
-        axis.title = element_text(size=12),
-        axis.text = element_text(size = 12),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 13),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank())
 
@@ -339,13 +339,13 @@ scatter <- ggplot(bins_line,
   geom_pointrange(size = 0.1, alpha = 1,color = "steelblue4",data = bins_dots,aes(x = x, y = fit, ymin = ci.l, ymax = ci.r)) +
   scale_y_continuous(limits = c(-0.5,0.3), breaks = seq(-0.5,0.3,0.1)) +
   scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
-  labs(y = "Change (p.p.) in % of Own Resource Spent on Health 2000-2005",
+  labs(y = "Change (p.p.) in % of Own Resource Spent on Health \n 2000-2005",
        x = "Distance to the EC29 target") +
   theme_light() +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
-        axis.title = element_text(size=12),
-        axis.text = element_text(size = 12),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 13),
         legend.position="bottom", legend.box = "horizontal",
         legend.title = element_blank())
 
@@ -373,11 +373,11 @@ ggsave(filePDF,
 # ------------------------------------------------------
 # total spending
 cor(df_plot %>% 
-       select(c("dist_ec29_baseline","siops_despsaude_pcapita","pop")) %>% 
-       rename(ec29 = 1,
-              spending = 2) %>% 
-       filter(!is.na(spending)) %>% 
-       filter(!is.nan(ec29)))
+      select(c("dist_ec29_baseline","siops_despsaude_pcapita","pop")) %>% 
+      rename(ec29 = 1,
+             spending = 2) %>% 
+      filter(!is.na(spending)) %>% 
+      filter(!is.nan(ec29)))
 
 
 scatter <- ggplot(df_plot,

@@ -134,10 +134,12 @@ plot1 <- SIOPS_temp %>%
        y = "Spending per capita index (2000 = 100)")+
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
-        axis.title = element_text(size=12),
-        axis.text = element_text(size = 10),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 12),
+        legend.text = element_text(size = 15),
         legend.position="bottom", legend.box = "horizontal",
-        legend.title = element_blank())
+        legend.title = element_blank()) +
+  guides(color=guide_legend(nrow=1,byrow=TRUE,override.aes = list(size = 3))) 
 
 
 plot2 <- SIOPS_temp %>%
@@ -153,10 +155,12 @@ plot2 <- SIOPS_temp %>%
   theme_light() +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
-        axis.title = element_text(size=12),
-        axis.text = element_text(size = 10),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 12),
+        legend.text = element_text(size = 15),
         legend.position="bottom", legend.box = "horizontal",
-        legend.title = element_blank())
+        legend.title = element_blank()) +
+  guides(color=guide_legend(nrow=1,byrow=TRUE,override.aes = list(size = 3))) 
 
 
 
@@ -174,10 +178,12 @@ plot3 <- SIOPS_temp %>%
   theme_light() +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
-        axis.title = element_text(size=12),
-        axis.text = element_text(size = 10),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 12),
+        legend.text = element_text(size = 15),
         legend.position="bottom", legend.box = "horizontal",
-        legend.title = element_blank())
+        legend.title = element_blank()) +
+  guides(color=guide_legend(nrow=1,byrow=TRUE,override.aes = list(size = 3))) 
 
 
 filePNG <- paste0(output,"plot_total.png")
