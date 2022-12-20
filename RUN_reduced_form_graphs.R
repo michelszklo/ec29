@@ -316,7 +316,7 @@ var_map <- rbind(cbind('tx_sih_infant','Infant Hospitalization Rate (pop 0-1y * 
                  cbind('tx_sih_infant_nicsap','Infant Hospitalization Rate - non-APC (pop 0-1y * 1000)'),
                  cbind('tx_sih_maternal2','Maternal Hospitalization Rate (pop 0-1y * 1000)'),
                  cbind('tx_sih_maternal','Maternal Hospitalization Rate (women 10-49y * 1000)'),
-                 cbind('tx_sih_adult','Adult Hospitalization Rate (pop 25-54y * 1000)'),
+                 cbind('tx_sih_adult','Adult Hospitalization Rate (pop 40+y * 1000)'),
                  cbind('tx_sih_adult_icsap','Adult Hospitalization Rate - APC (pop 40+y * 1000)'),
                  cbind('tx_sih_adult_nicsap','Adult Hospitalization Rate - non-APC (pop 40+y * 1000)')
 )
