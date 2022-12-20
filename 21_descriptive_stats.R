@@ -202,11 +202,29 @@ var_map <- rbind(cbind("ec29_baseline","Share of Municipality's Own Resource Spe
                  cbind('birth_premature','Premature Birth'),
                  cbind('birth_sexratio',"Sex Ratio at Birth"),
                  
-                 # Maternal and Infant Hospitalizatio
+                 # Maternal and Infant Hospitalization
                  cbind('tx_sih_infant','Infant Hospitalization Rate (pop 0-1y * 1000)'),
                  cbind('tx_sih_infant_icsap','Infant Hospitalization Rate - APC (pop 0-1y * 1000)'),
                  cbind('tx_sih_infant_nicsap','Infant Hospitalization Rate - non-APC (pop 0-1y * 1000)'),
                  cbind('tx_sih_maternal','Maternal Hospitalization Rate (women 10-49y * 1000)'),
+                 
+                 # Adult Mortality and Hospitalization
+                 cbind('tx_ma5','Adult Mortality Rate (40+ y)'),
+                 cbind('tx_ma5_icsap','Adult Mortality Rate (40+ y) - APC'),
+                 cbind('tx_ma5_nicsap','Adult Mortality Rate (40+ y) - non-APC'),
+                 cbind('tx_sih_adult','Adult Hospitalization Rate (pop 40+y * 1000)'),
+                 cbind('tx_sih_adult_icsap','Adult Hospitalization Rate - APC (pop 40+y * 1000)'),
+                 cbind('tx_sih_adult_nicsap','Adult Hospitalization Rate - non-APC (pop 40+y * 1000)'),
+                 
+                 
+                 # Health care system
+                 cbind('tx_sih_in_hosp_total','Hospitalization Inflow rate (pop * 1000)'),
+                 cbind('tx_sih_in_hosp_icsap','Hospitalization Inflow rate - APC (pop * 1000)'),
+                 cbind('tx_sih_in_hosp_nicsap','Hospitalization Inflow rate - non-APC (pop * 1000)'),
+                 cbind('tx_sih_out_hosp_total','Hospitalization Outflow rate (pop * 1000)'),
+                 cbind('tx_sih_out_hosp_icsap','Hospitalization Outflow rate - APC (pop * 1000)'),
+                 cbind('tx_sih_out_hosp_nicsap','Hospitalization Outflow rate - non-APC (pop * 1000)'),
+                 cbind('cobertura_plano','Private Insurance Coverage'),
                  
                  
                  cbind('pop','Population'),
