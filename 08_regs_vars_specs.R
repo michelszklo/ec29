@@ -176,7 +176,8 @@ df <- df %>%
          peso_m = mean(pop_fem_10_49,na.rm = T),
          peso_ha = mean(pop_45,na.rm = T),
          peso_ha1 = mean(pop_25_44,na.rm = T),
-         peso_ha2 = mean(pop_45_54,na.rm = T)) %>% 
+         peso_ha2 = mean(pop_45_54,na.rm = T),
+         peso_pop = mean(pop,na.rm = T)) %>% 
   ungroup() %>% 
   # sample split variable (by LRF)
   group_by(cod_mun) %>% 
