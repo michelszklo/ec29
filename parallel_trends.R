@@ -96,7 +96,7 @@ df_quantiles <- df %>%
          sia_ncnes_outpsf_pcapita, sia_pcapita, sia_ab_pcapita, sia_nprod_amb_lc_mun_pcapita,
          sia_nprod_amb_hc_mun_pcapita, birth_prenat_ig, birth_prenat_0, birth_prenat_1_6, 
          birth_prenat_7_plus, tx_sih_maternal, tx_sih_infant_icsap, tx_sih_infant_nicsap,
-         tx_mi,pop) %>% 
+         tx_mi,pop,ams_hospital_mun_pcapita) %>% 
   filter(!is.na(dist_quantile_interval))
 
 
@@ -121,12 +121,17 @@ vars <- c('finbra_desp_saude_san_pcapita',
           'birth_prenat_7_plus', 'tx_sih_maternal', 'tx_sih_infant_icsap', 'tx_sih_infant_nicsap',
           'tx_mi')
 
+
+
+
+
 for(v in vars){
   plot1 <- df_quantiles %>% 
     group_by(ano,dist_quantile_group) %>% 
     summarise(!!v := mean(eval(parse(text = v)),na.rm = T)) %>% 
     ungroup() %>% 
     mutate(dist_quantile_group = as.factor(dist_quantile_group)) %>% 
+    filter(!is.nan(eval(parse(text = v)))) %>% 
     ggplot(aes(x = ano,y = eval(parse(text = v)),color = dist_quantile_group,linetype = dist_quantile_group ,group = dist_quantile_group)) +
     geom_vline(xintercept = 2000, alpha = 0.3,size = 0.2) +
     geom_hline(yintercept = 0, alpha = 0.3,size = 0.2) +
@@ -146,6 +151,7 @@ for(v in vars){
     summarise(!!v := mean(eval(parse(text = v)),na.rm = T)) %>% 
     ungroup() %>% 
     mutate(dist_quantile_group = as.factor(dist_quantile_group)) %>% 
+    filter(!is.nan(eval(parse(text = v)))) %>% 
     ggplot(aes(x = ano,y = eval(parse(text = v)),color = dist_quantile_group,linetype = dist_quantile_group ,group = dist_quantile_group)) +
     geom_vline(xintercept = 2000, alpha = 0.3,size = 0.2) +
     geom_hline(yintercept = 0, alpha = 0.3,size = 0.2) +
@@ -191,7 +197,7 @@ for(v in vars){
   
 }
 
-
+vars <- c('ams_hospital_mun_pcapita')
 
 for(v in vars){
   plot1 <- df_quantiles %>% 
@@ -199,6 +205,7 @@ for(v in vars){
     summarise(!!v := weighted.mean(eval(parse(text = v)),w = pop,na.rm = T)) %>% 
     ungroup() %>% 
     mutate(dist_quantile_group = as.factor(dist_quantile_group)) %>% 
+    filter(!is.nan(eval(parse(text = v)))) %>% 
     ggplot(aes(x = ano,y = eval(parse(text = v)),color = dist_quantile_group,linetype = dist_quantile_group ,group = dist_quantile_group)) +
     geom_vline(xintercept = 2000, alpha = 0.3,size = 0.2) +
     geom_hline(yintercept = 0, alpha = 0.3,size = 0.2) +
@@ -218,6 +225,7 @@ for(v in vars){
     summarise(!!v := weighted.mean(eval(parse(text = v)),w = pop,na.rm = T)) %>% 
     ungroup() %>% 
     mutate(dist_quantile_group = as.factor(dist_quantile_group)) %>% 
+    filter(!is.nan(eval(parse(text = v)))) %>% 
     ggplot(aes(x = ano,y = eval(parse(text = v)),color = dist_quantile_group,linetype = dist_quantile_group ,group = dist_quantile_group)) +
     geom_vline(xintercept = 2000, alpha = 0.3,size = 0.2) +
     geom_hline(yintercept = 0, alpha = 0.3,size = 0.2) +
@@ -235,7 +243,7 @@ for(v in vars){
   number <- grep(v,vars)
   
   filePDF <- paste0(graphs_folder2,number,"_",v,".pdf")
-  filePNG <- paste0(graphs_folder,number,"_",v,".png")
+  filePNG <- paste0(graphs_folder2,number,"_",v,".png")
   ggsave(filePDF,
          plot = plot1,
          device = "pdf",
