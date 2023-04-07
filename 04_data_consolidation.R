@@ -77,9 +77,10 @@ names(finbra) <- gsub("desp","finbra_desp",names(finbra))
 finbra_receita <- read.csv(paste0(raw,"Finbra/FINBRA_receita.csv"), encoding = "UTF-8") %>% 
   rename(finbra_reccorr=reccorr,
          finbra_rectribut = rectribut,
-         finbra_rectransf = rectransf) %>%
-  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf"), function(x) ifelse(.$ano>2012,gsub(",",".",x),x)) %>% 
-  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf"),as.numeric)
+         finbra_rectransf = rectransf,
+         finbra_recorc = recorc) %>%
+  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc"), function(x) ifelse(.$ano>2012,gsub(",",".",x),x)) %>% 
+  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc"),as.numeric)
 
 finbra <- finbra %>% left_join(finbra_receita, by = c("ano","cod_mun"))
 
@@ -93,7 +94,7 @@ finbra[8:33] <- lapply(finbra[8:33], function(x) as.numeric(gsub(",","",x),digit
 
 # "correcting errors in data
 
-vars_correct <- names(finbra)[!(names(finbra) %in% c("ano","cod_mun","nome_mun","cod_uf","uf","pop","pop2000","finbra_desp_o","finbra_desp_c","finbra_reccorr","finbra_rectribut","finbra_rectransf"))]
+vars_correct <- names(finbra)[!(names(finbra) %in% c("ano","cod_mun","nome_mun","cod_uf","uf","pop","pop2000","finbra_desp_o","finbra_desp_c","finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc"))]
 
 finbra <- finbra %>% 
   mutate_at(vars_correct, function(x) ifelse(.$finbra_desp_o<x,NA,x))

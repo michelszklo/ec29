@@ -672,7 +672,7 @@ finbra <- bind_rows(finbra,temp)
 # =================================================================
 
 
-finbra_select <- finbra %>% select(c("cod_mun","ano","reccorr","rectribut","rectransf"))
+finbra_select <- finbra %>% select(c("cod_mun","ano","reccorr","recorc","rectribut","rectransf"))
 write.table(finbra_select, paste0(output,"FINBRA_receita.csv"), fileEncoding = "latin1", sep = ",", row.names = F)
 
 
