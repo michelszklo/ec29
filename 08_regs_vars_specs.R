@@ -421,7 +421,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
   # filtering regression variables
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,all_of(controls),pop,
-           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
            finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
     filter(ano>=year_filter)
   
@@ -498,7 +498,7 @@ reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_fil
   # filtering regression variables
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,all_of(controls),pop,
-           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_pop,
            finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
     filter(ano>=year_filter)
   
@@ -882,7 +882,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   # filtering regression variables
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
-           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_pop,
            finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
     filter(ano>=year_filter)
   
@@ -1146,14 +1146,14 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
 
 # regs + graph function for heterogeneity analysis. 
 reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transform,year_filter,y0,yf,ys,sample,below,weight,year_cap,label_size){
-
+  
   if(missing(label_size)){
     ylabel <- 8
   }else{
     ylabel <-  label_size
   }
   
-    
+  
   transformations <- function(df_reg,transform){
     
     if(transform==1){
@@ -1180,7 +1180,7 @@ reduced_yearly_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,transf
     # filtering regression variables
     df_reg <- df_reg %>% 
       select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
-             peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,
+             peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_pop,
              finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
       filter(ano>=year_filter)
     
@@ -1499,7 +1499,7 @@ reduced_yearly_imr_het <- function(outcome,var_name,df1,df1_name,df2,df2_name,tr
     # filtering regression variables
     df_reg <- df_reg %>% 
       select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
-             peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,
+             peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_pop,
              finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
       filter(ano>=year_filter)
     
