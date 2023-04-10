@@ -721,7 +721,7 @@ foreach index of varlist `boundsind' {
     graph export "outputs/events/Honest_`index'.pdf", replace
     restore
 }
-
+drop time
 
 
     
