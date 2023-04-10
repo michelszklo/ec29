@@ -918,7 +918,14 @@ df <- df %>%
   ) %>% 
   select(-c("sum_check","sum_check2"))
 
-# 23. saving
+
+# 23. Finbra: splitting non health spending into social and non social
+# ==============================================================
+df <- df %>% 
+  mutate(finbra_despsocial_pcapita = finbra_desp_nao_saude_pcapita - finbra_desp_outros_area_pcapita)
+
+
+# 24. saving
 # ==============================================================
 df <- df %>% filter(ano<=2015)
 
