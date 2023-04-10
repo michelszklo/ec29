@@ -102,7 +102,11 @@ df <- raw %>%
   mutate(cod_uf = as.numeric(substr(as.character(cod_mun),1,2))) %>% 
   select(ano, cod_mun, mun_name, cod_uf,uf, region, pop, everything()) %>% 
   # replace 0 spending values into NAs
-  mutate(finbra_desp_saude_san_pcapita = ifelse(finbra_desp_saude_san_pcapita==0,NA,finbra_desp_saude_san_pcapita),
+  mutate(finbra_desp_o_pcapita = ifelse(finbra_desp_o_pcapita==0,NA,finbra_desp_o_pcapita),
+         finbra_desp_c_pcapita = ifelse(finbra_desp_c_pcapita==0,NA,finbra_desp_c_pcapita),
+         finbra_reccorr_pcapita = ifelse(finbra_reccorr_pcapita==0,NA,finbra_reccorr_pcapita),
+         finbra_recorc_pcapita = ifelse(finbra_recorc_pcapita==0,NA,finbra_recorc_pcapita),
+         finbra_desp_saude_san_pcapita = ifelse(finbra_desp_saude_san_pcapita==0,NA,finbra_desp_saude_san_pcapita),
          siops_rimpostosetransfconst = ifelse(siops_rimpostosetransfconst==0,NA,siops_rimpostosetransfconst)) %>% 
   mutate(siops_despinvest = siops_despinvest_pcapita * pop,
          siops_desppessoal = siops_desppessoal_pcapita * pop,
@@ -580,7 +584,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,sa
   # filtering regression variables
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),all_of(yeartreat_dummies),iv,all_of(controls),pop,
-           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
            finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
     filter(ano>=year_filter)
   
