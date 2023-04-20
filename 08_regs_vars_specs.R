@@ -1810,7 +1810,7 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
   # ----------------------------------------
   
   # loop through full database and subsamples
-  for (data in c("df","df_low_ineq","df_high_ineq","df_low_pov","df_high_pov","df_low_hi","df_high_hi","df_first","df_second")){
+  for (data in c("df")){
     
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
@@ -1865,15 +1865,15 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
   }
   
   
-  organizing_table(reg_df,"all",0)
-  organizing_table(reg_df_low_ineq,"low_ineq",0)
-  organizing_table(reg_df_high_ineq,"high_ineq",0)
-  organizing_table(reg_df_low_pov,"low_pov",0)
-  organizing_table(reg_df_high_pov,"high_pov",0)
-  organizing_table(reg_df_low_hi,"low_hi",0)
-  organizing_table(reg_df_high_hi,"high_hi",0)
-  organizing_table(reg_df_first,"first",0)
-  organizing_table(reg_df_second,"second",1)
+  organizing_table(reg_df,"all",1)
+  # organizing_table(reg_df_low_ineq,"low_ineq",0)
+  # organizing_table(reg_df_high_ineq,"high_ineq",0)
+  # organizing_table(reg_df_low_pov,"low_pov",0)
+  # organizing_table(reg_df_high_pov,"high_pov",0)
+  # organizing_table(reg_df_low_hi,"low_hi",0)
+  # organizing_table(reg_df_high_hi,"high_hi",0)
+  # organizing_table(reg_df_first,"first",0)
+  # organizing_table(reg_df_second,"second",1)
   
   
   tables <- ls()[sapply(ls(), function(x) class(get(x))) == 'data.frame']
@@ -1899,25 +1899,25 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
   }
   
   binding("all")
-  binding("low_ineq")
-  binding("high_ineq")
-  binding("low_pov")
-  binding("high_pov")
-  binding("low_hi")
-  binding("high_hi")
-  binding("first")
-  binding("second")
+  # binding("low_ineq")
+  # binding("high_ineq")
+  # binding("low_pov")
+  # binding("high_pov")
+  # binding("low_hi")
+  # binding("high_hi")
+  # binding("first")
+  # binding("second")
   
-  table_all <- bind_cols(table_all,
-                         table_low_ineq %>% select(-term),
-                         table_high_ineq %>% select(-term),
-                         table_low_pov %>% select(-term),
-                         table_high_pov %>% select(-term),
-                         table_low_hi %>% select(-term),
-                         table_high_hi %>% select(-term),
-                         table_first %>% select(-term),
-                         table_second %>% select(-term)
-  )
+  # table_all <- bind_cols(table_all,
+  #                        table_low_ineq %>% select(-term),
+  #                        table_high_ineq %>% select(-term),
+  #                        table_low_pov %>% select(-term),
+  #                        table_high_pov %>% select(-term),
+  #                        table_low_hi %>% select(-term),
+  #                        table_high_hi %>% select(-term),
+  #                        table_first %>% select(-term),
+  #                        table_second %>% select(-term)
+  # )
   
   # assigning objects to the global envir
   assign("table_all",table_all, envir = .GlobalEnv) 
@@ -1930,7 +1930,7 @@ regress_output_imr <- function(var,var_name,transform,year_filter,weight){
   # ----------------------------------------
   
   # loop through full database and subsamples
-  for (data in c("df","df_low_ineq","df_high_ineq","df_low_pov","df_high_pov","df_low_hi","df_high_hi","df_first","df_second")){
+  for (data in c("df")){
     
     d <- get(data)
     obj <- paste0("reg_",data) # name of the output object
@@ -1984,14 +1984,14 @@ regress_output_imr <- function(var,var_name,transform,year_filter,weight){
   
   
   organizing_table(reg_df,"all",0)
-  organizing_table(reg_df_low_ineq,"low_ineq",0)
-  organizing_table(reg_df_high_ineq,"high_ineq",0)
-  organizing_table(reg_df_low_pov,"low_pov",0)
-  organizing_table(reg_df_high_pov,"high_pov",0)
-  organizing_table(reg_df_low_hi,"low_hi",0)
-  organizing_table(reg_df_high_hi,"high_hi",0)
-  organizing_table(reg_df_first,"first",0)
-  organizing_table(reg_df_second,"second",1)
+  # organizing_table(reg_df_low_ineq,"low_ineq",0)
+  # organizing_table(reg_df_high_ineq,"high_ineq",0)
+  # organizing_table(reg_df_low_pov,"low_pov",0)
+  # organizing_table(reg_df_high_pov,"high_pov",0)
+  # organizing_table(reg_df_low_hi,"low_hi",0)
+  # organizing_table(reg_df_high_hi,"high_hi",0)
+  # organizing_table(reg_df_first,"first",0)
+  # organizing_table(reg_df_second,"second",1)
   
   
   tables <- ls()[sapply(ls(), function(x) class(get(x))) == 'data.frame']
@@ -2017,29 +2017,29 @@ regress_output_imr <- function(var,var_name,transform,year_filter,weight){
   }
   
   binding("all")
-  binding("low_ineq")
-  binding("high_ineq")
-  binding("low_pov")
-  binding("high_pov")
-  binding("low_hi")
-  binding("high_hi")
-  binding("first")
-  binding("second")
+  # binding("low_ineq")
+  # binding("high_ineq")
+  # binding("low_pov")
+  # binding("high_pov")
+  # binding("low_hi")
+  # binding("high_hi")
+  # binding("first")
+  # binding("second")
   
-  table_all <- bind_cols(table_all,
-                         table_low_ineq %>% select(-term),
-                         table_high_ineq %>% select(-term),
-                         table_low_pov %>% select(-term),
-                         table_high_pov %>% select(-term),
-                         table_low_hi %>% select(-term),
-                         table_high_hi %>% select(-term),
-                         table_first %>% select(-term),
-                         table_second %>% select(-term)
+  # table_all <- bind_cols(table_all,
+  #                        table_low_ineq %>% select(-term),
+  #                        table_high_ineq %>% select(-term),
+  #                        table_low_pov %>% select(-term),
+  #                        table_high_pov %>% select(-term),
+  #                        table_low_hi %>% select(-term),
+  #                        table_high_hi %>% select(-term),
+  #                        table_first %>% select(-term),
+  #                        table_second %>% select(-term)
   )
-  
-  # assigning objects to the global envir
-  assign("table_all",table_all, envir = .GlobalEnv) 
-  
+
+# assigning objects to the global envir
+assign("table_all",table_all, envir = .GlobalEnv) 
+
 }  # runs regressions and output objects
 
 
