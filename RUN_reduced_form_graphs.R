@@ -522,9 +522,12 @@ var_map <- rbind(cbind('tx_sih_infant','Infant Hospitalization Rate (pop 0-1y * 
                  cbind('tx_sih_infant_icsap','Infant Hospitalization Rate - APC (pop 0-1y * 1000)'),
                  cbind('tx_sih_infant_nicsap','Infant Hospitalization Rate - non-APC (pop 0-1y * 1000)'),
                  cbind('tx_sih_maternal2','Maternal Hospitalization Rate (pop 0-1y * 1000)'),
-                 cbind('tx_sih_maternal','Maternal Hospitalization Rate (women 10-49y * 1000)')
+                 cbind('tx_sih_maternal','Maternal Hospitalization Rate (women 10-49y * 1000)'),
                  
-                 
+                 cbind('sih_infant','Infant Hospitalization - Total (log)'),
+                 cbind('sih_infant_icsap','Infant Hospitalization - APC (log)'),
+                 cbind('sih_infant_nicsap','Infant Hospitalization - non-APC (log)'),
+                 cbind('sih_maternal','Maternal Hospitalization - Total (log)')
 )
 
 
@@ -575,6 +578,15 @@ for (i in seq(5,5,1)){
   var_name <- var_map[i,2]
   print(var_name)
   reduced_yearly(var,var_name,df,3,1998,-5,5,1,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
+}
+
+
+
+for (i in seq(6,9,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly(var,var_name,df,1,1998,-1,1,0.2,paste0("4_cont_log_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
 }
 
 
