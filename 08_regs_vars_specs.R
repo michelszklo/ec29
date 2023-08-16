@@ -984,7 +984,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
   
   if(lb_na==1 & ub_na==1){
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -1012,7 +1012,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1021,7 +1021,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
     
   } else if (lb_na==0 & ub_na ==1) {
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -1051,7 +1051,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1060,7 +1060,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
     
   } else if (lb_na==1 & ub_na ==0) {
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -1090,7 +1090,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1098,7 +1098,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
     
   } else {
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -1130,7 +1130,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1277,7 +1277,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1316,7 +1316,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1355,7 +1355,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1395,7 +1395,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1530,7 +1530,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
   
   if(lb_na==1 & ub_na==1){
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate, color = target, group = target))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -1560,7 +1560,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1569,7 +1569,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
     
   } else if (lb_na==0 & ub_na ==1) {
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -1602,7 +1602,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1611,7 +1611,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
     
   } else if (lb_na==1 & ub_na ==0) {
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate, color = target, group = target))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -1643,7 +1643,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1651,7 +1651,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
     
   } else {
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -1687,7 +1687,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1851,7 +1851,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1891,7 +1891,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1931,7 +1931,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1972,7 +1972,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
            device = "png",
            width = 7, height = 5,
            units = "in")
-    ggsave(paste0(ir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
