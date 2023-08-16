@@ -160,51 +160,8 @@ ggsave(filePDF,
 
 
 
-# by inequality
-
-colors <-  c("#67a9cf","#ef8a62")
-
-scatter_ineq <- ggplot(df_plot %>% 
-                         filter(change05_siops_despsaude_pcapita<1000) %>% 
-                         filter(dist_ec29_baseline>-0.5) %>% 
-                         mutate(Inequality = ifelse(gini_baseline_above==1,"2. High","1. Low"))
-                       ,
-                       aes(x = dist_ec29_baseline, y = change05_siops_despsaude_pcapita, color = Inequality,group = Inequality)) +
-  geom_point(size = 0.7, alpha = 0.5) +
-  # geom_smooth(method='lm', color = "sienna2",fill = "sienna2", alpha = 0.1, se = F, size = 0.5)+
-  scale_y_continuous(limits = c(-400,950), breaks = seq(-400,900,100)) +
-  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
-  scale_color_manual(values = colors) +
-  labs(y = "Change in Health Spending per capita 2000-2005",
-       x = "Distance to the EC29 target") +
-  theme_light() +
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        axis.title = element_text(size=12),
-        axis.text = element_text(size = 12),
-        legend.position="bottom", legend.box = "horizontal")
-
-
-
-filePNG <- paste0(output,"scatter_dist_ec29_baseline_change05_ineq.png")
-filePDF <- paste0(output,"scatter_dist_ec29_baseline_change05_ineq.pdf")
-ggsave(filePNG,
-       plot = scatter_ineq,
-       device = "png",
-       width = 7, height = 6,
-       units = "in")
-
-ggsave(filePDF,
-       plot = scatter_ineq,
-       device = "pdf",
-       width = 7, height = 6,
-       units = "in")
-
-
-
-
-
 # by electoral term
+# ----------------------------------------
 
 colors <-  c("#67a9cf","#ef8a62")
 
@@ -212,23 +169,26 @@ scatter_elect <- ggplot(df_plot %>%
                           filter(change05_siops_despsaude_pcapita<1000) %>% 
                           filter(dist_ec29_baseline>-0.5) %>%
                           filter(!is.na(second_term)) %>% 
-                          mutate(`Electoral Term` = ifelse(second_term==0,"1. First Term","2. Second Term"))
+                          mutate(`Electoral Term` = ifelse(second_term==0,"1st Term","2nd Term"))
                         ,
                         aes(x = dist_ec29_baseline, y = change05_siops_despsaude_pcapita, color = `Electoral Term`,group = `Electoral Term`)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
   geom_point(size = 0.7, alpha = 0.5) +
   # geom_smooth(method='lm', color = "sienna2",fill = "sienna2", alpha = 0.1, se = F, size = 0.5)+
   scale_y_continuous(limits = c(-400,950), breaks = seq(-400,900,100)) +
   scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
   scale_color_manual(values = colors) +
-  labs(y = "Change in Health Spending per capita 2000-2005",
+  labs(y = "Change in Health Spending per capita \n 2000-2005",
        x = "Distance to the EC29 target") +
   theme_light() +
   theme(panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank(),
-        axis.title = element_text(size=12),
-        legend.text = element_text(size = 10),
-        legend.position="bottom", legend.box = "horizontal")+
-  guides(color = guide_legend(override.aes = list(size = 3)))
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 13),
+        legend.position = "bottom",
+        legend.title = element_blank()) +
+  guides(color = guide_legend(override.aes = list(size = 5)))
 
 
 
@@ -248,7 +208,54 @@ ggsave(filePDF,
 
 
 
-# Binscatter
+scatter_elect <- ggplot(df_plot %>% 
+                          filter(change05_siops_despsaude_pcapita<1000) %>% 
+                          filter(dist_ec29_baseline>-0.5) %>%
+                          filter(!is.na(second_term)) %>% 
+                          mutate(`Electoral Term` = ifelse(second_term==0,"1st Term","2nd Term"))
+                        ,
+                        aes(x = dist_ec29_baseline, y = change05_siops_pct_recproprios_ec29, color = `Electoral Term`,group = `Electoral Term`)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_point(size = 0.7, alpha = 0.5) +
+  # geom_smooth(method='lm', color = "sienna2",fill = "sienna2", alpha = 0.1, se = F, size = 0.5)+
+  scale_y_continuous(limits = c(-0.4,0.4), breaks = seq(-0.4,0.4,0.1)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  scale_color_manual(values = colors) +
+  labs(y = "Change (p.p.) in % of Own Resource Spent on Health \n 2000-2005",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 13),
+        legend.position = "bottom",
+        legend.title = element_blank()) +
+  guides(color = guide_legend(override.aes = list(size = 5)))
+
+
+
+filePNG <- paste0(output,"scatter_dist_ec29_baseline_change05_share_elect.png")
+filePDF <- paste0(output,"scatter_dist_ec29_baseline_change05_share_elect.pdf")
+ggsave(filePNG,
+       plot = scatter_elect,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter_elect,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
+
+
+
+
+
+# 3. Binscatter
+# =================================================================
 
 df_bins <- df_plot %>% 
   filter(change05_siops_despsaude_pcapita<1000) %>% 
@@ -364,6 +371,164 @@ ggsave(filePDF,
        device = "pdf",
        width = 7, height = 6,
        units = "in")
+
+
+
+
+# by electoral term
+# ------------------------------
+
+# first
+df_bins <- df_plot %>% 
+  filter(change05_siops_despsaude_pcapita<1000) %>% 
+  filter(dist_ec29_baseline>-0.5)
+
+binscatter <- binsreg(y = df_bins$change05_siops_despsaude_pcapita,
+                      x = df_bins$dist_ec29_baseline,
+                      by = df_bins$second_term,
+                      samebinsby = TRUE,
+                      line=c(3,3),
+                      ci=c(3,3),
+                      cb=c(3,3))
+
+bins_ci_1 <- binscatter$data.plot$`Group 0`$data.ci
+bins_ci_2 <- binscatter$data.plot$`Group 1`$data.ci
+bins_ci <- rbind(bins_ci_1,bins_ci_2)
+
+bins_dots_1 <- binscatter$data.plot$`Group 0`$data.dots
+bins_dots_2 <- binscatter$data.plot$`Group 1`$data.dots
+bins_dots <- rbind(bins_dots_1,bins_dots_2)
+
+bins_cb_1 <- binscatter$data.plot$`Group 0`$data.cb
+bins_cb_2 <- binscatter$data.plot$`Group 1`$data.cb
+bins_cb <- rbind(bins_cb_1,bins_cb_2)
+
+bins_line_1 <- binscatter$data.plot$`Group 0`$data.line
+bins_line_2 <- binscatter$data.plot$`Group 1`$data.line
+bins_line <- rbind(bins_line_1,bins_line_2)
+
+bins_dots <- bins_dots %>% cbind(bins_ci %>% select(ci.l,ci.r)) %>% mutate(term = ifelse(group==0,"1st Term","2nd Term"))
+bins_line <- bins_line %>% cbind(bins_cb %>% select(cb.l,cb.r)) %>% mutate(term = ifelse(group==0,"1st Term","2nd Term"))
+
+
+scatter <- ggplot(bins_line,
+                  aes(x = x, y = fit, group = term)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_line(alpha = 0.8, size = 0.8, aes(color = term)) +
+  geom_ribbon(aes(ymin = cb.l, ymax = cb.r, fill = term),alpha = 0.3) +
+  # geom_point(size = 0.1, alpha = 1,data = bins_dots,aes(x = x, y = fit, ymin = ci.l, ymax = ci.r)) +
+  scale_y_continuous(limits = c(-250,250), breaks = seq(-250,250,50)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  scale_color_manual(values = colors) +
+  scale_fill_manual(values = colors) +
+  labs(y = "Change in Health Spending per capita \n 2000-2005",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 13),
+        legend.position="bottom", legend.box = "horizontal",
+        legend.title = element_blank())
+
+
+
+filePNG <- paste0(output,"binscatter_dist_ec29_baseline_change05_elect.png")
+filePDF <- paste0(output,"binscatter_dist_ec29_baseline_change05_elect.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
+
+
+
+
+df_bins <- df_plot %>% 
+  filter(dist_ec29_baseline>-0.5)
+
+binscatter <- binsreg(y = df_bins$change05_siops_pct_recproprios_ec29,
+                      x = df_bins$dist_ec29_baseline,
+                      by = df_bins$second_term,
+                      samebinsby = TRUE,
+                      line=c(3,3),
+                      ci=c(3,3),
+                      cb=c(3,3))
+
+bins_ci_1 <- binscatter$data.plot$`Group 0`$data.ci
+bins_ci_2 <- binscatter$data.plot$`Group 1`$data.ci
+bins_ci <- rbind(bins_ci_1,bins_ci_2)
+
+bins_dots_1 <- binscatter$data.plot$`Group 0`$data.dots
+bins_dots_2 <- binscatter$data.plot$`Group 1`$data.dots
+bins_dots <- rbind(bins_dots_1,bins_dots_2)
+
+bins_cb_1 <- binscatter$data.plot$`Group 0`$data.cb
+bins_cb_2 <- binscatter$data.plot$`Group 1`$data.cb
+bins_cb <- rbind(bins_cb_1,bins_cb_2)
+
+bins_line_1 <- binscatter$data.plot$`Group 0`$data.line
+bins_line_2 <- binscatter$data.plot$`Group 1`$data.line
+bins_line <- rbind(bins_line_1,bins_line_2)
+
+bins_dots <- bins_dots %>% cbind(bins_ci %>% select(ci.l,ci.r)) %>% mutate(term = ifelse(group==0,"1st Term","2nd Term"))
+bins_line <- bins_line %>% cbind(bins_cb %>% select(cb.l,cb.r)) %>% mutate(term = ifelse(group==0,"1st Term","2nd Term"))
+
+
+
+
+scatter <- ggplot(bins_line,
+                  aes(x = x, y = fit, group = term)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_line(alpha = 0.8, size = 0.8, aes(color = term)) +
+  geom_ribbon(aes(ymin = cb.l, ymax = cb.r, fill = term),alpha = 0.3) +
+  scale_y_continuous(limits = c(-0.5,0.3), breaks = seq(-0.5,0.3,0.1)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  scale_color_manual(values = colors) +
+  scale_fill_manual(values = colors) +
+  labs(y = "Change (p.p.) in % of Own Resource Spent on Health \n 2000-2005",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 13),
+        legend.position="bottom", legend.box = "horizontal",
+        legend.title = element_blank())
+
+
+
+filePNG <- paste0(output,"binscatter_dist_ec29_baseline_change05_share_elect.png")
+filePDF <- paste0(output,"binscatter_dist_ec29_baseline_change05_share_elect.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
+
+
+
+
+
+
+
+
 
 
 
