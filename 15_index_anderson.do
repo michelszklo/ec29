@@ -38,14 +38,13 @@ local primI  sia_ncnes_acs_pcapita sia_ncnes_medcom_pcapita sia_ncnes_enfacs_pca
              sia_ncnes_outpsf_pcapita;
 local amb sia_pcapita;
 local acc birth_prenat_ig birth_prenat_0 birth_prenat_1_6 birth_prenat_7_plus;
-local hosp tx_sih_maternal tx_sih_infant_icsap tx_sih_infant_nicsap;
 #delimit cr
 local j=1
-foreach var of varlist `coverE' `coverI' `primI' `amb' `acc' `hosp' {
+foreach var of varlist `coverE' `coverI' `primI' `amb' `acc' {
     gen _ivar`j' = `var'
     local ++j
 }
-swindex _ivar*, generate(access_index) normby(pre) flip(_ivar17 _ivar18 _ivar22)
+swindex _ivar*, generate(access_index) normby(pre) flip(_ivar17 _ivar18)
 sum access_index
 drop _ivar*
 
@@ -61,21 +60,20 @@ local primI  sia_ncnes_acs_pcapita sia_ncnes_medcom_pcapita sia_ncnes_enfacs_pca
              sia_ncnes_outpsf_pcapita;
 local amb    sia_ab_pcapita;
 local acc birth_prenat_ig birth_prenat_0 birth_prenat_1_6 birth_prenat_7_plus;
-local hosp tx_sih_infant_icsap;
 #delimit cr
 local j=1
-foreach var of varlist `coverE' `coverI' `primI' `amb' `acc' `hosp' {
+foreach var of varlist `coverE' `coverI' `primI' `amb' `acc' {
     gen _ivar`j' = `var'
     local ++j
 }
-swindex _ivar*, generate(access_pc_index) normby(pre) flip(_ivar17 _ivar18 _ivar21 )
+swindex _ivar*, generate(access_pc_index) normby(pre) flip(_ivar17 _ivar18)
 sum access_pc_index
 drop _ivar*
 
 
 * NON-PRIMARY CARE
 local j=1
-foreach var of varlist sia_nab_pcapita tx_sih_maternal tx_sih_infant_nicsap {
+foreach var of varlist sia_nab_pcapita {
     gen _ivar`j' = `var'
     local ++j
 }
