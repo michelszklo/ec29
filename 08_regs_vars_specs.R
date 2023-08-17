@@ -1751,7 +1751,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
   
   spec <- 3
   if (cont == 1){
-    spec_reduced<- get(paste0("spec",spec,"_post_y_ab"))
+    spec_reduced<- get(paste0("spec",spec,"_post_y_imr_ab"))
   } else{
     spec_reduced<- get(paste0("spec",spec,"_post_y_binary_ab"))
     
