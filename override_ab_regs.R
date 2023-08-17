@@ -46,6 +46,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
   
   
   df_reg_a <- df_reg %>% filter(dist_ec29_baseline<=0)
+  df_reg_a <- df_reg_a %>% mutate_at(yeartreat_dummies, function(x) -x)
   df_reg_b <- df_reg %>% filter(dist_ec29_baseline>0)
   
   
@@ -341,6 +342,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
   
   
   df_reg_a <- df_reg %>% filter(dist_ec29_baseline<=0)
+  df_reg_a <- df_reg_a %>% mutate_at(yeartreat_dummies, function(x) -x)
   df_reg_b <- df_reg %>% filter(dist_ec29_baseline>0)
   
   
