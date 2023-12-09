@@ -950,7 +950,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
   
   table <- fit %>% 
     broom::tidy() %>%
-    slice(1:13) %>%
+    slice(3:15) %>%
     select(term,estimate,std.error) %>%
     mutate(estimate = ifelse(substr(term,1,7)=="post_00",0,estimate)) %>% 
     mutate(lb = estimate - 1.96 * std.error,
@@ -1216,7 +1216,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   
   table <- fit %>% 
     broom::tidy() %>%
-    slice(1:13) %>%
+    slice(3:15) %>%
     select(term,estimate,std.error) %>%
     mutate(estimate = ifelse(substr(term,1,7)=="post_00",0,estimate)) %>% 
     mutate(lb = estimate - 1.96 * std.error,
@@ -1751,7 +1751,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
   
   table1 <- fit %>% 
     broom::tidy() %>%
-    slice(1:13) %>%
+    slice(3:15) %>%
     select(term,estimate,std.error) %>%
     mutate(target = "Above",
            year = seq.int(year_filter,2010))
@@ -1759,7 +1759,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
   
   table2 <- fit %>% 
     broom::tidy() %>%
-    slice(14:26) %>%
+    slice(18:30) %>%
     select(term,estimate,std.error) %>%
     mutate(target = "Below",
            year = seq.int(year_filter,2010))
@@ -2043,7 +2043,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
   
   table1 <- fit %>% 
     broom::tidy() %>%
-    slice(1:13) %>%
+    slice(3:15) %>%
     select(term,estimate,std.error) %>%
     mutate(target = "Above",
            year = seq.int(year_filter,2010))
@@ -2051,7 +2051,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
   
   table2 <- fit %>% 
     broom::tidy() %>%
-    slice(14:26) %>%
+    slice(18:30) %>%
     select(term,estimate,std.error) %>%
     mutate(target = "Below",
            year = seq.int(year_filter,2010))
