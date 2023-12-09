@@ -82,7 +82,7 @@ for (i in seq(1,5,1)){
   var_name <- var_map[i,2]
   print(var_name)
   
-  regress_output(var,var_name,3,1998,"peso_pop")
+  regress_output_imr(var,var_name,3,1998,"peso_pop")
   
   
   if(exists("df_table_all")){
@@ -104,7 +104,7 @@ for (i in seq(1,5,1)){
 output_file <- "regression_tables_raw.xlsx"
 
 
-write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName = "hosp",row.names = F,append = T)
+write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName = "hosp_illdefTrend",row.names = F,append = T)
 
 
 
