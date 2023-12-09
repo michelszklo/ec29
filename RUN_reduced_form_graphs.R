@@ -79,7 +79,7 @@ df <- df %>%
   filter(!(cod_mun %in% outliers))
 
 # redefines folder
-yearly_folder <- "regs_plots/fiscal_response/"
+yearly_folder <- "regs_plots_trend/fiscal_response/"
 
 var_map1 <- rbind(cbind('finbra_recorc_pcapita','Total Revenue per capita (log)'),
                   cbind('finbra_desp_o_pcapita','Total Spending per capita (log)'),
@@ -123,7 +123,7 @@ for (i in seq(1,2,1)){
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,1,1998,-1,2.5,0.25,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,1,1998,-1,2.5,0.25,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
   
 }
 
@@ -132,21 +132,21 @@ for (i in seq(3,6,1)){
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,1,1998,-1,2.5,0.25,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,1,1998,-1,2.5,0.25,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
 }
 
 for (i in seq(3,3,1)){
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,1,1998,-3,9.25,1,paste0("1_cont_log2_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,1,1998,-3,9.25,1,paste0("1_cont_log2_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
 }
 
 for (i in seq(7,13,1)){
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,1,1998,-3,9.25,1,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,1,1998,-3,9.25,1,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
 }
 
 
@@ -156,7 +156,7 @@ for (i in seq(1,2,1)){
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly_ab(var,var_name,df,1,1998,-2.5,2.5,0.5,paste0("2_ab_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+  reduced_yearly_ab_imr(var,var_name,df,1,1998,-2.5,2.5,0.5,paste0("2_ab_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
   
 }
 
@@ -165,21 +165,21 @@ for (i in seq(3,6,1)){
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly_ab(var,var_name,df,1,1998,-2.5,3.5,0.5,paste0("2_ab_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+  reduced_yearly_ab_imr(var,var_name,df,1,1998,-2.5,3.5,0.5,paste0("2_ab_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
 }
 
 for (i in seq(3,3,1)){
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly_ab(var,var_name,df,1,1998,-10,14,2,paste0("2_ab_log2_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+  reduced_yearly_ab_imr(var,var_name,df,1,1998,-10,14,2,paste0("2_ab_log2_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
 }
 
 for (i in seq(7,13,1)){
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly_ab(var,var_name,df,1,1998,-10,14,2,paste0("2_ab_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+  reduced_yearly_ab_imr(var,var_name,df,1,1998,-10,14,2,paste0("2_ab_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
 }
 
 
@@ -190,7 +190,7 @@ for (i in seq(1,2,1)){
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,1,1998,-0.1,0.25,0.025,paste0("3_binary_log_",i),weight = "peso_pop",year_cap = 2010,cont = 0) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,1,1998,-0.1,0.25,0.025,paste0("3_binary_log_",i),weight = "peso_pop",year_cap = 2010,cont = 0) # ec29baseline
   
 }
 
@@ -199,21 +199,21 @@ for (i in seq(3,6,1)){
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,1,1998,-0.1,0.25,0.025,paste0("3_binary_log_",i),weight = "peso_pop",year_cap = 2010,cont = 0) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,1,1998,-0.1,0.25,0.025,paste0("3_binary_log_",i),weight = "peso_pop",year_cap = 2010,cont = 0) # ec29baseline
 }
 
 for (i in seq(3,3,1)){
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,1,1998,-0.3,1.3,0.1,paste0("3_binary_log2_",i),weight = "peso_pop",year_cap = 2010,cont = 0) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,1,1998,-0.3,1.3,0.1,paste0("3_binary_log2_",i),weight = "peso_pop",year_cap = 2010,cont = 0) # ec29baseline
 }
 
 for (i in seq(7,13,1)){
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly(var,var_name,df,1,1998,-0.3,1.3,0.1,paste0("3_binary_log_",i),weight = "peso_pop",year_cap = 2010,cont = 0) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,1,1998,-0.3,1.3,0.1,paste0("3_binary_log_",i),weight = "peso_pop",year_cap = 2010,cont = 0) # ec29baseline
 }
 
 
@@ -867,6 +867,144 @@ for (i in 8){
   print(var_name)
   reduced_yearly_imr(var,var_name,df,3,1998,-0.1,0.175,0.025,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
 }
+
+
+
+
+# 9. System
+# =================================================================
+
+yearly_folder <- "regs_plots_trend/system/"
+
+var_map <- rbind(cbind('ams_hospital_pvt_pcapita','N. of Private Hospitals (per capita*1000)'),
+                 cbind('cobertura_plano','Private Insurance Coverage'),
+                 cbind('tx_sih_in_hosp_total','Hospitalization Inflow rate (pop * 1000)'),
+                 cbind('tx_sih_in_hosp_icsap','Hospitalization Inflow rate - APC (pop * 1000)'),
+                 cbind('tx_sih_in_hosp_nicsap','Hospitalization Inflow rate - non-APC (pop * 1000)'),
+                 cbind('tx_sih_out_hosp_total','Hospitalization Outflow rate (pop * 1000)'),
+                 cbind('tx_sih_out_hosp_icsap','Hospitalization Outflow rate - APC (pop * 1000)'),
+                 cbind('tx_sih_out_hosp_nicsap','Hospitalization Outflow rate - non-APC (pop * 1000)'))
+
+# continuous
+
+for (i in seq(1,1,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-0.06,0.06,0.02,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+}
+
+for (i in seq(2,2,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-0.15,0.15,0.05,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+}
+
+
+for (i in seq(3,8,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-10,20,2,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+}
+
+
+
+
+# continuous above and below
+
+for (i in seq(1,1,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_ab_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-0.04,0.1,0.02,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+}
+
+for (i in seq(2,2,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_ab_imr(var,var_name,df,3,1998,-0.30,0.20,0.05,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+}
+
+
+for (i in seq(3,8,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_ab_imr(var,var_name,df,3,1998,-40,30,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+}
+
+
+
+
+# 10. Adult
+# =================================================================
+
+yearly_folder <- "regs_plots_trend/adult/"
+
+var_map <- rbind(cbind('tx_sih_maternal2','Maternal Hospitalization Rate (pop 0-1y * 1000)'),
+                 cbind('tx_sih_adult','Adult Hospitalization Rate (pop 40+y * 1000)'),
+                 cbind('tx_sih_adult_icsap','Adult Hospitalization Rate - APC (pop 40+y * 1000)'),
+                 cbind('tx_sih_adult_nicsap','Adult Hospitalization Rate - non-APC (pop 40+y * 1000)'),
+                 cbind('tx_mm',"Maternal Mortality Rate"),
+                 cbind('tx_ma5','Adult Mortality Rate (40+ y)'),
+                 cbind('tx_ma5_icsap','Adult Mortality Rate (40+ y) - APC'),
+                 cbind('tx_ma5_nicsap','Adult Mortality Rate (40+ y) - non-APC'))
+
+# continuous
+
+for (i in seq(1,1,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,200,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+}
+
+for (i in seq(2,4,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-100,100,20,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+}
+
+
+for (i in seq(5,8,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-8,4,2,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+}
+
+
+
+
+# continuous above and below
+
+for (i in seq(1,1,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_ab_imr(var,var_name,df,3,1998,-2500,3500,500,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+}
+
+for (i in seq(2,4,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_ab_imr(var,var_name,df,3,1998,-300,300,50,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+}
+
+
+for (i in seq(5,8,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_ab_imr(var,var_name,df,3,1998,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+}
+
+
 
 
 
