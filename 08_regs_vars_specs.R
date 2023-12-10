@@ -207,11 +207,11 @@ df <- df %>%
   group_by(cod_mun) %>% 
   mutate(tx_mi_baseline = mean(tx_mi_baseline, na.rm = T)) %>% 
   ungroup()
-  # change in spending 2000-2005 in the baseline
-  # mutate(change_05_siops_despsaude_pcapita_baseline = ifelse(ano==2000,change_05_siops_despsaude_pcapita,NA)) %>% 
-  # group_by(cod_mun) %>% 
-  # mutate(change_05_siops_despsaude_pcapita_baseline = mean(change_05_siops_despsaude_pcapita_baseline,na.rm = T)) %>% 
-  # ungroup() 
+# change in spending 2000-2005 in the baseline
+# mutate(change_05_siops_despsaude_pcapita_baseline = ifelse(ano==2000,change_05_siops_despsaude_pcapita,NA)) %>% 
+# group_by(cod_mun) %>% 
+# mutate(change_05_siops_despsaude_pcapita_baseline = mean(change_05_siops_despsaude_pcapita_baseline,na.rm = T)) %>% 
+# ungroup() 
 
 
 # defining instrument/treatment
@@ -220,11 +220,11 @@ df["iv"] <- df[instrument]
 df <-  df %>% 
   # above and below
   mutate(iv_a = ifelse(iv<=0,iv,0),
-       iv_b = ifelse(iv>0,iv,0)) %>% 
+         iv_b = ifelse(iv>0,iv,0)) %>% 
   mutate(iv_a = -iv_a) %>% 
   # binary treatment
   mutate(iv_binary = ifelse(iv>0,1,0))
-  
+
 
 
 
@@ -874,17 +874,17 @@ regress_output_imr <- function(var,var_name,transform,year_filter,weight){
 # 8. Regression graphs
 # =================================================================
 # 
-# outcome <- 'tx_mi'
-# var_name <- 'Infant Mortality Rate'
-# transform <- 3
-# year_filter <- 1996
-# y0 <- -1000
-# yf <- 1000
-# ys <- 5
-# cont <- 1
-# weight <- "peso_pop"
-# year_cap <- 2010
-# label_size = 8
+outcome <- 'siops_despsaude_pcapita'
+var_name <- 'Infant Mortality Rate'
+transform <- 1
+year_filter <- 1998
+y0 <- -3
+yf <- 9.25
+ys <- 1
+cont <- 1
+weight <- "peso_pop"
+year_cap <- 2010
+label_size = 8
 
 
 reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont){
@@ -951,7 +951,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
   table <- fit %>% 
     broom::tidy() %>%
     slice(3:15) %>%
-    select(term,estimate,std.error) %>%
+    select(term,estimate,std.error,p.value) %>%
     mutate(estimate = ifelse(substr(term,1,7)=="post_00",0,estimate)) %>% 
     mutate(lb = estimate - 1.96 * std.error,
            ub = estimate + 1.96 * std.error,
@@ -966,9 +966,22 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
     mutate(lb = ifelse(lb<y0,y0,lb),
            ub = ifelse(ub>yf,yf,ub),
            lb2 = ifelse(lb2<y0,y0,lb2),
-           ub2 = ifelse(ub2>yf,yf,ub2)) %>% 
-    filter(!is.na(estimate))
+           ub2 = ifelse(ub2>yf,yf,ub2))
   
+  table_final <- data.frame()
+  for(i in 1:nrow(table)){
+    t <- table[i,]
+    t <- t %>% table_formating(3) %>%
+      select(estimate) %>% 
+      rename(!!var_name := estimate)
+    
+    table_final <- bind_rows(table_final,t)
+  }
+  
+  table_final <- table_final %>% rbind(fit %>% broom::glance() %>% select(nobs) %>% as.character())
+  
+  
+  assign("table_final",table_final, envir = .GlobalEnv)
   
   
   # graphs variation
@@ -1217,7 +1230,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   table <- fit %>% 
     broom::tidy() %>%
     slice(3:15) %>%
-    select(term,estimate,std.error) %>%
+    select(term,estimate,std.error,p.value) %>%
     mutate(estimate = ifelse(substr(term,1,7)=="post_00",0,estimate)) %>% 
     mutate(lb = estimate - 1.96 * std.error,
            ub = estimate + 1.96 * std.error,
@@ -1232,10 +1245,21 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
     mutate(lb = ifelse(lb<y0,y0,lb),
            ub = ifelse(ub>yf,yf,ub),
            lb2 = ifelse(lb2<y0,y0,lb2),
-           ub2 = ifelse(ub2>yf,yf,ub2)) %>% 
-    filter(!is.na(estimate))
+           ub2 = ifelse(ub2>yf,yf,ub2))
   
+  table_final <- data.frame()
+  for(i in 1:nrow(table)){
+    t <- table[i,]
+    t <- t %>% table_formating(3) %>%
+      select(estimate) %>% 
+      rename(!!var_name := estimate)
+    
+    table_final <- bind_rows(table_final,t)
+  }
   
+  table_final <- table_final %>% rbind(fit %>% broom::glance() %>% select(nobs) %>% as.character())
+  
+  assign("table_final",table_final, envir = .GlobalEnv)
   
   # graphs variation
   
@@ -1261,7 +1285,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   
   if(lb_na==1 & ub_na==1){
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -1298,7 +1322,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
     
   } else if (lb_na==0 & ub_na ==1) {
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -1337,7 +1361,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
     
   } else if (lb_na==1 & ub_na ==0) {
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -1375,7 +1399,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
     
   } else {
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -1752,15 +1776,15 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
   table1 <- fit %>% 
     broom::tidy() %>%
     slice(3:15) %>%
-    select(term,estimate,std.error) %>%
+    select(term,estimate,std.error,p.value) %>%
     mutate(target = "Above",
            year = seq.int(year_filter,2010))
-    
+  
   
   table2 <- fit %>% 
     broom::tidy() %>%
     slice(18:30) %>%
-    select(term,estimate,std.error) %>%
+    select(term,estimate,std.error,p.value) %>%
     mutate(target = "Below",
            year = seq.int(year_filter,2010))
   
@@ -1780,9 +1804,32 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
     mutate(lb = ifelse(lb<y0,y0,lb),
            ub = ifelse(ub>yf,yf,ub),
            lb2 = ifelse(lb2<y0,y0,lb2),
-           ub2 = ifelse(ub2>yf,yf,ub2)) %>% 
-    filter(!is.na(estimate))
+           ub2 = ifelse(ub2>yf,yf,ub2))
+  
+  tableA <- table %>% filter(target=="Above")
+  tableB <- table %>% filter(target=="Below")
+  table_final <- data.frame()
+  for(i in 1:nrow(table)){
+    tA <- tableA[i,]
+    tA <- tA %>% table_formating(3) %>%
+      select(estimate) %>% 
+      rename(!!paste0(var_name," (Above)") := estimate)
     
+    tB <- tableB[i,]
+    tB <- tB %>% table_formating(3) %>%
+      select(estimate) %>% 
+      rename(!!paste0(var_name," (Below)") := estimate)
+    
+    t <- tA %>% bind_cols(tB)
+    
+    table_final <- bind_rows(table_final,t)
+  }
+  
+  table_final <- table_final %>% rbind(fit %>% broom::glance() %>% select(nobs) %>% as.character())
+  
+  assign("table_final",table_final, envir = .GlobalEnv)
+  
+  
   
   # graphs variation
   
@@ -2044,7 +2091,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
   table1 <- fit %>% 
     broom::tidy() %>%
     slice(3:15) %>%
-    select(term,estimate,std.error) %>%
+    select(term,estimate,std.error,p.value) %>%
     mutate(target = "Above",
            year = seq.int(year_filter,2010))
   
@@ -2052,7 +2099,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
   table2 <- fit %>% 
     broom::tidy() %>%
     slice(18:30) %>%
-    select(term,estimate,std.error) %>%
+    select(term,estimate,std.error,p.value) %>%
     mutate(target = "Below",
            year = seq.int(year_filter,2010))
   
@@ -2072,8 +2119,31 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
     mutate(lb = ifelse(lb<y0,y0,lb),
            ub = ifelse(ub>yf,yf,ub),
            lb2 = ifelse(lb2<y0,y0,lb2),
-           ub2 = ifelse(ub2>yf,yf,ub2)) %>% 
-    filter(!is.na(estimate))
+           ub2 = ifelse(ub2>yf,yf,ub2))
+  
+  
+  tableA <- table %>% filter(target=="Above")
+  tableB <- table %>% filter(target=="Below")
+  table_final <- data.frame()
+  for(i in 1:nrow(table)){
+    tA <- tableA[i,]
+    tA <- tA %>% table_formating(3) %>%
+      select(estimate) %>% 
+      rename(!!paste0(var_name," (Above)") := estimate)
+    
+    tB <- tableB[i,]
+    tB <- tB %>% table_formating(3) %>%
+      select(estimate) %>% 
+      rename(!!paste0(var_name," (Below)") := estimate)
+    
+    t <- tA %>% bind_cols(tB)
+    
+    table_final <- bind_rows(table_final,t)
+  }
+  
+  table_final <- table_final %>% rbind(fit %>% broom::glance() %>% select(nobs) %>% as.character())
+  
+  assign("table_final",table_final, envir = .GlobalEnv)
   
   
   # graphs variation
@@ -2103,7 +2173,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
   
   if(lb_na==1 & ub_na==1){
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate, color = target, group = target))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -2142,7 +2212,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
     
   } else if (lb_na==0 & ub_na ==1) {
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate, color = target, group = target))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -2181,8 +2251,8 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
     
     
   } else if (lb_na==1 & ub_na ==0) {
-    
-    graph <- table %>%
+     
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate, color = target, group = target))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
@@ -2221,7 +2291,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
     
   } else {
     
-    graph <- table %>%
+    graph <- table %>% filter(!is.nan(estimate)) %>% 
       ggplot(aes(x = year, y = estimate, color = target, group = target))+
       geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
       geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
