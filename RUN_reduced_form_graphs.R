@@ -533,7 +533,7 @@ for (i in seq(1,3,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-0.1,0.125,0.025,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  reduced_yearly_ab_imr(var,var_name,df %>% mutate(above_pre_99_dist_ec29_baseline=0,below_pre_99_dist_ec29_baseline=0),3,1998,-0.1,0.125,0.025,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
   
   table_ab<- table_ab %>% cbind(table_final)
   
@@ -544,7 +544,7 @@ for (i in 4){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-40,80,10,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  reduced_yearly_ab_imr(var,var_name,df %>% mutate(above_pre_99_dist_ec29_baseline=0,below_pre_99_dist_ec29_baseline=0),3,1998,-40,80,10,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
   
   table_ab<- table_ab %>% cbind(table_final)
   
@@ -554,7 +554,7 @@ for (i in seq(5,8,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-15,35,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  reduced_yearly_ab_imr(var,var_name,df %>% mutate(above_pre_99_dist_ec29_baseline=0,below_pre_99_dist_ec29_baseline=0),3,1998,-15,35,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
   
   table_ab<- table_ab %>% cbind(table_final)
   
@@ -941,7 +941,7 @@ for (i in seq(4,6,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-4,6,1,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  reduced_yearly_ab_imr(var,var_name,df %>% mutate(above_pre_99_dist_ec29_baseline=0, below_pre_99_dist_ec29_baseline=0),3,1998,-4,6,1,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
   
   table_ab<- table_ab %>% cbind(table_final)
 }
