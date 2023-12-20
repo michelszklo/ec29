@@ -1069,6 +1069,36 @@ for (i in seq(3,8,1)){
 
 
 
+# binary
+for (i in seq(1,1,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-0.006,0.006,0.002,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
+  
+}
+
+for (i in seq(2,2,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-0.04,0.04,0.01,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
+  
+  
+}
+
+
+for (i in seq(3,8,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-4,6,1,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
+  
+
+}
+
+
+
 # 10. Adult
 # =================================================================
 
@@ -1148,9 +1178,37 @@ for (i in seq(5,8,1)){
 
 
 
+# binary
+
+for (i in seq(1,1,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-200,200,50,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
+
+}
+
+for (i in seq(2,4,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-40,40,10,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
+
+}
+
+
+for (i in seq(5,8,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-1.4,1,0.2,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
+  
+}
 
 
 
+# 11. Tables output
+# =================================================================
 
 output_file <- "regression_tables_raw.xlsx"
 
