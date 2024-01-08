@@ -47,38 +47,306 @@ dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 
 # ------------------------------------
 
+set.seed(28121989)
 
 # 1. Load data
 # =================================================================
 load(paste0(dir,"regs.RData"))
 
-# dropping municipalities with outliers in spending
+# removing variables that will not be used
+#------------------------------------------
 
-outliers <- df %>% 
-  mutate(s = log(finbra_desp_o_pcapita)) %>% 
-  select(s,everything())
-
-ndesv <- 5
-x <- mean(outliers$s, na.rm = T)
-sd <- sd(outliers$s, na.rm = T)
-outliers <- outliers %>% 
-  mutate(s1 = x - sd * ndesv,
-         s2 = x + sd * ndesv) %>% 
-  filter(s<=s1 | s>=s2) %>% 
-  select(cod_mun) %>% 
-  unique()
-
-outliers <- outliers$cod_mun
+# select outcomes
+outcomes <- c("tx_mi","siops_despsaude_pcapita","finbra_desp_o_pcapita")
 
 df <- df %>% 
-  filter(!(cod_mun %in% outliers))
+  select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(outcomes),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
+         all_of(yeartreat_dummies),all_of(yeartreat_dummies_ab),all_of(yeartreat_dummies_binary),
+         peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
+         finbra_desp_saude_san_pcapita_neighbor,lrf)
 
+# "finbra_desp_saude_san_pcapita","siops_despsaude_pcapita","tx_mi"
 
-
-# 2. Variables of interest and baseline mean
+# 2. Functions
 # =================================================================
 
-main_var <- c("finbra_desp_saude_san_pcapita","siops_despsaude_pcapita","tx_mi")
+# function to run regression for each dataframe and variable
+f1 <- function(df,var,year_filter,table_output){
+  
+  df_reg <- df
+  
+  
+  # filtering regression variables
+  df_reg <- df_reg %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(var),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
+           all_of(yeartreat_dummies),all_of(yeartreat_dummies_binary),
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
+           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+    filter(ano>=year_filter)
+  
+  df_reg <- df_reg[complete.cases(df_reg),]
+  
+  
+  
+  spec <- 3
+  spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
+  weight_vector <- df_reg["peso_pop"] %>% unlist() %>% as.numeric()
+  
+  regformula <- as.formula(paste(var,spec_reduced))
+  fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
+  
+  table <- fit %>% 
+    broom::tidy() %>%
+    slice(3:15) %>%
+    select(term,estimate) %>%
+    mutate(estimate = ifelse(substr(term,1,7)=="post_00",0,estimate)) %>% 
+    mutate(year = seq.int(year_filter,2010)) %>%
+    filter(!is.na(estimate))
+  
+  cols <- names(table)[2:2]
+  cols <- sapply(cols, function(x) paste0(x,"_",var), simplify = "array", USE.NAMES = F)
+  names(table)[2:2] <- cols
+  
+  assign(table_output,table,envir = .GlobalEnv)
+  
+  
+}
+
+f1_ab <- function(df,var,year_filter,table_output){
+  
+  df_reg <- df
+  
+  
+  # filtering regression variables
+  df_reg <- df_reg %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(var),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
+           all_of(yeartreat_dummies_ab),
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
+           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+    filter(ano>=year_filter)
+  
+  df_reg <- df_reg[complete.cases(df_reg),]
+  
+  
+  
+  spec <- 3
+  spec_reduced<- get(paste0("spec",spec,"_post_y_imr_ab"))
+  weight_vector <- df_reg["peso_pop"] %>% unlist() %>% as.numeric()
+  
+  regformula <- as.formula(paste(var,spec_reduced))
+  fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
+  
+  tableA <- fit %>% 
+    broom::tidy() %>%
+    slice(3:15) %>%
+    select(term,estimate) %>%
+    mutate(estimate = ifelse(substr(term,7,13)=="post_00",0,estimate)) %>% 
+    mutate(year = seq.int(year_filter,2010),
+           target = "Above") %>%
+    filter(!is.na(estimate))
+  
+  tableB <- fit %>% 
+    broom::tidy() %>%
+    slice(18:30) %>%
+    select(term,estimate) %>%
+    mutate(estimate = ifelse(substr(term,7,13)=="post_00",0,estimate)) %>% 
+    mutate(year = seq.int(year_filter,2010),
+           target = "Below") %>%
+    filter(!is.na(estimate))
+  
+  table <- rbind(tableA,tableB)
+  
+  cols <- names(table)[2:2]
+  cols <- sapply(cols, function(x) paste0(x,"_",var), simplify = "array", USE.NAMES = F)
+  names(table)[2:2] <- cols
+  
+  assign(table_output,table,envir = .GlobalEnv)
+  
+  
+}
+
+
+# function that creates samples (with, without outlier), run regressions and outputs table
+f2 <- function(df,var1,var2,year_filter,output){
+  
+  # var1: health outcome
+  # var2: spending outcome
+  
+  # create sample without spending outliers
+  outliers <- df %>% 
+    mutate(s = log(finbra_desp_o_pcapita)) %>% 
+    select(s,everything())
+  
+  ndesv <- 5
+  x <- mean(outliers$s, na.rm = T)
+  sd <- sd(outliers$s, na.rm = T)
+  outliers <- outliers %>% 
+    mutate(s1 = x - sd * ndesv,
+           s2 = x + sd * ndesv) %>% 
+    filter(s<=s1 | s>=s2) %>% 
+    select(cod_mun) %>% 
+    unique()
+  
+  outliers <- outliers$cod_mun
+  
+  df2 <- df %>% 
+    filter(!(cod_mun %in% outliers))
+  
+  
+  # baseline mean for var1
+  main_var <- c(var1)
+  
+  df_baseline <- df %>% 
+    filter(ano==2000) %>% 
+    select(all_of(main_var)) %>% 
+    summarise_all(list(mean = ~ mean(.,na.rm = T)))
+  
+  # baseline mean for var2
+  main_var <- c(var2)
+  
+  df_baseline2 <- df2 %>% 
+    filter(ano==2000) %>% 
+    select(all_of(main_var)) %>% 
+    summarise_all(list(mean = ~ mean(.,na.rm = T)))
+  
+  f1(df,var1,1998,"table_health")
+  f1(df2,var2,1998,"table_spending")
+  
+  table <- table_health %>% 
+    left_join(table_spending, by = c("term","year")) %>% 
+    select(term,year,everything())
+  
+  assign(output, table, envir = .GlobalEnv)
+  
+}
+
+f2_ab <- function(df,var1,var2,year_filter,output){
+  
+  # var1: health outcome
+  # var2: spending outcome
+  
+  # create sample without spending outliers
+  outliers <- df %>% 
+    mutate(s = log(finbra_desp_o_pcapita)) %>% 
+    select(s,everything())
+  
+  ndesv <- 5
+  x <- mean(outliers$s, na.rm = T)
+  sd <- sd(outliers$s, na.rm = T)
+  outliers <- outliers %>% 
+    mutate(s1 = x - sd * ndesv,
+           s2 = x + sd * ndesv) %>% 
+    filter(s<=s1 | s>=s2) %>% 
+    select(cod_mun) %>% 
+    unique()
+  
+  outliers <- outliers$cod_mun
+  
+  df2 <- df %>% 
+    filter(!(cod_mun %in% outliers))
+  
+  
+  f1_ab(df,var1,1998,"table_health")
+  f1_ab(df2,var2,1998,"table_spending")
+  
+  table <- table_health %>% 
+    left_join(table_spending, by = c("term","year","target")) %>% 
+    select(term,year,everything())
+  
+  assign(output, table, envir = .GlobalEnv)
+  
+}
+
+# boot strap function
+f3 <- function(df,n) {      #define function
+  new_df <- data.frame(matrix(nrow = 82605, ncol = 71))
+  unique_ids <- unique(n)      #unique firms
+  sample_ids <- sample(unique_ids, size=length(unique_ids), replace=T ) #choose from unique firms randomly with replacement
+  new_df <- do.call(rbind, lapply(sample_ids, function(x)  df[df$cod_mun==x,] ))  #fetch all years for each randomly picked firm and rbind
+  return(new_df)
+}
+
+# 3. Main regressions
+# =================================================================
+
+f2(df,"tx_mi","siops_despsaude_pcapita",1998,"elasticity_main")
+
+f2_ab(df,"tx_mi","siops_despsaude_pcapita",1998,"elasticity_main_ab")
+
+
+# 4. Bootstrap main regression
+# =================================================================
+
+var1 <- "tx_mi"
+var2 <- "siops_despsaude_pcapita"
+
+boots <- 1000
+elasticity_boots <- data.frame(matrix(nrow = 13*boots, ncol = 5))
+colnames(elasticity_boots) <- c("term","year",paste0("estimate_",var1),paste0("estimate_",var2),"boot")
+
+boot_results <- lapply(1:boots, function(i) {
+  print(paste0("Boot # ", i))
+  set.seed(28121989 + i)
+  
+  elasticity_i <- f2(df %>% f3(df$cod_mun), var1, var2, 1998, "elasticity_i")
+  elasticity_i <- elasticity_i %>% mutate(boot = i)
+  
+  r1 <- (i - 1) * 13 + 1
+  r2 <- r1 + 12
+  elasticity_i
+})
+
+# Combine results into a single data frame
+elasticity_boots <- do.call(rbind, boot_results)
+
+
+
+
+# saving bootstrap estimates
+# saveRDS(elasticity_boots, paste0(dir,"regs_outputs/elasticity/bootstrap_estimates.rds"))
+# elasticity_boots <- readRDS(paste0(dir,"regs_outputs/elasticity/bootstrap_estimates.rds"))
+
+
+# 5. Bootstrap Above and Below regression
+# =================================================================
+
+var1 <- "tx_mi"
+var2 <- "siops_despsaude_pcapita"
+
+boots <- 1000
+elasticity_boots2 <- data.frame(matrix(nrow = 13*boots*2, ncol = 5))
+colnames(elasticity_boots2) <- c("term","year",paste0("estimate_",var1),paste0("estimate_",var2),"boot")
+
+boot_results <- lapply(1:boots, function(i) {
+  print(paste0("Boot # ", i))
+  set.seed(28121989 + i)
+  
+  elasticity_i <- f2_ab(df %>% f3(df$cod_mun), var1, var2, 1998, "elasticity_i")
+  elasticity_i <- elasticity_i %>% mutate(boot = i)
+  
+  r1 <- (i - 1) * 26 + 1
+  r2 <- r1 + 25
+  elasticity_i
+})
+
+# Combine results into a single data frame
+elasticity_boots2 <- do.call(rbind, boot_results)
+
+
+
+
+# saving bootstrap estimates
+saveRDS(elasticity_boots2, paste0(dir,"regs_outputs/elasticity/bootstrap_estimates_ab.rds"))
+# elasticity_boots <- readRDS(paste0(dir,"regs_outputs/elasticity/bootstrap_estimates_ab.rds"))
+
+
+
+
+
+# 6. Variables of interest and baseline mean
+# =================================================================
+
+main_var <- c("siops_despsaude_pcapita","tx_mi")
 
 df_baseline <- df %>% 
   filter(ano==2000) %>% 
@@ -87,158 +355,66 @@ df_baseline <- df %>%
 
 
 
-# 3. Regressions MAIN
+
+# 7. Calculating elasticities  and elasticities CIs
 # =================================================================
 
-year_filter <- 1998
-# FINBRA
-# ------------------------------------
+elasticity_main <- elasticity_main %>% 
+  mutate(mean_siops = df_baseline$siops_despsaude_pcapita_mean,
+         mean_tx_mi = df_baseline$tx_mi_mean) %>% 
+  mutate(e = (estimate_tx_mi/mean_tx_mi)/(estimate_siops_despsaude_pcapita/mean_siops))
 
-df_reg <- df
-
-
-# filtering regression variables
-df_reg <- df_reg %>% 
-  select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,finbra_desp_saude_san_pcapita,iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
-         all_of(yeartreat_dummies),all_of(yeartreat_dummies_binary),
-         peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-         finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
-  filter(ano>=year_filter)
-
-df_reg <- df_reg[complete.cases(df_reg),]
+elasticity_main_ab <- elasticity_main_ab %>% 
+  mutate(mean_siops = df_baseline$siops_despsaude_pcapita_mean,
+         mean_tx_mi = df_baseline$tx_mi_mean) %>% 
+  mutate(e = (estimate_tx_mi/mean_tx_mi)/(estimate_siops_despsaude_pcapita/mean_siops))
 
 
 
-spec <- 3
-spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
-weight_vector <- df_reg["peso_pop"] %>% unlist() %>% as.numeric()
+# main regs CI
+elasticity_ci <- elasticity_boots %>% 
+  mutate(mean_siops = df_baseline$siops_despsaude_pcapita_mean,
+         mean_tx_mi = df_baseline$tx_mi_mean)
 
-regformula <- as.formula(paste("finbra_desp_saude_san_pcapita",spec_reduced))
-fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
+elasticity_ci <- elasticity_ci %>% 
+  mutate(e = (estimate_tx_mi/mean_tx_mi)/(estimate_siops_despsaude_pcapita/mean_siops)) %>% 
+  group_by(year) %>% 
+  summarize(e_p025 = quantile(e, probs = 0.025, na.rm = T),
+            p975 = quantile(e, probs = 0.975, na.rm = T))
 
-table1 <- fit %>% 
-  broom::tidy() %>%
-  slice(3:15) %>%
-  select(term,estimate,std.error) %>%
-  mutate(estimate = ifelse(substr(term,1,7)=="post_00",0,estimate)) %>% 
-  mutate(lb = estimate - 1.96 * std.error,
-         ub = estimate + 1.96 * std.error,
-         year = seq.int(year_filter,2010)) %>%
-  filter(!is.na(estimate))
+elasticity <- elasticity_main %>% 
+  left_join(elasticity_ci, by = "year")
 
-cols <- names(table1)[2:ncol(table1)]
-cols <- sapply(cols, function(x) paste0(x,"_finbra_desp_saude_san_pcapita"), simplify = "array", USE.NAMES = F)
-names(table1)[2:ncol(table1)] <- cols
+# Above and Below regs CI
+elasticity_ci_ab <- elasticity_boots2 %>% 
+  mutate(mean_siops = df_baseline$siops_despsaude_pcapita_mean,
+         mean_tx_mi = df_baseline$tx_mi_mean)
 
-table1 <- table1 %>% 
-  mutate(mean_finbra_desp_saude_san_pcapita = as.numeric(df_baseline[1,1]))
+elasticity_ci_ab <- elasticity_ci_ab %>% 
+  mutate(e = (estimate_tx_mi/mean_tx_mi)/(estimate_siops_despsaude_pcapita/mean_siops)) %>% 
+  group_by(year,target) %>% 
+  summarize(e_p025 = quantile(e, probs = 0.025, na.rm = T),
+            p975 = quantile(e, probs = 0.975, na.rm = T))
 
-
-
-# SIOPS
-# ------------------------------------
-
-df_reg <- df
-
-# filtering regression variables
-df_reg <- df_reg %>% 
-  select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,siops_despsaude_pcapita,iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
-         all_of(yeartreat_dummies),all_of(yeartreat_dummies_binary),
-         peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-         finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
-  filter(ano>=year_filter)
-
-df_reg <- df_reg[complete.cases(df_reg),]
-
-spec <- 3
-spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
-weight_vector <- df_reg["peso_pop"] %>% unlist() %>% as.numeric()
-
-regformula <- as.formula(paste("siops_despsaude_pcapita",spec_reduced))
-fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
-
-table2 <- fit %>% 
-  broom::tidy() %>%
-  slice(3:15) %>%
-  select(term,estimate,std.error) %>%
-  mutate(estimate = ifelse(substr(term,1,7)=="post_00",0,estimate)) %>% 
-  mutate(lb = estimate - 1.96 * std.error,
-         ub = estimate + 1.96 * std.error,
-         year = seq.int(year_filter,2010)) %>%
-  filter(!is.na(estimate))
-
-cols <- names(table2)[2:ncol(table2)]
-cols <- sapply(cols, function(x) paste0(x,"_siops_despsaude_pcapita"), simplify = "array", USE.NAMES = F)
-names(table2)[2:ncol(table2)] <- cols
-
-table2 <- table2 %>% 
-  mutate(mean_siops_despsaude_pcapita = as.numeric(df_baseline[1,2]))
+elasticity_ab <- elasticity_main_ab %>% 
+  left_join(elasticity_ci_ab, by = c("year","target"))
 
 
 
-# IMR
-# ------------------------------------
-df_reg <- df
-
-
-# filtering regression variables
-df_reg <- df_reg %>% 
-  select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,tx_mi,iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
-         all_of(yeartreat_dummies),all_of(yeartreat_dummies_binary),
-         peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-         finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
-  filter(ano>=year_filter)
-
-df_reg <- df_reg[complete.cases(df_reg),]
-
-spec <- 3
-spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
-weight_vector <- df_reg["peso_pop"] %>% unlist() %>% as.numeric()
-
-regformula <- as.formula(paste("tx_mi",spec_reduced))
-fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
-
-table3 <- fit %>% 
-  broom::tidy() %>%
-  slice(3:15) %>%
-  select(term,estimate,std.error) %>%
-  mutate(estimate = ifelse(substr(term,1,7)=="post_00",0,estimate)) %>% 
-  mutate(lb = estimate - 1.96 * std.error,
-         ub = estimate + 1.96 * std.error,
-         year = seq.int(year_filter,2010)) %>%
-  filter(!is.na(estimate))
-
-cols <- names(table3)[2:ncol(table3)]
-cols <- sapply(cols, function(x) paste0(x,"_tx_mi"), simplify = "array", USE.NAMES = F)
-names(table3)[2:ncol(table3)] <- cols
-  
-table3 <- table3 %>% 
-  mutate(mean_tx_mi = as.numeric(df_baseline[1,3]))
-
-
-
-
-# 4. GRAPH
+# 7. Graph
 # =================================================================
 
 
-df_elasticity <- table2 %>% 
-  left_join(table3, by ="term") %>% 
-  mutate(e = (estimate_tx_mi/mean_tx_mi)/(estimate_siops_despsaude_pcapita/mean_siops_despsaude_pcapita),
-         e_lb = (lb_tx_mi/mean_tx_mi)/(lb_siops_despsaude_pcapita/mean_siops_despsaude_pcapita),
-         e_ub = (ub_tx_mi/mean_tx_mi)/(ub_siops_despsaude_pcapita/mean_siops_despsaude_pcapita)) %>% 
-  mutate(year = seq.int(2000,2010)) %>% 
-  select(year,e,e_lb,e_ub)
-  
+# main regs
 
-graph <- df_elasticity %>% 
+graph <- elasticity %>% 
   ggplot(aes(x = year, y = e))+
   geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
   geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
   geom_point(size = 1.2, alpha = 1,color = "grey20",shape=0,stroke = 0.8) +
-  geom_ribbon(aes(ymin = e_lb, ymax = e_ub),color = NA, alpha = 0.1) +
+  geom_ribbon(aes(ymin = e_p025, ymax = p975),color = NA, alpha = 0.1) +
   scale_x_continuous(breaks = seq(2000,2010,1), limits = c(1999.5,2010+0.5)) +
-  scale_y_continuous(breaks = seq(-0.9,0.3,0.1), limits = c(-0.9,0.3), labels = comma) +
+  scale_y_continuous(breaks = seq(-0.6,0.3,0.1), limits = c(-0.6,0.3), labels = comma) +
   theme_light() +
   labs(y = "IMR Elasticity",
        x = "Year") +
@@ -251,222 +427,29 @@ graph <- df_elasticity %>%
 
 
 yearly_folder <- "regs_plots_trend/"
-ggsave(paste0(dir,main_folder,yearly_folder,"imr_elasticity.png"),
+ggsave(paste0(dir,"regs_outputs/elasticity/","imr_elasticity2.png"),
        plot = graph,
        device = "png",
        width = 7, height = 5,
        units = "in")
-ggsave(paste0(dir,main_folder,yearly_folder,"imr_elasticity.pdf"),
+ggsave(paste0(dir,"regs_outputs/elasticity/","imr_elasticity2.pdf"),
        plot = graph,
        device = "pdf",
        width = 7, height = 5,
        units = "in")
 
 
-
-
-
-
-
-# 5. Regressions ABOVE and BELOW
-# =================================================================
-
-# FINBRA
-# ------------------------------------
-
-df_reg <- df
-
-
-# filtering regression variables
-df_reg <- df_reg %>% 
-  select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,finbra_desp_saude_san_pcapita,iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
-         all_of(yeartreat_dummies_ab),
-         peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-         finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
-  filter(ano>=year_filter)
-
-df_reg <- df_reg[complete.cases(df_reg),]
-
-
-
-spec <- 3
-spec_reduced<- get(paste0("spec",spec,"_post_y_imr_ab"))
-weight_vector <- df_reg["peso_pop"] %>% unlist() %>% as.numeric()
-
-regformula <- as.formula(paste("finbra_desp_saude_san_pcapita",spec_reduced))
-fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
-
-tableA <- fit %>% 
-  broom::tidy() %>%
-  slice(3:15) %>%
-  select(term,estimate,std.error) %>%
-  mutate(year = seq.int(year_filter,2010)) %>% 
-  mutate(estimate = ifelse(substr(term,1,7)=="post_00",0,estimate)) %>% 
-  mutate(lb = estimate - 1.96 * std.error,
-         ub = estimate + 1.96 * std.error,
-         target = "Above") %>%
-  filter(!is.na(estimate))
-
-
-tableB <- fit %>% 
-  broom::tidy() %>%
-  slice(18:30) %>%
-  select(term,estimate,std.error) %>%
-  mutate(year = seq.int(year_filter,2010)) %>% 
-  mutate(estimate = ifelse(substr(term,1,7)=="post_00",0,estimate)) %>% 
-  mutate(lb = estimate - 1.96 * std.error,
-         ub = estimate + 1.96 * std.error,
-         target = "Below") %>%
-  filter(!is.na(estimate))
-
-table1 <- rbind(tableA,tableB)
-
-cols <- names(table1)[2:ncol(table1)-1]
-cols <- sapply(cols, function(x) paste0(x,"_finbra_desp_saude_san_pcapita"), simplify = "array", USE.NAMES = F)
-names(table1)[2:ncol(table1)-1] <- cols
-
-table1 <- table1 %>% 
-  mutate(mean_finbra_desp_saude_san_pcapita = as.numeric(df_baseline[1,1]))
-
-
-
-# SIOPS
-# ------------------------------------
-
-df_reg <- df
-
-# filtering regression variables
-df_reg <- df_reg %>% 
-  select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,siops_despsaude_pcapita,iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
-         all_of(yeartreat_dummies_ab),
-         peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-         finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
-  filter(ano>=year_filter)
-
-df_reg <- df_reg[complete.cases(df_reg),]
-
-spec <- 3
-spec_reduced<- get(paste0("spec",spec,"_post_y_imr_ab"))
-weight_vector <- df_reg["peso_pop"] %>% unlist() %>% as.numeric()
-
-regformula <- as.formula(paste("siops_despsaude_pcapita",spec_reduced))
-fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
-
-tableA <- fit %>% 
-  broom::tidy() %>%
-  slice(3:15) %>%
-  select(term,estimate,std.error) %>%
-  mutate(year = seq.int(year_filter,2010)) %>% 
-  mutate(estimate = ifelse(substr(term,1,7)=="post_00",0,estimate)) %>% 
-  mutate(lb = estimate - 1.96 * std.error,
-         ub = estimate + 1.96 * std.error,
-         target = "Above") %>%
-  filter(!is.na(estimate))
-
-
-tableB <- fit %>% 
-  broom::tidy() %>%
-  slice(18:30) %>%
-  select(term,estimate,std.error) %>%
-  mutate(year = seq.int(year_filter,2010)) %>% 
-  mutate(estimate = ifelse(substr(term,1,7)=="post_00",0,estimate)) %>% 
-  mutate(lb = estimate - 1.96 * std.error,
-         ub = estimate + 1.96 * std.error,
-         target = "Below") %>%
-  filter(!is.na(estimate))
-
-table2 <- rbind(tableA,tableB)
-
-cols <- names(table2)[2:ncol(table2)-1]
-cols <- sapply(cols, function(x) paste0(x,"_siops_despsaude_pcapita"), simplify = "array", USE.NAMES = F)
-names(table2)[2:ncol(table2)-1] <- cols
-
-table2 <- table2 %>% 
-  mutate(mean_siops_despsaude_pcapita = as.numeric(df_baseline[1,2]))
-
-
-
-# IMR
-# ------------------------------------
-df_reg <- df
-
-
-# filtering regression variables
-df_reg <- df_reg %>% 
-  select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,tx_mi,iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
-         all_of(yeartreat_dummies_ab),
-         peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-         finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
-  filter(ano>=year_filter)
-
-df_reg <- df_reg[complete.cases(df_reg),]
-
-spec <- 3
-spec_reduced<- get(paste0("spec",spec,"_post_y_imr_ab"))
-weight_vector <- df_reg["peso_pop"] %>% unlist() %>% as.numeric()
-
-regformula <- as.formula(paste("tx_mi",spec_reduced))
-fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
-
-tableA <- fit %>% 
-  broom::tidy() %>%
-  slice(3:15) %>%
-  select(term,estimate,std.error) %>%
-  mutate(year = seq.int(year_filter,2010)) %>% 
-  mutate(estimate = ifelse(substr(term,1,7)=="post_00",0,estimate)) %>% 
-  mutate(lb = estimate - 1.96 * std.error,
-         ub = estimate + 1.96 * std.error,
-         target = "Above") %>%
-  filter(!is.na(estimate))
-
-
-tableB <- fit %>% 
-  broom::tidy() %>%
-  slice(18:30) %>%
-  select(term,estimate,std.error) %>%
-  mutate(year = seq.int(year_filter,2010)) %>% 
-  mutate(estimate = ifelse(substr(term,1,7)=="post_00",0,estimate)) %>% 
-  mutate(lb = estimate - 1.96 * std.error,
-         ub = estimate + 1.96 * std.error,
-         target = "Below") %>%
-  filter(!is.na(estimate))
-
-table3 <- rbind(tableA,tableB)
-
-cols <- names(table3)[2:ncol(table3)-1]
-cols <- sapply(cols, function(x) paste0(x,"_tx_mi"), simplify = "array", USE.NAMES = F)
-names(table3)[2:ncol(table3)-1] <- cols
-
-table3 <- table3 %>% 
-  mutate(mean_tx_mi = as.numeric(df_baseline[1,3]))
-
-
-# 6. GRAPH
-# =================================================================
-
-
-df_elasticity <- table2 %>%
-  mutate(merge = substr(term_siops_despsaude_pcapita,7,nchar(term_siops_despsaude_pcapita))) %>% 
-  left_join(table3 %>% 
-              mutate(merge = substr(term_tx_mi,7,nchar(term_tx_mi))), by =c("merge","target")) %>% 
-  select(-merge) %>% 
-  mutate(e = (estimate_tx_mi/mean_tx_mi)/(estimate_siops_despsaude_pcapita/mean_siops_despsaude_pcapita),
-         e_lb = (lb_tx_mi/mean_tx_mi)/(lb_siops_despsaude_pcapita/mean_siops_despsaude_pcapita),
-         e_ub = (ub_tx_mi/mean_tx_mi)/(ub_siops_despsaude_pcapita/mean_siops_despsaude_pcapita)) %>%
-  mutate(year = year_tx_mi) %>% 
-  select(year,e,e_lb,e_ub,target)
-
-
+# Above and Below
 colors <-  c("#ef8a62","#67a9cf")
 
-graph <- df_elasticity %>% 
+graph <- elasticity_ab %>% 
   ggplot(aes(x = year, y = e, color = target, group = target))+
   geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
   geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
   geom_point(size = 1, alpha = 1,shape=0,stroke = 0.8, position = position_dodge(width=0.1)) +
-  geom_ribbon(aes(ymin = e_lb, ymax = e_ub,fill = target),color = NA, alpha = 0.1) +
+  geom_ribbon(aes(ymin = e_p025, ymax = p975, fill = target),color = NA, alpha = 0.1) +
   scale_x_continuous(breaks = seq(2000,2010,1), limits = c(1999.5,2010+0.5)) +
-  # scale_y_continuous(breaks = seq(-0.9,0.3,0.1), limits = c(-0.9,0.3), labels = comma) +
+  scale_y_continuous(breaks = seq(-1.4,0.8,0.2), limits = c(-1.4,0.8), labels = comma) +
   scale_color_manual(values = colors) +
   theme_light() +
   labs(y = "IMR Elasticity",
@@ -476,16 +459,16 @@ graph <- df_elasticity %>%
         axis.title.x = element_text(size=10),
         axis.title.y = element_text(size=8),
         axis.text = element_text(size = 10),
-        legend.position="bottom")
-
+        legend.position="bottom",
+        legend.title = element_blank())
 
 yearly_folder <- "regs_plots_trend/"
-ggsave(paste0(dir,main_folder,yearly_folder,"imr_elasticity.png"),
+ggsave(paste0(dir,"regs_outputs/elasticity/","imr_elasticity_ab.png"),
        plot = graph,
        device = "png",
        width = 7, height = 5,
        units = "in")
-ggsave(paste0(dir,main_folder,yearly_folder,"imr_elasticity.pdf"),
+ggsave(paste0(dir,"regs_outputs/elasticity/","imr_elasticity_ab.pdf"),
        plot = graph,
        device = "pdf",
        width = 7, height = 5,
