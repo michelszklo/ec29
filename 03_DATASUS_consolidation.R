@@ -71,7 +71,7 @@ import_tabnet_year <- function(csv,object,year_start,year_end,varname,skip){
   #
   df_cols_n <-year_end - year_start + 1 
   
-  df <- read.csv(file = csv, encoding = "Latim-1", sep = ";", skip = skip)
+  df <- read.csv(file = csv, encoding = "Latim-1", sep = ";", skip = skip, fileEncoding = "Windows-1252")
   df <- df %>% 
     mutate(cod_mun = substr(Município,1,6)) %>% 
     select(-c("Município","Total")) %>% 
@@ -99,7 +99,7 @@ import_tabnet_year <- function(csv,object,year_start,year_end,varname,skip){
 # =================================================================
 
 temp <- list.files(path = paste0(path,"SINASC/"), pattern = "*.csv")
-temp <- temp[!temp %in% c("nasc_vivos_11_15.csv","SINASC_final.csv","birth_fem.csv","birth_masc.csv")]
+temp <- temp[!temp %in% c("nasc_vivos_11_15.csv","nasc_vivos_96_97.csv","SINASC_final.csv","birth_fem.csv","birth_masc.csv")]
 
 for (i in seq.int(1,length(temp))){
   name <- strsplit(temp[i],"[.]") %>% unlist()
@@ -131,8 +131,12 @@ sinasc <- sinasc %>%
 
 
 import_tabnet_year(paste0(path,"SINASC/nasc_vivos_11_15.csv"),"birth_nasc_vivos2",2011,2015,"birth_nasc_vivos",3)
+import_tabnet_year(paste0(path,"SINASC/nasc_vivos_96_97.csv"),"birth_nasc_vivos3",1996,1997,"birth_nasc_vivos",3)
 
 sinasc <- sinasc %>% bind_rows(birth_nasc_vivos2)
+sinasc <- sinasc %>% bind_rows(birth_nasc_vivos3)
+
+sinasc <- sinasc %>% arrange(cod_mun,ano)
 
 # =================================================================
 # 3. IMPORT SIA

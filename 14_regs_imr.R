@@ -85,26 +85,7 @@ for (i in seq(1,16,1)){
   var_name <- var_map[i,2]
   print(var_name)
   
-  regress_output(var,var_name,3,1998,"peso_b")
-  
-  
-  if(exists("df_table_all")){
-    df_table_all <- rbind(df_table_all,table_all)
-    
-  } else {
-    
-    df_table_all <- table_all
-    
-  }
-  
-}
-
-for (i in seq(1,16,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  
-  regress_output_imr(var,var_name,3,1998,"peso_b")
+  regress_output_imr(var,var_name,3,1998,"peso_pop")
   
   
   if(exists("df_table_all")){
@@ -120,9 +101,10 @@ for (i in seq(1,16,1)){
 
 
 
+# 4. exporting results
+# =================================================================
 
-# exporting results
-# ---------------------
+output_file <- "regression_tables_raw.xlsx"
 
 write.xlsx2(df_table_all, file = paste0(dir,main_folder,output_file),sheetName = "imr",row.names = F,append = T)
 

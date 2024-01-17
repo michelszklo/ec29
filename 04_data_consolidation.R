@@ -51,7 +51,7 @@ raw <- paste0(dir,"data/")
 # =================================================================
 mun_list <- read.csv(paste0(raw,"lista_mun/lista_mun_2000.csv"), encoding = "UTF-8") %>% 
   rowwise() %>% 
-  mutate(ano = list(seq.int(1998,2015))) %>% 
+  mutate(ano = list(seq.int(1996,2015))) %>% 
   ungroup() %>% 
   unnest(ano) %>% 
   rename("cod_mun" = 1)
@@ -189,7 +189,7 @@ infra <- data.frame(read.dta13(paste0(raw,"Infra/infra_psf.dta")))
 sinasc <- read.csv(paste0(raw,"SINASC/SINASC_final.csv"), encoding = "UTF-8") %>% 
   mutate(birth_premature = 1-birth_gest_37plus)
 
-sinasc_f <- read.csv(paste0(raw,"SINASC/birth_fem.csv"), encoding = "Latin-1", sep = ";") %>% 
+sinasc_f <- read.csv(paste0(raw,"SINASC/birth_fem.csv"), encoding = "Latin-1", sep = ";", fileEncoding = "Windows-1252") %>% 
   mutate(cod_mun = substr(Município,1,6)) %>% 
   select(-c("Município")) %>% 
   mutate(cod_mun = as.numeric(cod_mun)) %>%
@@ -204,7 +204,7 @@ sinasc_f <- sinasc_f %>%
 
 sinasc_f[is.na(sinasc_f)] <- 0
 
-sinasc_m <- read.csv(paste0(raw,"SINASC/birth_masc.csv"), encoding = "Latin-1", sep = ";") %>% 
+sinasc_m <- read.csv(paste0(raw,"SINASC/birth_masc.csv"), encoding = "Latin-1", sep = ";", fileEncoding = "Windows-1252") %>% 
   mutate(cod_mun = substr(Município,1,6)) %>% 
   select(-c("Município")) %>% 
   mutate(cod_mun = as.numeric(cod_mun)) %>%
@@ -229,6 +229,9 @@ rm(sinasc_f,sinasc_m)
 
 # sim
 sim <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse.dta")))
+sim2 <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_96_97.dta")))
+
+sim <- bind_rows(sim2,sim)
 
 sim_mm <- read.csv(paste0(raw,"SIM/maternal_mortality.csv"))
 
@@ -256,7 +259,7 @@ import_treat_tabnet_pop <- function(csv,object,year_start,year_end,varname,skip)
   
   df_cols_n <-year_end - year_start + 1 
   
-  df <- read.csv(file = csv, encoding = "Latim-1", sep = ";", skip = skip)
+  df <- read.csv(file = csv, encoding = "Latim-1", sep = ";", skip = skip, fileEncoding = "Windows-1252")
   df <- df %>% 
     mutate(cod_mun = substr(Município,1,6)) %>% 
     select(-c("Município")) %>% 
@@ -276,6 +279,9 @@ import_treat_tabnet_pop <- function(csv,object,year_start,year_end,varname,skip)
   assign(paste0(object),df,envir = .GlobalEnv)
   
 }
+
+# pop 1996 & 1997
+import_treat_tabnet_pop(paste0(raw,"pop/pop_96_97.csv"),"pop_96_97",1996,1997,"pop_96_97",3)
 
 # pop 1-4 years
 import_treat_tabnet_pop(paste0(raw,"SIM/pop_1_4.csv"),"pop_1_4",1998,2012,"pop_1_4",4)
@@ -445,18 +451,18 @@ firjan <- read.csv(paste0(raw,"firjan_index_build/firjan.csv")) %>% select(-X)
 # ==============================================================
 
 gdp <- read.csv(file = paste0(raw,"PIB_municipal/pib_mun.csv"), encoding = "UTF-8", sep = ",", skip = 1) %>% 
-  select(-X)
+  select(-X) %>% 
+  mutate(adj = (X1999 - X1996)/3) %>% 
+  mutate(X1997 = X1996 + adj,
+         X1998 = X1996 + 2*adj)
 gdp <- gdp %>%
   mutate(cod_mun = as.numeric(substr(as.character(Código),1,6))) %>% 
   pivot_longer(cols = grep("X",names(gdp),value = T),
                names_to = "ano",
                values_to = "gdp_mun") %>% 
+  arrange(cod_mun,ano) %>% 
   mutate(ano = as.numeric(substr(ano,2,5))) %>% 
-  select(cod_mun,ano,gdp_mun) %>% 
-  mutate(adj = (dplyr::lead(gdp_mun,1)-gdp_mun)/3*2) %>% 
-  mutate(gdp_mun = ifelse(ano==1996,gdp_mun+adj,gdp_mun)) %>% 
-  mutate(ano = ifelse(ano==1996,1998,ano)) %>% 
-  select(-adj)
+  select(cod_mun,ano,gdp_mun)
 
 
 # 16. Bolsa Familia per capita
@@ -505,6 +511,9 @@ df <- mun_list %>%
   left_join(sim_ma_5, by = c("ano","cod_mun")) %>%
   left_join(sim_me, by = c("ano","cod_mun")) %>%
   mutate(mm = ifelse(is.na(mm),0,mm)) %>% 
+  left_join(pop_96_97, by = c("ano","cod_mun")) %>%
+  # adding pop_96_97 to pop var
+  mutate(pop = ifelse(ano<=1997,pop_96_97,pop)) %>% 
   left_join(pop_1_4, by = c("ano","cod_mun")) %>% 
   left_join(pop_15_59, by = c("ano","cod_mun")) %>% 
   left_join(pop_25_59, by = c("ano","cod_mun")) %>% 
@@ -560,19 +569,19 @@ df <- mun_list %>%
 
 # creating dummies for the presence of hospitals
 
-dummy_vars <- c("hospital_all",
-                "hospital_all_esp",
-                "hospital_est",
-                "hospital_est_esp",
-                "hospital_fed",
-                "hospital_fed_esp",
-                "hospital_mun",
-                "hospital_mun_esp",
-                "hospital_pvt",
-                "hospital_pvt_esp",
-                "hospital_nmun",
-                "hospital_pub",
-                "hospital_pub_esp")
+dummy_vars <- c("ams_hospital_all",
+                "ams_hospital_all_esp",
+                "ams_hospital_est",
+                "ams_hospital_est_esp",
+                "ams_hospital_fed",
+                "ams_hospital_fed_esp",
+                "ams_hospital_mun",
+                "ams_hospital_mun_esp",
+                "ams_hospital_pvt",
+                "ams_hospital_pvt_esp",
+                "ams_hospital_nmun",
+                "ams_hospital_pub",
+                "ams_hospital_pub_esp")
 
 for (v in dummy_vars){
   newvar <-  paste0("d_",v)
@@ -928,7 +937,6 @@ df <- df %>%
 # 24. saving
 # ==============================================================
 df <- df %>% filter(ano<=2015)
-
 saveRDS(df, paste0(raw,"CONSOL_DATA.rds"))
 
 
