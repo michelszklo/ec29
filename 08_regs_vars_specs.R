@@ -45,14 +45,14 @@ options(digits = 15)
 # ------------------------------------
 
 dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
-
+dir <-  "/home/damian/investigacion/2021/decentralization/ec29/data/"
 
 # loading Folder, files and instrument setup
 
 load(paste0(dir,"output_setup.RData"))
 
 dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
-
+dir <- "/home/damian/investigacion/2021/decentralization/ec29/"
 # ------------------------------------
 
 
@@ -89,7 +89,7 @@ dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 
 # 1. Load data frame
 # =================================================================
-raw <- readRDS(paste0(dir,"data/CONSOL_DATA.RDS"))
+raw <- readRDS(paste0(dir,"data/CONSOL_DATA.rds"))
 
 
 df <- raw %>% 
@@ -1166,7 +1166,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
   
 }
 
-reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont){
+reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
   
   
   if(missing(label_size)){
@@ -1206,7 +1206,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            all_of(yeartreat_dummies),all_of(yeartreat_dummies_binary),
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweightPop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -1216,7 +1216,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   # Regressions
   # ------------------------------------
   
-  spec <- 3
+  #spec <- 3
   if (cont == 1){
     spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
   } else{
@@ -1438,8 +1438,8 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
            units = "in")
     
   }
-  
-  
+  return(data.frame(year= table$year, estimates=table$estimate, lb=table$lb, 
+                    ub=table$ub, lb2=table$lb2, ub2=table$ub2))
   
 }
 
@@ -1706,7 +1706,8 @@ reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,
            units = "in")
     
   }
-  
+  return(data.frame(year= table$year, estimates=table$estimate, lb=table$lb, 
+                    ub=table$ub, lb2=table$lb2, ub2=table$ub2))
   
   
 }
