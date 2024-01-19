@@ -43,8 +43,11 @@ options(digits = 15)
 
 # SET PATH FOR EC 29-2000 ON YOUR COMPUTER
 # ------------------------------------
-
-dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+if(Sys.getenv("USERNAME")=="dcc213") {
+  dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
+} else {
+  dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+}
 
 # ------------------------------------
 
@@ -65,6 +68,175 @@ load(paste0(dir,"regs.RData"))
 
 
 df2 <- df
+
+
+# 7. IMR
+# =================================================================
+
+yearly_folder <- "regs_plots_trend/imr/"
+robust_folder <- "regs_outputs/regs_plots_trend/robust/"
+
+var_map <-  rbind(cbind('tx_mi','Infant Mortality Rate'),
+                  cbind('tx_mi_icsap','Infant Mortality Rate - APC'),
+                  cbind('tx_mi_nicsap','Infant Mortality Rate - non-APC'),
+                  cbind('tx_mi_infec','Infant Mortality Rate - Infectious'),
+                  cbind('tx_mi_resp','Infant Mortality Rate - Respiratory'),
+                  cbind('tx_mi_perinat','Infant Mortality Rate - Perinatal'),
+                  cbind('tx_mi_cong','Infant Mortality Rate - Congenital'),
+                  cbind('tx_mi_ext','Infant Mortality Rate - External'),
+                  cbind('tx_mi_nut','Infant Mortality Rate - Nutritional'),
+                  cbind('tx_mi_out','Infant Mortality Rate - Other'),
+                  cbind('tx_mi_illdef','Infant Mortality Rate - Ill-Defined'),
+                  cbind('tx_mi_fet','Infant Mortality Rate - Fetal'),
+                  cbind('tx_mi_24h','Infant Mortality Rate - Within 24h'),
+                  cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days'),
+                  cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year'),
+                  cbind('tx_mm',"Maternal Mortality Rate"))
+
+# continuous
+
+for (i in seq(1,17,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  output_list <- list()
+
+  res <- reduced_yearly_imr(var,var_name,df,3,1998,-25,15,5,
+                            paste0("1_cont_level_",i),weight = "reweightPop",
+                            year_cap = 2010, cont = 1, spec=3)
+  print(res)
+  res$con <-5
+  output_list[[1]] <- res
+  iter <- 2
+  for (control in c(1,2,4,3)) {
+    print(control)
+    res <- reduced_yearly_imr(var,var_name,df,3,1998,-25,15,5,
+                              paste0("1_cont_level_",i),weight = "peso_pop",
+                              year_cap = 2010, cont = 1, spec=control)
+    print(res)
+    res$con <-control 
+    output_list[[iter]] <- res
+    iter <- iter + 1
+  }
+  combined_df <- do.call(rbind, output_list)
+  combined_df <- combined_df %>%
+    mutate(controls = case_when(
+      con == 1 ~ "(1) Baseline",
+      con == 2 ~ "(2) + Municipal char.",
+      con == 3 ~ "(3) + Economic",
+      con == 4 ~ "(4) + Spending",
+      con == 5 ~ "(5) Reweight",
+    ))
+  
+  combined_df$con2<-as.character(combined_df$con)
+  combined_df$year<- combined_df$year+combined_df$con/10
+  ## Robustness plot
+  graph <- ggplot(combined_df, aes(x=year, y=estimates, color = controls,linetype = controls)) + 
+    geom_line(size=1.2) +
+    geom_errorbar(aes(ymin = lb2, ymax = ub2), width=0.2, color = "gray") +
+    geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
+    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
+    scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
+    theme_light() +
+    scale_color_viridis_d() +
+    labs(y = var_name,
+         x = "Year",
+         shape = "Specification") +
+    theme(plot.title = element_text(size = 10, face = "bold"),
+          axis.title.x = element_text(size=10),
+          axis.text = element_text(size = 10),
+          legend.position="bottom",
+          legend.title = element_blank())
+  ggsave(paste0(dir,robust_folder,var,".pdf"),
+         plot = graph,
+         device = "pdf",
+         width = 7, height = 5,
+         units = "in")
+  
+  
+  table_main<- table_main %>% cbind(table_final)
+}
+
+
+for (i in seq(4,15,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-15,10,5,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  
+  table_main<- table_main %>% cbind(table_final)
+}
+
+for (i in seq(16,16,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-15,10,5,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  
+  table_main<- table_main %>% cbind(table_final)
+}
+
+
+
+# continuous above and below
+
+for (i in seq(1,3,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_ab_imr(var,var_name,df,3,1998,-30,30,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  
+  table_ab<- table_ab %>% cbind(table_final)
+}
+
+
+for (i in seq(4,15,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_ab_imr(var,var_name,df,3,1998,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  
+  table_ab<- table_ab %>% cbind(table_final)
+}
+
+for (i in seq(16,16,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_ab_imr(var,var_name,df,3,1998,-15,15,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  
+  table_ab<- table_ab %>% cbind(table_final)
+}
+
+
+
+
+# binary
+
+for (i in seq(1,3,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-2,2,0.5,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
+}
+
+
+for (i in seq(4,15,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-2,2,0.5,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
+}
+
+for (i in seq(16,16,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-2,2,0.5,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
+}
+
+
+
 
 # 2. Spending
 # =================================================================
@@ -743,119 +915,6 @@ for (i in seq(2,3,1)){
   print(var_name)
   reduced_yearly(var,var_name,df,3,1998,-0.1,0.25,0.05,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
 }
-
-
-# 7. IMR
-# =================================================================
-
-yearly_folder <- "regs_plots_trend/imr/"
-
-var_map <-  rbind(cbind('tx_mi','Infant Mortality Rate'),
-                  cbind('tx_mi_icsap','Infant Mortality Rate - APC'),
-                  cbind('tx_mi_nicsap','Infant Mortality Rate - non-APC'),
-                  cbind('tx_mi_infec','Infant Mortality Rate - Infectious'),
-                  cbind('tx_mi_resp','Infant Mortality Rate - Respiratory'),
-                  cbind('tx_mi_perinat','Infant Mortality Rate - Perinatal'),
-                  cbind('tx_mi_cong','Infant Mortality Rate - Congenital'),
-                  cbind('tx_mi_ext','Infant Mortality Rate - External'),
-                  cbind('tx_mi_nut','Infant Mortality Rate - Nutritional'),
-                  cbind('tx_mi_out','Infant Mortality Rate - Other'),
-                  cbind('tx_mi_illdef','Infant Mortality Rate - Ill-Defined'),
-                  cbind('tx_mi_fet','Infant Mortality Rate - Fetal'),
-                  cbind('tx_mi_24h','Infant Mortality Rate - Within 24h'),
-                  cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days'),
-                  cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year'),
-                  cbind('tx_mm',"Maternal Mortality Rate"))
-
-# continuous
-
-for (i in seq(1,3,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-25,15,5,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  
-  table_main<- table_main %>% cbind(table_final)
-}
-
-
-for (i in seq(4,15,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-15,10,5,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  
-  table_main<- table_main %>% cbind(table_final)
-}
-
-for (i in seq(16,16,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-15,10,5,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  
-  table_main<- table_main %>% cbind(table_final)
-}
-
-
-
-# continuous above and below
-
-for (i in seq(1,3,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-30,30,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  
-  table_ab<- table_ab %>% cbind(table_final)
-}
-
-
-for (i in seq(4,15,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  
-  table_ab<- table_ab %>% cbind(table_final)
-}
-
-for (i in seq(16,16,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-15,15,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  
-  table_ab<- table_ab %>% cbind(table_final)
-}
-
-
-
-
-# binary
-
-for (i in seq(1,3,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-2,2,0.5,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-
-for (i in seq(4,15,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-2,2,0.5,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-for (i in seq(16,16,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-2,2,0.5,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
 
 
 

@@ -538,7 +538,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf,reweightPop) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -615,7 +615,7 @@ reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_fil
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf,reweightPop) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -965,7 +965,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            all_of(yeartreat_dummies),all_of(yeartreat_dummies_binary),
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf,reweightPop) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -1243,7 +1243,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            all_of(yeartreat_dummies),all_of(yeartreat_dummies_binary),
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf,reweightPop) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -1474,7 +1474,8 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
            units = "in")
     
   }
-  
+  return(data.frame(year= table$year, estimates=table$estimate, lb=table$lb, 
+                    ub=table$ub, lb2=table$lb2, ub2=table$ub2))
   
   
 }
@@ -1518,7 +1519,7 @@ reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            all_of(yeartreat_dummies),all_of(yeartreat_dummies_binary),
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf,reweightPop) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter) %>% 
     select(-lrf,-finbra_desp_saude_san_pcapita_neighbor,-mun_name) %>% 
     mutate(pbf_pcapita = ifelse(is.na(pbf_pcapita),0,pbf_pcapita))
@@ -1786,7 +1787,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            all_of(yeartreat_dummies),all_of(yeartreat_dummies_ab),
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf,reweightPop) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -2100,7 +2101,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            all_of(yeartreat_dummies),all_of(yeartreat_dummies_ab),
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf,reweightPop) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
