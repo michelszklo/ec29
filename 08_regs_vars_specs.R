@@ -45,6 +45,7 @@ options(digits = 15)
 # ------------------------------------
 
 dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
 
 
 # loading Folder, files and instrument setup
@@ -52,6 +53,7 @@ dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 load(paste0(dir,"output_setup.RData"))
 
 dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
 
 # ------------------------------------
 
@@ -887,7 +889,7 @@ year_cap <- 2010
 label_size = 8
 
 
-reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont){
+reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
   
   
   if(missing(label_size)){
@@ -937,7 +939,6 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
   # Regressions
   # ------------------------------------
   
-  spec <- 3
   if (cont == 1){
     spec_reduced<- get(paste0("spec",spec,"_post_y"))
   } else{
@@ -1166,7 +1167,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
   
 }
 
-reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont){
+reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
   
   
   if(missing(label_size)){
@@ -1216,7 +1217,6 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   # Regressions
   # ------------------------------------
   
-  spec <- 3
   if (cont == 1){
     spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
   } else{
@@ -1443,8 +1443,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   
 }
 
-reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont){
-  
+reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
   
   if(missing(label_size)){
     ylabel <- 8
@@ -1495,7 +1494,6 @@ reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,
   # Regressions
   # ------------------------------------
   
-  spec <- 3
   if (cont == 1){
     spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
   } else{
@@ -1712,7 +1710,7 @@ reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,
 }
 
 
-reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont){
+reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
   
   
   if(missing(label_size)){
@@ -1762,7 +1760,6 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
   # Regressions
   # ------------------------------------
   
-  spec <- 3
   if (cont == 1){
     spec_reduced<- get(paste0("spec",spec,"_post_y_ab"))
   } else{
@@ -2027,7 +2024,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
   
 }
 
-reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont){
+reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
   
   
   if(missing(label_size)){
@@ -2077,7 +2074,6 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
   # Regressions
   # ------------------------------------
   
-  spec <- 3
   if (cont == 1){
     spec_reduced<- get(paste0("spec",spec,"_post_y_imr_ab"))
   } else{
