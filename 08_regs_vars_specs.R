@@ -43,17 +43,21 @@ options(digits = 15)
 
 # SET PATH FOR EC 29-2000 ON YOUR COMPUTER
 # ------------------------------------
-
-dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
-dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
+if(Sys.getenv("USERNAME")=="dcc213") {
+  dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
+} else {
+  dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+}
 
 
 # loading Folder, files and instrument setup
 
 load(paste0(dir,"output_setup.RData"))
-
-dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
-dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
+if(Sys.getenv("USERNAME")=="dcc213") {
+  dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
+} else {
+  dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+}
 
 # ------------------------------------
 
