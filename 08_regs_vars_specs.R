@@ -2364,8 +2364,9 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
            units = "in")
     
   }
-  
-  
+  return(data.frame(year= table$year, estimates=table$estimate, lb=table$lb, 
+                    ub=table$ub, lb2=table$lb2, ub2=table$ub2, 
+                    target=table$target))
   
 }
 

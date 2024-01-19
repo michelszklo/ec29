@@ -157,7 +157,6 @@ for (i in seq(1,17,1)){
   table_main<- table_main %>% cbind(table_final)
 }
 
-
 for (i in seq(4,15,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
@@ -184,9 +183,58 @@ for (i in seq(1,3,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-30,30,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  output_list <- list()
   
+  #res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,-30,30,5,
+  #                            paste0("2_ab_level_",i),weight = "reweightPop",
+  #                            year_cap = 2010, cont = 1, spec=3)
+  #print(res)
+  #res$con <-5
+  #output_list[[1]] <- res
+  iter <- 1
+  for (control in c(1,2,4,3)) {
+    print(control)
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,-30,30,5,
+                              paste0("2_ab_level_",i),weight = "peso_pop",
+                              year_cap = 2010, cont = 1, spec=control)
+    print(res)
+    res$con <-control 
+    output_list[[iter]] <- res
+    iter <- iter + 1
+  }
+  combined_df <- do.call(rbind, output_list)
+  combined_df <- combined_df %>%
+    mutate(controls = case_when(
+      con == 1 ~ "(1) Baseline",
+      con == 2 ~ "(2) + Municipal char.",
+      con == 3 ~ "(3) + Economic",
+      con == 4 ~ "(4) + Spending",
+      con == 5 ~ "(5) Reweight",
+    ))
   table_ab<- table_ab %>% cbind(table_final)
+  combined_df$con2<-as.character(combined_df$con)
+  combined_df$year<- combined_df$year+combined_df$con/10
+  ## Robustness plot
+  graph <- ggplot(combined_df, aes(x=year, y=estimates, color = target,linetype = controls)) + 
+    geom_line(size=1.2) +
+    geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
+    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
+    scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
+    theme_light() +
+    labs(y = var_name,
+         x = "Year",
+         shape = "Specification") +
+    theme(plot.title = element_text(size = 10, face = "bold"),
+          axis.title.x = element_text(size=10),
+          axis.text = element_text(size = 10),
+          legend.position="bottom",
+          legend.title = element_blank(),
+          legend.text = element_text(size = 8))
+  ggsave(paste0(dir,robust_folder,var,"_ab.pdf"),
+         plot = graph,
+         device = "pdf",
+         width = 7, height = 5,
+         units = "in")
 }
 
 
