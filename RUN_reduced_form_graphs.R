@@ -297,7 +297,7 @@ for (i in seq(1,13,1)){
   combined_df$year<- combined_df$year+combined_df$con/10
   ## Robustness plot
   df_nona <- combined_df[!is.na(combined_df$estimates),]
-  robustPlotAB(var,combined_df)
+  robustPlotAB(var,df_nona)
 }
 
 for (i in seq(1,3,1)){
@@ -540,7 +540,7 @@ for (i in seq(1,25,1)){
   combined_df$year<- combined_df$year+combined_df$con/10
   ## Robustness plot
   df_nona <- combined_df[!is.na(combined_df$estimates),]
-  robustPlotAB(var,combined_df)
+  robustPlotAB(var,df_nona)
 }
 
 for (i in seq(1,2,1)){
@@ -789,7 +789,7 @@ for (i in seq(1,8,1)){
   combined_df$year<- combined_df$year+combined_df$con/10
   ## Robustness plot
   df_nona <- combined_df[!is.na(combined_df$estimates),]
-  robustPlotAB(var,combined_df)
+  robustPlotAB(var,df_nona)
 }
 
 
@@ -961,7 +961,7 @@ for (i in seq(1,9,1)){
   combined_df$year<- combined_df$year+combined_df$con/10
   ## Robustness plot
   df_nona <- combined_df[!is.na(combined_df$estimates),]
-  robustPlotAB(var,combined_df)
+  robustPlotAB(var,df_nona)
 }
 
 for (i in seq(1,4,1)){
@@ -1194,7 +1194,7 @@ for (i in seq(1,16,1)){
   combined_df$con2<-as.character(combined_df$con)
   combined_df$year<- combined_df$year+combined_df$con/10
   ## Robustness plot
-  robustPlotAB(var,combined_df)
+  robustPlotAB(var,df_nona)
 }
 
 
@@ -1387,7 +1387,7 @@ for (i in seq(1,9,1)){
   combined_df$year<- combined_df$year+combined_df$con/10
   ## Robustness plot
   df_nona <- combined_df[!is.na(combined_df$estimates),]
-  robustPlotAB(var,combined_df)
+  robustPlotAB(var,df_nona)
 }
 
 for (i in c(seq(1,3,1),7,9)){
@@ -1594,7 +1594,7 @@ for (i in 8){
     combined_df$year<- combined_df$year+combined_df$con/10
     ## Robustness plot
     df_nona <- combined_df[!is.na(combined_df$estimates),]
-    robustPlotAB(var,combined_df)
+    robustPlotAB(var,df_nona)
   }
   
 for (i in seq(1,1,1)){
@@ -1779,7 +1779,7 @@ for (i in seq(1,8,1)){
   combined_df$year<- combined_df$year+combined_df$con/10
   ## Robustness plot
   df_nona <- combined_df[!is.na(combined_df$estimates),]
-  robustPlotAB(var,combined_df)
+  robustPlotAB(var,df_nona)
 }
 
 for (i in seq(1,1,1)){
