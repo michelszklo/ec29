@@ -1749,7 +1749,7 @@ for (i in seq(5,8,1)){
 
 
 # continuous above and below
-for (i in seq(1,9,1)){
+for (i in seq(1,8,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
