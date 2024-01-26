@@ -36,11 +36,9 @@ if(length(to_install)>0) install.packages(to_install)
 lapply(packages,require,character.only=TRUE)
 
 output <- "C:/Users/Michel/Documents/GitHub/ec29/outputs/density_plots/"
+dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 
-
-
-SIOPS <- readRDS("C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/data/SIOPS/SIOPS.rds")
-
+df <- readRDS(paste0(dir,"data/CONSOL_DATA.rds"))
 
 
 # =================================================================
@@ -48,18 +46,17 @@ SIOPS <- readRDS("C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/
 # =================================================================
 
 
-SIOPS_temp <- SIOPS %>% filter(ano<=2005) %>% mutate(ano  = as.factor(ano))
+SIOPS_temp <- df %>% filter(ano<=2005) %>% mutate(ano  = as.factor(ano)) %>% select(siops_pct_recproprios_ec29, ano)
 
-color_graph <- c("#7F3C8D","#11A579","#3969AC","#E73F74","#E68310","#008695","#CF1C90","#f97b72","#4b4b8f","#A5AA99")
 color_graph <- c("#008695","#E68310","#E73F74","#3969AC","#11A579","#7F3C8D")
 
-hist_ec29 <- SIOPS_temp %>% ggplot(aes(x = pct_recproprios_ec29, color = ano, fill = ano)) +
+hist_ec29 <- SIOPS_temp %>% ggplot(aes(x = siops_pct_recproprios_ec29, color = ano, fill = ano)) +
   geom_density(binwidth = 2, alpha = 0.1) + 
-  geom_vline(xintercept = 15, linetype = "dashed", size = 0.6, color = "grey43") +
-  scale_x_continuous(breaks = seq(-5,45,5), limits = c(-5,45)) +
+  geom_vline(xintercept = 0.15, linetype = "dashed", size = 0.6, color = "grey43") +
+  scale_x_continuous(breaks = seq(-0.05,0.45,0.05), limits = c(-0.05,0.45)) +
   scale_color_manual(values = color_graph) +
   scale_fill_manual(values = color_graph) +
-  labs(x = "Health Spending (% of municipalities' own resource)",
+  labs(x = "Health Spending (share of municipalities' own resource)",
        y = "Density") +
   theme_light() +
   theme(panel.grid.major = element_blank(), 
@@ -91,20 +88,16 @@ ggsave(filepdf,
 # 2. Density: total health spending per capita - 2000-2004
 # =================================================================
 
-deflator <- read.csv("C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/deflator/deflator.csv")
-
-SIOPS_temp <- SIOPS %>% filter(ano<=2005) %>%  
-  left_join(deflator,by = "ano") %>% 
+SIOPS_temp <- df %>% filter(ano<=2005) %>%  
   mutate(ano  = as.factor(ano)) %>%
-  mutate(despsaude_pcapita = despsaude_pcapita/deflator_saude)
+  select(ano,siops_despsaude_pcapita)
 
-color_graph <- c("#7F3C8D","#11A579","#3969AC","#E73F74","#E68310","#008695","#CF1C90","#f97b72","#4b4b8f","#A5AA99")
 color_graph <- c("#008695","#E68310","#E73F74","#3969AC","#11A579","#7F3C8D")
 
 
-hist_pc <- SIOPS_temp %>% ggplot(aes(x = despsaude_pcapita, color = ano, fill = ano)) +
+hist_pc <- SIOPS_temp %>% ggplot(aes(x = siops_despsaude_pcapita, color = ano, fill = ano)) +
   geom_density(binwidth = 2, alpha = 0.1) + 
-  scale_x_continuous(breaks = seq(0,1000,100),limits = c(0,1000)) +
+  scale_x_continuous(breaks = seq(0,800,100),limits = c(0,800)) +
   scale_color_manual(values = color_graph) +
   scale_fill_manual(values = color_graph) +
   labs(x = "Health Spending per capita",
