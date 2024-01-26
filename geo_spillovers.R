@@ -70,13 +70,9 @@ df_neighbor <- df %>%
             by = c("cod_mun_neighbor","ano")) %>% 
   filter(cod_mun!=cod_mun_neighbor) %>% 
   group_by(cod_mun,ano) %>% 
-  summarise(mean_nb_dist_ec29_baseline = weighted.mean(abs(dist_ec29_baseline),w = peso_pop, na.rm = T),
-            max = max(dist_ec29_baseline),
-            min = min(dist_ec29_baseline)) %>% 
-  ungroup() %>% 
-  mutate(max_nb_dist_ec29_baseline = max) %>% 
-  mutate(max_nb_dist_ec29_baseline = ifelse(max<abs(min),min,max_nb_dist_ec29_baseline)) %>% 
-  select(-max,-min)
+  summarise(mean_nb_dist_ec29_baseline = weighted.mean(dist_ec29_baseline,w = peso_pop, na.rm = T),
+            max_nb_dist_ec29_baseline = max(dist_ec29_baseline)) %>% 
+  ungroup() 
 
 df <- df %>% 
   left_join(df_neighbor, by = c("ano","cod_mun"))
