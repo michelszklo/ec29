@@ -31,7 +31,8 @@ packages<-c('readr',
             'boot',
             'broom',
             'modelsummary',
-            'ggsci')
+            'ggsci',
+            'margins')
 to_install<-packages[!(packages %in% installed.packages()[,"Package"])]
 if(length(to_install)>0) install.packages(to_install)
 
@@ -62,12 +63,12 @@ reelect2008 <- read.csv(paste0(dir,"data/TSE/reelect2008.csv"), encoding = "UTF-
 df_reelect <- reelect %>% 
   mutate(ano=2004) %>% 
   left_join(df, by = c("cod_mun","ano")) %>% 
-  select(cod_mun,ano,reelect,pop,iv,all_of(controls),cod_uf)
+  select(cod_mun,ano,reelect,pop,iv,iv_a,iv_b,all_of(controls),cod_uf,peso_pop)
 
 df_reelect2 <- reelect2008 %>% 
   mutate(ano=2008) %>% 
   left_join(df, by = c("cod_mun","ano")) %>% 
-  select(cod_mun,ano,reelect,pop,iv,all_of(controls),cod_uf)
+  select(cod_mun,ano,reelect,pop,iv,iv_a,iv_b,all_of(controls),cod_uf,peso_pop)
 
 
 
@@ -78,6 +79,12 @@ spec1 <- as.formula("reelect ~ iv + cod_uf")
 spec2 <- as.formula(paste("reelect ~ iv + ",paste(c(baseline_controls,"cod_uf"), collapse = " + ")))
 spec3 <- as.formula(paste("reelect ~ iv + ",paste(c(baseline_controls,tvarying_controls,"cod_uf"), collapse = " + ")))
 spec4 <- as.formula(paste("reelect ~ iv + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls,"cod_uf"), collapse = " + ")))
+
+
+spec1_ab <- as.formula("reelect ~ iv_a + iv_b + cod_uf")
+spec2_ab <- as.formula(paste("reelect ~ iv_a + iv_b + ",paste(c(baseline_controls,"cod_uf"), collapse = " + ")))
+spec3_ab <- as.formula(paste("reelect ~ iv_a + iv_b + ",paste(c(baseline_controls,tvarying_controls,"cod_uf"), collapse = " + ")))
+spec4_ab <- as.formula(paste("reelect ~ iv_a + iv_b + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls,"cod_uf"), collapse = " + ")))
 
 
 
@@ -110,6 +117,8 @@ table_formating_elect <- function(df,s){
 
 # full sample
 
+weight_vector <- df_reelect["peso_pop"] %>% unlist() %>% as.numeric()
+
 for(i in seq.int(1,4)){
   
   spec <- get(paste0("spec",i))
@@ -129,11 +138,95 @@ for(i in seq.int(1,4)){
   
 }
 
+table_nw <- table
+
+for(i in seq.int(1,4)){
+  
+  spec <- get(paste0("spec",i))
+  fit <- glm(spec,
+             family = binomial(link = "probit"), 
+             data = df_reelect,
+             weights = weight_vector)
+  
+  out <- cbind(fit %>% broom::tidy() %>% slice(2), fit %>% broom::glance() %>% select(nobs)) %>% 
+    mutate(spec = i)
+  
+  if(i==1){
+    table <- out
+  }
+  else{
+    table <- rbind(table,out)
+  }
+  
+}
+
+table_ww <- table
+
+
+
+
+for(i in seq.int(1,4)){
+  
+  spec <- get(paste0("spec",i,"_ab"))
+  fit <- glm(spec,
+             family = binomial(link = "probit"), 
+             data = df_reelect)
+  
+  out <- cbind(fit %>% broom::tidy() %>% slice(2:3), fit %>% broom::glance() %>% select(nobs)) %>% 
+    mutate(spec = i)
+  
+  if(i==1){
+    table <- out
+  }
+  else{
+    table <- rbind(table,out)
+  }
+  
+}
+
+table_nw_ab <- table
+
+for(i in seq.int(1,4)){
+  
+  spec <- get(paste0("spec",i,"_ab"))
+  fit <- glm(spec,
+             family = binomial(link = "probit"), 
+             data = df_reelect,
+             weights = weight_vector)
+  
+  out <- cbind(fit %>% broom::tidy() %>% slice(2:3), fit %>% broom::glance() %>% select(nobs)) %>% 
+    mutate(spec = i)
+  
+  if(i==1){
+    table <- out
+  }
+  else{
+    table <- rbind(table,out)
+  }
+  
+}
+
+table_ww_ab <- table
+
+
+
+
+
+
+
 
 table_final <- bind_cols(table %>% table_formating_elect(1) %>% rename(spec1=estimate),
                          table %>% table_formating_elect(2) %>% rename(spec2=estimate) %>% select(-term),
                          table %>% table_formating_elect(3) %>% rename(spec3=estimate) %>% select(-term),
                          table %>% table_formating_elect(4) %>% rename(spec4=estimate) %>% select(-term))
+
+
+
+
+
+
+
+
 
 
 
