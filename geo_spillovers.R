@@ -134,6 +134,21 @@ spec3_post_y_imr_max_nb <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + "
 spec4_post_y_imr_max_nb <- paste(" ~ ",paste(yeartreat_dummies, collapse = " + ")," + ",paste(yeartreat_dummies_max_nb, collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls,imr_controls,fiscal_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
+# 1) Only Neighbours - MAX
+# ------------------------------------------------
+
+# standard outcomes
+spec1_post_y_max_nb_only <- paste(" ~ ",paste(yeartreat_dummies_max_nb, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec2_post_y_max_nb_only <- paste(" ~ ",paste(yeartreat_dummies_max_nb, collapse = " + ")," + ", paste(baseline_controls, collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post_y_max_nb_only <- paste(" ~ ",paste(yeartreat_dummies_max_nb, collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec4_post_y_max_nb_only <- paste(" ~ ",paste(yeartreat_dummies_max_nb, collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+
+# imr outcomes
+spec1_post_y_imr_max_nb_only <- paste(" ~ ",paste(yeartreat_dummies_max_nb, collapse = " + ")," + ",imr_controls," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec2_post_y_imr_max_nb_only <- paste(" ~ ",paste(yeartreat_dummies_max_nb, collapse = " + ")," + ", paste(c(baseline_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec3_post_y_imr_max_nb_only <- paste(" ~ ",paste(yeartreat_dummies_max_nb, collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec4_post_y_imr_max_nb_only <- paste(" ~ ",paste(yeartreat_dummies_max_nb, collapse = " + ")," + ", paste(c(baseline_controls,tvarying_controls,imr_controls,fiscal_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+
 
 
 
@@ -204,8 +219,10 @@ geospill <- function(df, outcome,var_name,transform,year_filter,year_cap,label_s
   spec <- 3
   if (mean == 1){
     spec_reduced<- get(paste0("spec",spec,"_post_y_imr_mean_nb"))
-  } else{
+  } else if (mean == 2){
     spec_reduced<- get(paste0("spec",spec,"_post_y_imr_max_nb"))
+  }else{
+    spec_reduced<- get(paste0("spec",spec,"_post_y_imr_max_nb_only"))
   }
   weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
   regformula <- as.formula(paste(ln_outcome,spec_reduced))
@@ -228,6 +245,16 @@ geospill <- function(df, outcome,var_name,transform,year_filter,year_cap,label_s
   
   table <- rbind(table1,table2)
   
+  if (mean == 3){
+    table <- fit %>% 
+      broom::tidy() %>%
+      slice(3:15) %>%
+      select(term,estimate,std.error,p.value) %>%
+      mutate(target = "Neighbours",
+             year = seq.int(year_filter,2010))
+  }
+  
+  
   table <- table %>%
     mutate(estimate = ifelse(substr(term,7,13)=="post_00",0,estimate)) %>% 
     mutate(lb = estimate - 1.96 * std.error,
@@ -235,14 +262,14 @@ geospill <- function(df, outcome,var_name,transform,year_filter,year_cap,label_s
            lb2 = estimate - 1.645 * std.error,
            ub2 = estimate + 1.645 * std.error,
            spec = as.character(spec))
-    # mutate(lb_adj = NA,
-    #        ub_adj = NA) %>% 
-    # mutate(lb_adj = ifelse(lb<y0,y0,lb_adj),
-    #        ub_adj = ifelse(ub>yf,yf,ub_adj)) %>% 
-    # mutate(lb = ifelse(lb<y0,y0,lb),
-    #        ub = ifelse(ub>yf,yf,ub),
-    #        lb2 = ifelse(lb2<y0,y0,lb2),
-    #        ub2 = ifelse(ub2>yf,yf,ub2))
+  # mutate(lb_adj = NA,
+  #        ub_adj = NA) %>% 
+  # mutate(lb_adj = ifelse(lb<y0,y0,lb_adj),
+  #        ub_adj = ifelse(ub>yf,yf,ub_adj)) %>% 
+  # mutate(lb = ifelse(lb<y0,y0,lb),
+  #        ub = ifelse(ub>yf,yf,ub),
+  #        lb2 = ifelse(lb2<y0,y0,lb2),
+  #        ub2 = ifelse(ub2>yf,yf,ub2))
   
   # graph out of bounds, defines arrow size
   arrowsize <-  (yf - y0)*0.03
@@ -278,8 +305,10 @@ geospill <- function(df, outcome,var_name,transform,year_filter,year_cap,label_s
   
   if(mean==1){
     suffix = "mean"
-  } else{
+  } else if (mean == 2){
     suffix = "max"
+  } else {
+    suffix = "max_only"
   }
   
   ggsave(paste0(dir,main_folder,yearly_folder,"geospill_",outcome,"_",suffix,".png"),
@@ -302,17 +331,28 @@ geospill(df,'tx_mi','Infant Mortality Rate',
 geospill(df,'tx_mi','Infant Mortality Rate',
          3,1998,2010,8,2)
 
+geospill(df,'tx_mi','Infant Mortality Rate',
+         3,1998,2010,8,3)
+
+
 geospill(df,'tx_mi_icsap','Infant Mortality Rate - APC',
          3,1998,2010,8,1)
 
 geospill(df,'tx_mi_icsap','Infant Mortality Rate - APC',
          3,1998,2010,8,2)
 
+geospill(df,'tx_mi_icsap','Infant Mortality Rate - APC',
+         3,1998,2010,8,3)
+
+
 geospill(df,'tx_mi_nicsap','Infant Mortality Rate - non-APC',
          3,1998,2010,8,1)
 
 geospill(df,'tx_mi_nicsap','Infant Mortality Rate - non-APC',
          3,1998,2010,8,2)
+
+geospill(df,'tx_mi_nicsap','Infant Mortality Rate - non-APC',
+         3,1998,2010,8,3)
 
 
 # dropping municipalities with outliers in spending
@@ -344,6 +384,8 @@ geospill(df2,'finbra_desp_o_pcapita','Total Spending per capita (log)',
 geospill(df2,'finbra_desp_o_pcapita','Total Spending per capita (log)',
          1,1998,2010,8,2)
 
+geospill(df2,'finbra_desp_o_pcapita','Total Spending per capita (log)',
+         1,1998,2010,8,3)
 
 
 geospill(df2,'finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)',
@@ -351,6 +393,9 @@ geospill(df2,'finbra_desp_saude_san_pcapita','Health and Sanitation Spending per
 
 geospill(df2,'finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)',
          1,1998,2010,8,2)
+
+geospill(df2,'finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)',
+         1,1998,2010,8,3)
 
 
 
@@ -360,6 +405,8 @@ geospill(df2,'finbra_desp_nao_saude_pcapita','Non-Health Spending per capita (lo
 geospill(df2,'finbra_desp_nao_saude_pcapita','Non-Health Spending per capita (log)',
          1,1998,2010,8,2)
 
+geospill(df2,'finbra_desp_nao_saude_pcapita','Non-Health Spending per capita (log)',
+         1,1998,2010,8,3)
 
 
 geospill(df2,'siops_despsaude_pcapita','Health Spending per capita - Total (log)',
@@ -368,6 +415,8 @@ geospill(df2,'siops_despsaude_pcapita','Health Spending per capita - Total (log)
 geospill(df2,'siops_despsaude_pcapita','Health Spending per capita - Total (log)',
          1,1998,2010,8,2)
 
+geospill(df2,'siops_despsaude_pcapita','Health Spending per capita - Total (log)',
+         1,1998,2010,8,3)
 
 
 
@@ -377,6 +426,8 @@ geospill(df2,'siops_desprecpropriosaude_pcapita','Health Spending per capita - O
 geospill(df2,'siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (log)',
          1,1998,2010,8,2)
 
+geospill(df2,'siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (log)',
+         1,1998,2010,8,3)
 
 
 
@@ -386,7 +437,8 @@ geospill(df2,'siops_despexrecproprio_pcapita','Health Spending per capita - Othe
 geospill(df2,'siops_despexrecproprio_pcapita','Health Spending per capita - Other Resources (log)',
          1,1998,2010,8,2)
 
-
+geospill(df2,'siops_despexrecproprio_pcapita','Health Spending per capita - Other Resources (log)',
+         1,1998,2010,8,3)
 
 
 
