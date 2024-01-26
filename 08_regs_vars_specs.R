@@ -43,15 +43,21 @@ options(digits = 15)
 
 # SET PATH FOR EC 29-2000 ON YOUR COMPUTER
 # ------------------------------------
-
-dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+if(Sys.getenv("USERNAME")=="dcc213") {
+  dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
+} else {
+  dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+}
 
 
 # loading Folder, files and instrument setup
 
 load(paste0(dir,"output_setup.RData"))
-
-dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+if(Sys.getenv("USERNAME")=="dcc213") {
+  dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
+} else {
+  dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+}
 
 # ------------------------------------
 
@@ -309,6 +315,38 @@ df <- df %>%
 
 yeartreat_dummies_ab <- c(yeartreat_dummies_above,yeartreat_dummies_below)
 
+# creating reweighting variable for average causal response (Callaway et al., 2023)
+# ------------------------------------------------
+dfw <- df %>% 
+  filter(ano==2000) %>% 
+  select(dist_ec29_baseline,cod_mun) %>% 
+  mutate(max = max(dist_ec29_baseline,na.rm = T),
+         min = min(dist_ec29_baseline,na.rm = T),
+         varD = var(dist_ec29_baseline,na.rm = T),
+         ED = mean(dist_ec29_baseline,na.rm = T),
+         range = max-min,
+         N = nrow(.)) %>% 
+  arrange(dist_ec29_baseline) %>% 
+  mutate(n = row_number()) %>% 
+  mutate(grid = (n-1)/(N-1)*range + min,
+         CGSw = 0)
+# Loop to creat CGS weights
+for(i in seq.int(1,nrow(dfw))){
+  ED <- dfw$ED[i]
+  varD <- dfw$varD[i]
+  l <- dfw$grid[i]
+  dfw_l <- dfw %>% filter(dist_ec29_baseline>l | is.na(dist_ec29_baseline))
+  EDl <- mean(dfw_l$dist_ec29_baseline, na.rm = T)
+  PDl <- nrow(dfw_l)/dfw$N[i]
+  dfw[i,"CGSw"] <- ((EDl - ED) * PDl) / varD
+}
+dfw <- dfw[complete.cases(dfw$dist_ec29_baseline), ]
+density_values <- density(dfw$dist_ec29_baseline)
+dfw$empiric <- approx(density_values$x, density_values$y, 
+                      xout = dfw$dist_ec29_baseline)$y
+df <- left_join(df,select(dfw,cod_mun,CGSw,empiric),by="cod_mun")
+df$reweight    <- df$empiric/df$CGSw
+df$reweightPop <- ifelse(is.na(df$reweight*df$peso_pop), 0, df$reweight*df$peso_pop)
 
 
 # 3. Setting regression sample
@@ -500,7 +538,7 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -577,7 +615,7 @@ reduced_imr <- function(outcome,var_name,df,regression_output,transform,year_fil
   df_reg <- df_reg %>% 
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -887,7 +925,7 @@ year_cap <- 2010
 label_size = 8
 
 
-reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont){
+reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
   
   
   if(missing(label_size)){
@@ -927,7 +965,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            all_of(yeartreat_dummies),all_of(yeartreat_dummies_binary),
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -937,7 +975,6 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
   # Regressions
   # ------------------------------------
   
-  spec <- 3
   if (cont == 1){
     spec_reduced<- get(paste0("spec",spec,"_post_y"))
   } else{
@@ -1166,7 +1203,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
   
 }
 
-reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont){
+reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
   
   
   if(missing(label_size)){
@@ -1206,7 +1243,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            all_of(yeartreat_dummies),all_of(yeartreat_dummies_binary),
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -1216,7 +1253,6 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   # Regressions
   # ------------------------------------
   
-  spec <- 3
   if (cont == 1){
     spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
   } else{
@@ -1438,13 +1474,13 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
            units = "in")
     
   }
-  
+  return(data.frame(year= table$year, estimates=table$estimate, lb=table$lb, 
+                    ub=table$ub, lb2=table$lb2, ub2=table$ub2))
   
   
 }
 
-reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont){
-  
+reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
   
   if(missing(label_size)){
     ylabel <- 8
@@ -1483,7 +1519,7 @@ reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            all_of(yeartreat_dummies),all_of(yeartreat_dummies_binary),
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter) %>% 
     select(-lrf,-finbra_desp_saude_san_pcapita_neighbor,-mun_name) %>% 
     mutate(pbf_pcapita = ifelse(is.na(pbf_pcapita),0,pbf_pcapita))
@@ -1495,7 +1531,6 @@ reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,
   # Regressions
   # ------------------------------------
   
-  spec <- 3
   if (cont == 1){
     spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
   } else{
@@ -1712,7 +1747,7 @@ reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,
 }
 
 
-reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont){
+reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
   
   
   if(missing(label_size)){
@@ -1752,7 +1787,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            all_of(yeartreat_dummies),all_of(yeartreat_dummies_ab),
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -1762,7 +1797,6 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
   # Regressions
   # ------------------------------------
   
-  spec <- 3
   if (cont == 1){
     spec_reduced<- get(paste0("spec",spec,"_post_y_ab"))
   } else{
@@ -2027,7 +2061,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
   
 }
 
-reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont){
+reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
   
   
   if(missing(label_size)){
@@ -2067,7 +2101,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
     select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(ln_outcome),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
            all_of(yeartreat_dummies),all_of(yeartreat_dummies_ab),
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+           finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
   df_reg <- df_reg[complete.cases(df_reg),]
@@ -2077,7 +2111,6 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
   # Regressions
   # ------------------------------------
   
-  spec <- 3
   if (cont == 1){
     spec_reduced<- get(paste0("spec",spec,"_post_y_imr_ab"))
   } else{
@@ -2331,8 +2364,9 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
            units = "in")
     
   }
-  
-  
+  return(data.frame(year= table$year, estimates=table$estimate, lb=table$lb, 
+                    ub=table$ub, lb2=table$lb2, ub2=table$ub2, 
+                    target=table$target))
   
 }
 
