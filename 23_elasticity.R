@@ -362,8 +362,11 @@ elasticity_boots_ab <- do.call(bind_rows, lapply(boot_results, "[[", "elasticity
 
 
 # save
-saveRDS(elasticity_boots, paste0(dir,"regs_outputs/elasticity/bootstrap_estimates.rds"))
-saveRDS(elasticity_boots_ab, paste0(dir,"regs_outputs/elasticity/bootstrap_estimates_ab.rds"))
+# saveRDS(elasticity_boots, paste0(dir,"regs_outputs/elasticity/bootstrap_estimates.rds"))
+# saveRDS(elasticity_boots_ab, paste0(dir,"regs_outputs/elasticity/bootstrap_estimates_ab.rds"))
+
+saveRDS(elasticity_boots, paste0(dir,"bootstrap_estimates.rds"))
+saveRDS(elasticity_boots_ab, paste0(dir,"bootstrap_estimates_ab.rds"))
 
 
 
@@ -483,12 +486,23 @@ ecalc_plot <- function(i) {
           legend.position="bottom")
   
   
-  ggsave(paste0(dir,"regs_outputs/elasticity/",v,"_elasticity.png"),
+  # ggsave(paste0(dir,"regs_outputs/elasticity/",v,"_elasticity.png"),
+  #        plot = graph,
+  #        device = "png",
+  #        width = 7, height = 5,
+  #        units = "in")
+  # ggsave(paste0(dir,"regs_outputs/elasticity/",v,"_elasticity.pdf"),
+  #        plot = graph,
+  #        device = "pdf",
+  #        width = 7, height = 5,
+  #        units = "in")
+  
+  ggsave(paste0(dir,v,"_elasticity.png"),
          plot = graph,
          device = "png",
          width = 7, height = 5,
          units = "in")
-  ggsave(paste0(dir,"regs_outputs/elasticity/",v,"_elasticity.pdf"),
+  ggsave(paste0(dir,v,"_elasticity.pdf"),
          plot = graph,
          device = "pdf",
          width = 7, height = 5,
@@ -518,12 +532,23 @@ ecalc_plot <- function(i) {
           legend.position="bottom",
           legend.title = element_blank())
   
-  ggsave(paste0(dir,"regs_outputs/elasticity/",v,"_elasticity_ab.png"),
+  # ggsave(paste0(dir,"regs_outputs/elasticity/",v,"_elasticity_ab.png"),
+  #        plot = graph,
+  #        device = "png",
+  #        width = 7, height = 5,
+  #        units = "in")
+  # ggsave(paste0(dir,"regs_outputs/elasticity/",v,"_elasticity_ab.pdf"),
+  #        plot = graph,
+  #        device = "pdf",
+  #        width = 7, height = 5,
+  #        units = "in")
+  
+  ggsave(paste0(dir,v,"_elasticity_ab.png"),
          plot = graph,
          device = "png",
          width = 7, height = 5,
          units = "in")
-  ggsave(paste0(dir,"regs_outputs/elasticity/",v,"_elasticity_ab.pdf"),
+  ggsave(paste0(dir,v,"_elasticity_ab.pdf"),
          plot = graph,
          device = "pdf",
          width = 7, height = 5,
