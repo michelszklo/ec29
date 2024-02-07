@@ -300,7 +300,7 @@ elasticity_main_ab <- do.call(bind_rows, lapply(elasticity_ab, "[[", "elasticity
 # 4. Bootstrap regressions
 # =================================================================
 
-boots <- 3
+boots <- 1000
 elasticity_boots <- data.frame(matrix(nrow = 13*boots, ncol = 5))
 colnames(elasticity_boots) <- c("term","year",paste0("estimate_","tx_mi"),paste0("estimate_","siops_despsaude_pcapita"),"boot")
 
