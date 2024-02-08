@@ -1290,18 +1290,32 @@ for (i in seq(1,9,1)){
   print(var_name)
   output_list <- list()
   
-  res <- reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,10,
-                            paste0("1_cont_level_",i),weight = "reweightPop",
-                            year_cap = 2010, cont = 1, spec=3)
+  if(i<4|i>6) {
+    res <- reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,10,
+                              paste0("1_cont_level_",i),weight = "reweightPop",
+                              year_cap = 2010, cont = 1, spec=3)
+  } else {
+    res <- reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),
+                              3,1998,-1000,1000,10,
+                              paste0("1_cont_level_",i),weight = "reweightPop",
+                              year_cap = 2010, cont = 1, spec=3)
+  }
   print(res)
   res$con <-5
   output_list[[1]] <- res
   iter <- 2
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,10,
+    if(i<4|i>6) {
+      res <- reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,10,
                               paste0("1_cont_level_",i),weight = "peso_pop",
                               year_cap = 2010, cont = 1, spec=control)
+    } else {
+      res <- reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),
+                                3,1998,-1000,1000,10,
+                                paste0("1_cont_level_",i),weight = "peso_pop",
+                                year_cap = 2010, cont = 1, spec=control)
+    }
     print(res)
     res$con <-control 
     output_list[[iter]] <- res
@@ -1354,7 +1368,6 @@ for (i in 8){
 }
 
 
-
 # continous above and below
 # continuous above and below 2_ab_log_
 for (i in seq(1,9,1)){
@@ -1365,9 +1378,17 @@ for (i in seq(1,9,1)){
   iter <- 1
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_ab_imr(var,var_name,df,1,1998,-1000,1000,10,
+    if(i<4|i>6) {
+      res <- reduced_yearly_ab_imr(var,var_name,df,1,1998,-1000,1000,10,
                                  paste0("2_ab_level_",i),weight = "peso_pop",
                                  year_cap = 2010, cont = 1, spec=control)
+    } else {
+      res <- reduced_yearly_ab_imr(var,var_name,
+                                   df %>% mutate(above_pre_99_dist_ec29_baseline=0, below_pre_99_dist_ec29_baseline=0),
+                                   1,1998,-1000,1000,10,
+                                   paste0("2_ab_level_",i),weight = "peso_pop",
+                                   year_cap = 2010, cont = 1, spec=control)
+    }
     print(res)
     res$con <-control 
     output_list[[iter]] <- res
