@@ -57,7 +57,7 @@ load(paste0(dir,"regs.RData"))
 #------------------------------------------
 
 # select outcomes
-outcomes <- c("siops_despsaude_pcapita","finbra_desp_o_pcapita","tx_mi","tx_mi_icsap","tx_mi_nicsap",
+outcomes <- c("siops_despsaude_pcapita","finbra_desp_o_pcapita","finbra_desp_saude_san_pcapita","tx_mi","tx_mi_icsap","tx_mi_nicsap",
               "tx_mi_infec","tx_mi_resp","tx_mi_perinat","tx_mi_cong","tx_mi_ext","tx_mi_nut",
               "tx_mi_out","tx_mi_illdef","tx_mi_fet","tx_mi_24h","tx_mi_27d","tx_mi_ano")
 
@@ -73,7 +73,7 @@ df <- df %>%
 # =================================================================
 
 # function to run regression for each dataframe and variable
-f1 <- function(df,var,year_filter){
+f1 <- function(df,var,year_filter,spec){
   
   df_reg <- df
   
@@ -90,7 +90,7 @@ f1 <- function(df,var,year_filter){
   
   
   
-  spec <- 3
+  # spec <- 3
   spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
   weight_vector <- df_reg["peso_pop"] %>% unlist() %>% as.numeric()
   
@@ -120,7 +120,7 @@ f1 <- function(df,var,year_filter){
   
 }
 
-f1_ab <- function(df,var,year_filter){
+f1_ab <- function(df,var,year_filter,spec){
   
   df_reg <- df
   
@@ -137,7 +137,7 @@ f1_ab <- function(df,var,year_filter){
   
   
   
-  spec <- 3
+  # spec <- 3
   spec_reduced<- get(paste0("spec",spec,"_post_y_imr_ab"))
   weight_vector <- df_reg["peso_pop"] %>% unlist() %>% as.numeric()
   
@@ -177,12 +177,53 @@ f1_ab <- function(df,var,year_filter){
   
 }
 
+# function for dist * post regs
+f1_t <- function(df,var,year_filter,spec){
+  
+  df_reg <- df
+  
+  
+  # filtering regression variables
+  df_reg <- df_reg %>% 
+    select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(var),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
+           all_of(yeartreat_dummies),all_of(yeartreat_dummies_binary),
+           peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
+           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+    filter(ano>=year_filter)
+  
+  df_reg <- df_reg[complete.cases(df_reg),]
+  
+  
+  
+  # spec <- 3
+  spec_reduced<- get(paste0("spec",spec,"_post_imr_cont_c"))
+  weight_vector <- df_reg["peso_pop"] %>% unlist() %>% as.numeric()
+  
+  regformula <- as.formula(paste(var,spec_reduced))
+  fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
+  
+  table <- fit %>% 
+    broom::tidy() %>%
+    slice(1) %>%
+    select(term,estimate)
+  
+  
+  if(length(grep("tx_mi",var))>0){
+    suffix <- "tx_mi"
+  }else{
+    suffix <- var
+  }
+  cols <- names(table)[2:2]
+  cols <- sapply(cols, function(x) paste0(x,"_",suffix), simplify = "array", USE.NAMES = F)
+  names(table)[2:2] <- cols
+  
+  return(table)
+  
+  
+}
 
 # function that creates samples (with, without outlier), run regressions and outputs table
-f2 <- function(df,var,year_filter, outlier, ab){
-  
-  # var1: health outcome
-  # var2: spending outcome
+f2 <- function(df,var,year_filter, outlier, ab,spec){
   
   # create sample without spending outliers
   
@@ -209,11 +250,11 @@ f2 <- function(df,var,year_filter, outlier, ab){
     
     if(ab == 1){
       
-      table <- f1_ab(df2,var,1998)
+      table <- f1_ab(df2,var,1998, spec)
       
     } else {
       
-      table <- f1(df2,var,1998)
+      table <- f1(df2,var,1998, spec)
     }
     
     
@@ -221,11 +262,11 @@ f2 <- function(df,var,year_filter, outlier, ab){
     
     if(ab == 1){
       
-      table <- f1_ab(df,var,1998)
+      table <- f1_ab(df,var,1998,spec)
       
     } else{
       
-      table <- f1(df,var,1998)
+      table <- f1(df,var,1998,spec)
       
     }
     
@@ -234,6 +275,51 @@ f2 <- function(df,var,year_filter, outlier, ab){
 
   table <- table %>% 
     select(term,year,everything()) %>% 
+    mutate(var = var)
+  
+  return(table)
+}
+
+# function for dist * post regs
+f2_t <- function(df,var,year_filter, outlier,spec){
+  
+  
+  # create sample without spending outliers
+  
+  if (outlier == 1){
+    
+    outliers <- df %>% 
+      mutate(s = log(finbra_desp_o_pcapita)) %>% 
+      select(s,everything())
+    
+    ndesv <- 5
+    x <- mean(outliers$s, na.rm = T)
+    sd <- sd(outliers$s, na.rm = T)
+    outliers <- outliers %>% 
+      mutate(s1 = x - sd * ndesv,
+             s2 = x + sd * ndesv) %>% 
+      filter(s<=s1 | s>=s2) %>% 
+      select(cod_mun) %>% 
+      unique()
+    
+    outliers <- outliers$cod_mun
+    
+    df2 <- df %>% 
+      filter(!(cod_mun %in% outliers))
+    
+    
+    table <- f1_t(df2,var,1998, spec)
+    
+    
+  } else {
+    
+    table <- f1_t(df,var,1998,spec)
+    
+  }
+  
+  
+  table <- table %>% 
+    select(term,everything()) %>% 
     mutate(var = var)
   
   return(table)
@@ -252,10 +338,7 @@ f3 <- function(df,n) {      #define function
 # 3. Main regressions
 # =================================================================
 
-elasticity_spending <- f2(df,"siops_despsaude_pcapita",1998,1,0)
-
-elasticity_spending_ab <- f2(df,"siops_despsaude_pcapita",1998,1,1)
-
+# infant mortality variables
 var_vector <- rbind(cbind('tx_mi','Infant Mortality Rate'),
                     cbind('tx_mi_icsap','Infant Mortality Rate - APC'),
                     cbind('tx_mi_nicsap','Infant Mortality Rate - non-APC'),
@@ -273,10 +356,47 @@ var_vector <- rbind(cbind('tx_mi','Infant Mortality Rate'),
                     cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year'))
 
 
+
+
+
+
+# tables
+# ------------------------------------
+
+
+table <- function(var,s){
+  t <- f2_t(df,var,1998,0,s) %>% 
+    mutate(spec = s)
+  return(t)
+} 
+
+t_siops <- do.call(bind_rows, lapply(seq.int(1,4), function(i) table("siops_despsaude_pcapita",i)))
+t_finbra <- do.call(bind_rows, lapply(seq.int(1,4), function(i) table("finbra_desp_saude_san_pcapita",i)))
+
+t_imr <- do.call(bind_rows, lapply(var_vector[,1], function(v) {
+  lapply(seq.int(1, 4), function(i) table(v, i))
+}))
+
+
+
+
+
+
+
+# plots
+# ------------------------------------
+
+elasticity_spending <- f2(df,"siops_despsaude_pcapita",1998,1,0,3)
+
+elasticity_spending_ab <- f2(df,"siops_despsaude_pcapita",1998,1,1,3)
+
+
+
+
 elasticity <- lapply(1:nrow(var_vector), function(i) {
   
   var <- var_vector[i,1]
-  var_elasticity <- f2(df,var,1998,0,0)
+  var_elasticity <- f2(df,var,1998,0,0,3)
   
   return(list(elasticity_main = var_elasticity))
 })
@@ -288,7 +408,7 @@ elasticity_main <- do.call(bind_rows, lapply(elasticity, "[[", "elasticity_main"
 elasticity_ab <- lapply(1:nrow(var_vector), function(i) {
   
   var <- var_vector[i,1]
-  var_elasticity_ab <- f2(df,var,1998,0,1)
+  var_elasticity_ab <- f2(df,var,1998,0,1,3)
   
   return(list(elasticity_main_ab = var_elasticity_ab))
 })
@@ -318,7 +438,7 @@ boot_results <- lapply(1:boots, function(i) {
     var <- var_vector[i, 1]
     print(var)
     
-    var_elasticity <- f2(df %>% f3(df$cod_mun), var, 1998,0,0)
+    var_elasticity <- f2(df %>% f3(df$cod_mun), var, 1998,0,0,3)
     
     return(list(elasticity_i = var_elasticity))
   })
@@ -338,7 +458,7 @@ boot_results <- lapply(1:boots, function(i) {
     var <- var_vector[i, 1]
     print(var)
     
-    var_elasticity_ab <- f2(df %>% f3(df$cod_mun), var, 1998,0,1)
+    var_elasticity_ab <- f2(df %>% f3(df$cod_mun), var, 1998,0,1,3)
     
     return(list(elasticity_i_ab = var_elasticity_ab))
   })
@@ -400,6 +520,62 @@ baseline_mean_spending <- df2 %>%
   filter(ano==2000) %>% 
   summarise_at("siops_despsaude_pcapita", mean, na.rm = T) %>% 
   pull()
+
+
+baseline_mean_spending2 <- df2 %>% 
+  filter(ano==2000) %>% 
+  summarise_at("finbra_desp_saude_san_pcapita", mean, na.rm = T) %>% 
+  pull()
+
+
+baseline_mean_imr <- lapply(1:nrow(var_vector), function (i){
+  
+  v <- var_vector[i,1]
+  bm <- df %>% 
+    filter(ano==2000) %>% 
+    summarise_at(v, mean, na.rm = T) %>% 
+    rename(mean_imr = 1) %>% 
+    mutate(var = v)
+  
+})
+baseline_mean_imr <- do.call(bind_rows, baseline_mean_imr)
+
+
+# estimating elasticity table
+#------------------------------------------------------------
+
+
+t_imr_siops <- t_imr %>% 
+  left_join(t_siops %>% select(estimate_siops_despsaude_pcapita,spec), by = "spec") %>% 
+  left_join(baseline_mean_imr, by = "var") %>% 
+  mutate(mean_spending = baseline_mean_spending) %>% 
+  mutate(e = (estimate_tx_mi/mean_imr)/(estimate_siops_despsaude_pcapita/mean_spending)) %>% 
+  select(var,spec,e) %>% 
+  pivot_wider(names_from = "spec",
+              id_cols = "var",
+              values_from = "e")
+  
+names(t_imr_siops)[2:5] <- lapply(names(t_imr_siops)[2:5], function(x) paste0(x,"_siops"))
+
+
+t_imr_finbra <- t_imr %>% 
+  left_join(t_finbra %>% select(estimate_finbra_desp_saude_san_pcapita,spec), by = "spec") %>% 
+  left_join(baseline_mean_imr, by = "var") %>% 
+  mutate(mean_spending = baseline_mean_spending2) %>% 
+  mutate(e = (estimate_tx_mi/mean_imr)/(estimate_finbra_desp_saude_san_pcapita/mean_spending)) %>% 
+  select(var,spec,e) %>% 
+  pivot_wider(names_from = "spec",
+              id_cols = "var",
+              values_from = "e")
+
+names(t_imr_finbra)[2:5] <- lapply(names(t_imr_finbra)[2:5], function(x) paste0(x,"_finbra"))
+
+
+elasticity_table <- t_imr_siops %>% 
+  left_join(t_imr_finbra, by = "var")
+
+
+write.table(elasticity_table, file = paste0(dir,main_folder,"elasticity_table.xls"),row.names = F)
 
 
 
