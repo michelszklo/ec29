@@ -164,7 +164,7 @@ for (i in 1: nrow(map)){
   pc <- grep("pc",var)
   
   if(is.null(pc)){
-   var2 <- substr(var,1,nchar(var)-3)
+    var2 <- substr(var,1,nchar(var)-3)
   } else{
     var2 <- var
   }
@@ -221,7 +221,7 @@ for (i in 1: nrow(map)){
          device = "pdf",
          width = 7, height = 6,
          units = "in")
-
+  
 }
 
 
@@ -236,13 +236,13 @@ df2_98 <- df2 %>% filter(ano==1998) %>%
 df2_00 <- df2 %>% filter(ano==2000) %>% 
   rename(spending00 = finbra_desp_saude_san_pcapita) %>% 
   left_join(df2_98 %>% select(-ano,-pop), by = c("cod_mun","dist_ec29_baseline")) %>% 
-  mutate(`Change in Healh and Sanitation Spending (FINBRA) per capita \n 1998-2000` = spending00 - spending98)
+  mutate(`Change in Healh and Sanitation Spending per capita (FINBRA) \n 1998-2000` = spending00 - spending98)
 
 
 scatter <- ggplot(df2_00 %>% 
                     filter(dist_ec29_baseline>-0.5)
                   ,
-                  aes(x = dist_ec29_baseline, y = `Change in Healh and Sanitation Spending (FINBRA) per capita \n 1998-2000`)) +
+                  aes(x = dist_ec29_baseline, y = `Change in Healh and Sanitation Spending per capita (FINBRA) \n 1998-2000`)) +
   geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
   geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
   geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
