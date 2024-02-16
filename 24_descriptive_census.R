@@ -51,6 +51,25 @@ output <- "C:/Users/Michel/Documents/GitHub/ec29/outputs/scatter_plots/"
 # complete dataset
 load(paste0(dir,"regs.RData"))
 
+outliers <- df %>% 
+  mutate(s = log(finbra_desp_o_pcapita)) %>% 
+  select(s,everything())
+
+ndesv <- 5
+x <- mean(outliers$s, na.rm = T)
+sd <- sd(outliers$s, na.rm = T)
+outliers <- outliers %>% 
+  mutate(s1 = x - sd * ndesv,
+         s2 = x + sd * ndesv) %>% 
+  filter(s<=s1 | s>=s2) %>% 
+  select(cod_mun) %>% 
+  unique()
+
+outliers <- outliers$cod_mun
+
+df2 <- df %>% 
+  filter(!(cod_mun %in% outliers))
+
 # creating subdataset with only distance to ec29 and municipality code
 df <- df %>% 
   filter(ano==2000) %>% 
@@ -205,6 +224,51 @@ for (i in 1: nrow(map)){
 
 }
 
+
+
+
+df2 <- df2 %>% 
+  select(cod_mun,ano,dist_ec29_baseline,finbra_desp_saude_san_pcapita,pop)
+
+df2_98 <- df2 %>% filter(ano==1998) %>% 
+  rename(spending98 = finbra_desp_saude_san_pcapita)
+
+df2_00 <- df2 %>% filter(ano==2000) %>% 
+  rename(spending00 = finbra_desp_saude_san_pcapita) %>% 
+  left_join(df2_98 %>% select(-ano,-pop), by = c("cod_mun","dist_ec29_baseline")) %>% 
+  mutate(`Change in Healh and Sanitation Spending (FINBRA) per capita \n 1998-2000` = spending00 - spending98)
+
+
+scatter <- ggplot(df2_00 %>% 
+                    filter(dist_ec29_baseline>-0.5)
+                  ,
+                  aes(x = dist_ec29_baseline, y = `Change in Healh and Sanitation Spending (FINBRA) per capita \n 1998-2000`)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
+  scale_y_continuous(limits = c(-1000,1000), breaks = seq(-1000,1000,250)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  labs(x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=12),
+        axis.text = element_text(size = 13),
+        legend.position="none")
+
+filePNG <- paste0(output,"finbra","_scatter_dist_ec29_baseline.png")
+filePDF <- paste0(output,"finbra","_scatter_dist_ec29_baseline.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
 
 
 
