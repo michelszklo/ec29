@@ -295,15 +295,46 @@ df <- df %>%
 summary_stat(df %>% mutate(pop = pop/1000),2000,"stats_2000")
 
 
+# 5. Summary Statistics without spending outliers
+# =================================================================
 
-# 5. final table and export
+outliers <- df %>% 
+  mutate(s = log(finbra_desp_o_pcapita)) %>% 
+  select(s,everything())
+
+ndesv <- 5
+x <- mean(outliers$s, na.rm = T)
+sd <- sd(outliers$s, na.rm = T)
+outliers <- outliers %>% 
+  mutate(s1 = x - sd * ndesv,
+         s2 = x + sd * ndesv) %>% 
+  filter(s<=s1 | s>=s2) %>% 
+  select(cod_mun) %>% 
+  unique()
+
+outliers <- outliers$cod_mun
+
+df2 <- df %>% 
+  filter(!(cod_mun %in% outliers))
+summary_stat(df2 %>% mutate(pop = pop/1000),2000,"stats_2000_no")
+
+
+
+# 6. final table and export
 # =================================================================
 
 stats <- stats_2000 %>% 
     mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
     select(-Baseline)
 
+stats_no <- stats_2000_no %>% 
+  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
+  select(-Baseline)
+
 
 output_file <- "regression_tables_raw.xlsx"
 write.xlsx2(stats, file = paste0(dir,main_folder,output_file),sheetName = "descriptive",row.names = F,append = T)
+
+write.xlsx2(stats_no, file = paste0(dir,main_folder,output_file),sheetName = "descriptive_nooutliers",row.names = F,append = T)
+
 
