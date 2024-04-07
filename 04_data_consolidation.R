@@ -479,6 +479,11 @@ insurance <- data.frame(read.dta13(paste0(raw,"insurance.dta")))
 
 # hospitalization flows
 sih_flow <- read.csv(file = paste0(raw,"SIH/sih_flows.csv")) %>% rename(ano = year)
+new_vars <- sapply(names(sih_flow)[3:8], function(x) paste0(x,"_na"),simplify = "array", USE.NAMES = F)
+sih_flow[new_vars] <- sih_flow[3:8]
+
+sih_flow <- sih_flow %>% 
+  mutate_at(names(sih_flow)[3:8], ~ if_else(is.na(.), 0, .))
 
 
 # 17. Merging all
