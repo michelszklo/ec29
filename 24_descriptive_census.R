@@ -42,7 +42,7 @@ dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 # --------------------------------------------------------------------------------------------------
 raw <- paste0(dir,"data/")
 output <- "C:/Users/Michel/Documents/GitHub/ec29/outputs/scatter_plots/"
-
+options(scipen = 999)
 
 # =================================================================
 # 1. Loading data
@@ -121,40 +121,41 @@ df <- df %>%
 map <- rbind(
   
   cbind("e_anosestudo_91_00_shift","Change in Average Years of Study \n 1991-2000"),
-  cbind("e_anosestudo_91_00_shift_pc","% Change in Average Years of Study \n 1991-2000"),
+  # cbind("e_anosestudo_91_00_shift_pc","% Change in Average Years of Study \n 1991-2000"),
   
   cbind("t_analf18m_91_00_shift","Change in Illiteracy Rates \n 1991-2000"),
-  cbind("t_analf18m_91_00_shift_pc","% Change in Illiteracy Rates \n 1991-2000"),
+  # cbind("t_analf18m_91_00_shift_pc","% Change in Illiteracy Rates \n 1991-2000"),
   
   cbind("gini_91_00_shift","Change in Gini Coefficient \n 1991-2000"),
-  cbind("gini_91_00_shift_pc","% Change in Gini Coefficient \n 1991-2000"),
+  # cbind("gini_91_00_shift_pc","% Change in Gini Coefficient \n 1991-2000"),
   
   cbind("pind_91_00_shift","Change in the Share of Pop in Extreme Poverty \n 1991-2000"),
-  cbind("pind_91_00_shift_pc","% Change in the Share of Pop in Extreme Poverty \n 1991-2000"),
+  # cbind("pind_91_00_shift_pc","% Change in the Share of Pop in Extreme Poverty \n 1991-2000"),
   
   cbind("pmpob_91_00_shift","Change in the Share of Pop in Poverty \n 1991-2000"),
-  cbind("pmpob_91_00_shift_pc","% Change in the Share of Pop in Poverty \n 1991-2000"),
+  # cbind("pmpob_91_00_shift_pc","% Change in the Share of Pop in Poverty \n 1991-2000"),
   
   cbind("rdpc_91_00_shift","Change in Income Per Capita \n 1991-2000"),
-  cbind("rdpc_91_00_shift_pc","% Change in Income Per Capita \n 1991-2000"),
+  # cbind("rdpc_91_00_shift_pc","% Change in Income Per Capita \n 1991-2000"),
   
   cbind("t_agua_91_00_shift","Change in the Share of Pop with Access to Water \n 1991-2000"),
-  cbind("t_agua_91_00_shift_pc","% Change in the Share of Pop with Access to Water \n 1991-2000"),
+  # cbind("t_agua_91_00_shift_pc","% Change in the Share of Pop with Access to Water \n 1991-2000"),
   
   cbind("t_lixo_91_00_shift","Change in the Share of Pop with Access to Garbage Collection \n 1991-2000"),
-  cbind("t_lixo_91_00_shift_pc","%Change in the Share of Pop with Access to Garbage Collection \n 1991-2000"),
+  # cbind("t_lixo_91_00_shift_pc","%Change in the Share of Pop with Access to Garbage Collection \n 1991-2000"),
   
   cbind("t_luz_91_00_shift","Change in the Share of Pop with Access to Eletricity \n 1991-2000"),
-  cbind("t_luz_91_00_shift_pc","% Change in the Share of Pop with Access to Eletricity \n 1991-2000"),
+  # cbind("t_luz_91_00_shift_pc","% Change in the Share of Pop with Access to Eletricity \n 1991-2000"),
   
   cbind("agua_esgoto_91_00_shift","Change in the Share of Pop with Access to Adequate Water and Sewage \n 1991-2000"),
-  cbind("agua_esgoto_91_00_shift_pc","% Change in the Share of Pop with Access to Adequate Water and Sewage \n 1991-2000"),
+  # cbind("agua_esgoto_91_00_shift_pc","% Change in the Share of Pop with Access to Adequate Water and Sewage \n 1991-2000"),
   
-  cbind("idhm_91_00_shift","Change in HDI \n 1991-2000"),
-  cbind("idhm_91_00_shift_pc","% Change in HDI \n 1991-2000")
+  cbind("idhm_91_00_shift","Change in HDI \n 1991-2000")
+  # cbind("idhm_91_00_shift_pc","% Change in HDI \n 1991-2000")
 )
 
 
+final_table <- data.frame()
 
 for (i in 1: nrow(map)){
   
@@ -187,7 +188,8 @@ for (i in 1: nrow(map)){
   outliers <- outliers$cod_mun
   
   df_plot <- df %>% 
-    filter(!(cod_mun %in% outliers))
+    filter(!(cod_mun %in% outliers)) %>% 
+    filter(!is.infinite(get(var)))
   
   
   scatter <- ggplot(df_plot %>% 
@@ -197,6 +199,7 @@ for (i in 1: nrow(map)){
     geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
     geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
     geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
+    geom_smooth(method='lm', formula= y~x,color = "#ef8a62",fill = "#ef8a62", alpha = 0.3, se = F, size = 0.7)+
     # scale_y_continuous(limits = c(-400,950), breaks = seq(-400,900,100)) +
     scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
     labs(y = var_name,
@@ -222,6 +225,16 @@ for (i in 1: nrow(map)){
          width = 7, height = 6,
          units = "in")
   
+  fit <- lm(data = df_plot,
+     formula = get(var) ~ dist_ec29_baseline)
+  table <- summary(fit)
+  table <- table$coefficients %>% as.data.frame()
+  table <- table %>% 
+    mutate(var = var_name)
+  
+  final_table <- rbind(final_table,table)
+  
+  print(var_name)
 }
 
 
@@ -246,6 +259,7 @@ scatter <- ggplot(df2_00 %>%
   geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
   geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
   geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
+  geom_smooth(method='lm', formula= y~x,color = "#ef8a62",fill = "#ef8a62", alpha = 0.3, se = F, size = 0.7)+
   scale_y_continuous(limits = c(-1000,1000), breaks = seq(-1000,1000,250)) +
   scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
   labs(x = "Distance to the EC29 target") +
@@ -271,5 +285,17 @@ ggsave(filePDF,
        units = "in")
 
 
+fit <- lm(data = df2_00,
+          formula = `Change in Healh and Sanitation Spending per capita (FINBRA) \n 1998-2000` ~ dist_ec29_baseline)
+table <- summary(fit)
+table <- table$coefficients %>% as.data.frame()
+table <- table %>% 
+  mutate(var = "Change in Healh and Sanitation Spending per capita (FINBRA) \n 1998-2000")
+
+final_table <- rbind(final_table,table)
+
+
+# save final table
+write.xlsx2(final_table, file = paste0(output,"scatter_regs.xlsx"),sheetName = "scatter_regs",row.names = T,append = T)
 
 
