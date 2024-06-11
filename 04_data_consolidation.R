@@ -384,6 +384,13 @@ censo <- data.frame(read.dta13(paste0(raw,"censo/censo.dta"))) %>%
 second_term <- read.csv(paste0(raw,"TSE/second_term.csv"), encoding = "UTF-8") %>% 
   distinct(cod_mun, .keep_all = T)
 
+margin <- read.csv(paste0(raw,"TSE/margin2000.csv"), encoding = "UTF-8") %>% 
+  distinct(cod_mun, .keep_all = T)
+
+
+
+
+
 # 11. SIH - Hospitalization - Maternal and Infant
 # ==============================================================
 
@@ -486,6 +493,16 @@ sih_flow <- sih_flow %>%
   mutate_at(names(sih_flow)[3:8], ~ if_else(is.na(.), 0, .))
 
 
+# 16. Munic data
+# ==============================================================
+
+munic <- read.csv(paste0(raw,"munic/munic2002.csv"), sep = ";")
+munic <- munic %>%
+  mutate(gov_plan = ifelse(gov_plan=="Sim",1,0),
+         digital_health_records = ifelse(digital_health_records=="Sim",1,0))
+
+
+
 # 17. Merging all
 # ==============================================================
 
@@ -556,6 +573,7 @@ df <- mun_list %>%
   left_join(censo, by = c("ano","cod_mun")) %>%
   # electoral
   left_join(second_term, by = c("cod_mun")) %>%
+  left_join(margin %>% select(-municipio), by = "cod_mun") %>% 
   # ams
   left_join(ams, by = c("ano","cod_mun")) %>%
   mutate(ams_hospital_nmun = ifelse(!is.na(ams_hospital_est) & !is.na(ams_hospital_fed),0,NA)) %>%
@@ -569,7 +587,8 @@ df <- mun_list %>%
   left_join(gdp, by = c("ano","cod_mun")) %>% 
   left_join(pbf, by = c("ano","cod_mun")) %>% 
   left_join(insurance, by = c("ano","cod_mun")) %>% 
-  left_join(sih_flow, by = c("ano","cod_mun"))
+  left_join(sih_flow, by = c("ano","cod_mun")) %>% 
+  left_join(munic, by = "cod_mun")
 
 
 # creating dummies for the presence of hospitals
@@ -637,6 +656,8 @@ sim_vars <- c(grep("^mi",names(df), value = T),
               grep("^mc",names(df), value = T),
               grep("^ma",names(df), value = T),
               grep("^me",names(df), value = T))
+
+
 
 # transforming NA mi into 0
 df <- df %>% 
