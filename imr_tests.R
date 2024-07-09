@@ -190,66 +190,141 @@ df <- df %>%
 # write.xlsx2(df_collapse, file = paste0(dir,"data/SIM_corrections/","sim_correct.xlsx"),sheetName = "big_mun_0",row.names = F,append = T)
 # 
 
-# removing outliers (as in spending data)
-outliers <- df %>%
-  mutate(s = log(tx_mi)) %>%
-  select(s,everything()) %>%
-  mutate(s = ifelse(is.infinite(s),NA,s))
 
-ndesv <- 3
-x <- mean(outliers$s, na.rm = T)
-sd <- sd(outliers$s, na.rm = T)
-outliers <- outliers %>%
-  mutate(s1 = x - sd * ndesv,
-         s2 = x + sd * ndesv) %>%
-  # filter(s<=s1 | s>=s2) %>%
-  filter(s>=s2) %>%
-  select(cod_mun) %>%
-  unique() %>%
-  pull()
-
-
-df1 <- df %>%
-  filter(!(cod_mun %in% outliers))
-
-
-
-# removing outliers states with data issues (AM, MG, PB, PI)
-df2 <- df %>%
-  filter(uf!="AM" & uf!="MG" & uf!="PB" & uf!="PI")
-
-
-# removing outliers states with data issues (AM, MG, PB, PI), only the years with issues
+# alternative outliers removal (median and MAD)
 df <- df %>% 
-  mutate(id = row_number())
+  mutate(ln_tx_mi = log(tx_mi)) %>% 
+  mutate(ln_tx_mi = ifelse(is.infinite(ln_tx_mi),NA,ln_tx_mi)) %>% 
+  select(ln_tx_mi, everything()) %>% 
+  group_by(cod_mun) %>% 
+  mutate(median = median(ln_tx_mi,na.rm = T),
+         mad = mad(ln_tx_mi, na.rm = T)) %>% 
+  mutate(out = 0) %>% 
+  mutate(out = ifelse(ln_tx_mi>(median+2.5*mad),1,out)) %>% 
+  mutate(out = ifelse(ln_tx_mi<(median-2.5*mad),1,out)) %>%
+  mutate(out2 = max(out,na.rm = T)) %>% 
+  ungroup() %>% 
+  select(median,mad,out,out2,everything())
 
-remove1 <- df %>% 
-  filter(uf=="AM" & ano < 1997) %>% 
-  select(id) %>% 
-  pull()
-
-remove2 <- df %>% 
-  filter(uf=="MG" & ano < 1998) %>% 
-  select(id) %>% 
-  pull()
-
-remove3 <- df %>% 
-  filter(uf=="PB" & ano < 1998) %>% 
-  select(id) %>% 
-  pull()
-
-remove4 <- df %>% 
-  filter(uf=="PI" & ano < 1998) %>% 
-  select(id) %>% 
-  pull()
-
-remove <- c(remove1,remove2,remove3,remove4)
+plot_out <- df %>%
+  mutate(out = ifelse(is.na(out),0,out)) %>% 
+  group_by(ano) %>% 
+  summarize(outs = mean(out))
 
 
-df3 <- df %>%
-  filter(!(id %in% remove))
+plot <- plot_out %>% 
+  ggplot(aes(x = ano, y = outs)) +
+  geom_line(size = 1.2, color = "#440154") +
+  scale_x_continuous(breaks = seq(1996,year_cap,1), limits = c(1995.5,year_cap+0.5)) +
+  theme_light() +
+  labs(y = "Share of outliers",
+       x = "Year") +
+  theme(plot.title = element_text(size = 10, face = "bold"),
+        axis.title.x = element_text(size=10),
+        axis.text = element_text(size = 10),
+        legend.position="bottom",
+        legend.title = element_blank())
+ggsave(paste0(dir,main_folder,yearly_folder,"outliers.pdf"),
+       plot = plot,
+       device = "pdf",
+       width = 7, height = 5,
+       units = "in")
 
 
+
+# unbalanced painel
+df1 <- df %>% filter(out==0)
+
+# balanced painel
+df2 <- df %>% filter(out2==0)
+
+
+# Rudi's approach
+df <- df %>% 
+  mutate(mean = mean(ln_tx_mi,na.rm = T),
+         sd = sd(ln_tx_mi, na.rm = T)) %>%
+  mutate(out = 0) %>% 
+  mutate(out = ifelse(ln_tx_mi>(mean+1*mad),1,out)) %>% 
+  mutate(out = ifelse(ln_tx_mi<(median-1*mad),1,out)) %>%
+  mutate(out2 = max(out,na.rm = T)) %>% 
+  ungroup() %>% 
+  select(median,mad,out,out2,everything())
+
+
+plot_out2 <- df %>%
+  mutate(out = ifelse(is.na(out),0,out)) %>% 
+  group_by(ano) %>% 
+  summarize(outs = mean(out))
+
+# unbalanced painel
+df3 <- df %>% filter(out==0)
+
+# balanced painel
+df4 <- df %>% filter(out2==0)
+
+
+# 
+# 
+# # removing outliers (as in spending data)
+# outliers <- df %>%
+#   mutate(s = log(tx_mi)) %>%
+#   select(s,everything()) %>%
+#   mutate(s = ifelse(is.infinite(s),NA,s))
+# 
+# ndesv <- 3
+# x <- mean(outliers$s, na.rm = T)
+# sd <- sd(outliers$s, na.rm = T)
+# outliers <- outliers %>%
+#   mutate(s1 = x - sd * ndesv,
+#          s2 = x + sd * ndesv) %>%
+#   # filter(s<=s1 | s>=s2) %>%
+#   filter(s>=s2) %>%
+#   select(cod_mun) %>%
+#   unique() %>%
+#   pull()
+# 
+# 
+# df1 <- df %>%
+#   filter(!(cod_mun %in% outliers))
+# 
+# 
+# 
+# # removing outliers states with data issues (AM, MG, PB, PI)
+# df2 <- df %>%
+#   filter(uf!="AM" & uf!="MG" & uf!="PB" & uf!="PI")
+# 
+# 
+# # removing outliers states with data issues (AM, MG, PB, PI), only the years with issues
+# df <- df %>% 
+#   mutate(id = row_number())
+# 
+# remove1 <- df %>% 
+#   filter(uf=="AM" & ano < 1997) %>% 
+#   select(id) %>% 
+#   pull()
+# 
+# remove2 <- df %>% 
+#   filter(uf=="MG" & ano < 1998) %>% 
+#   select(id) %>% 
+#   pull()
+# 
+# remove3 <- df %>% 
+#   filter(uf=="PB" & ano < 1998) %>% 
+#   select(id) %>% 
+#   pull()
+# 
+# remove4 <- df %>% 
+#   filter(uf=="PI" & ano < 1998) %>% 
+#   select(id) %>% 
+#   pull()
+# 
+# remove <- c(remove1,remove2,remove3,remove4)
+# 
+# 
+# df3 <- df %>%
+#   filter(!(id %in% remove))
+# 
+# 
 
 
 
@@ -340,7 +415,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   
   assign("table_final",table_final, envir = .GlobalEnv)
   
-
+  
   out <- table %>% filter(!is.nan(estimate))
   assign("table", table, envir = .GlobalEnv)
   
@@ -513,7 +588,7 @@ reduced_yearly_imr2 <- function(outcome,var_name,df,transform,year_filter,y0,yf,
   df_reg <- df_reg[complete.cases(df_reg),]
   df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
   
-
+  
   
   
   # Regressions
@@ -556,13 +631,13 @@ reduced_yearly_imr2 <- function(outcome,var_name,df,transform,year_filter,y0,yf,
   assign("table_final",table_final, envir = .GlobalEnv)
   
   
-
+  
   
   
   # graph with now bounds defines arrow size
   arrowsize <-  (yf - y0)*0.03
   
-
+  
   # graph <- table %>% filter(!is.nan(estimate)) %>% 
   #   ggplot(aes(x = year, y = estimate))+
   #   geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
@@ -770,7 +845,7 @@ reduced_yearly_ab_imr2 <- function(outcome,var_name,df,transform,year_filter,y0,
   #        width = 7, height = 5,
   #        units = "in")
   #   
-    
+  
   out <- table %>% filter(!is.nan(estimate))
   assign("table", table, envir = .GlobalEnv)
   
@@ -789,16 +864,16 @@ for (i in seq(1,16,1)){
   print(var_name)
   reduced_yearly_imr2(var,var_name,df1,3,1996,-100,200,20,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
   table1 <- table %>% 
-    mutate(sample = "Removes 3 SD Outliers")
+    mutate(sample = "2. Remove Outliers (Unbalanced panel)")
   reduced_yearly_imr2(var,var_name,df2,3,1996,-100,200,20,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
   table2 <- table %>% 
-    mutate(sample = "Removes States with bad data")
-  reduced_yearly_imr2(var,var_name,df3,3,1996,-100,200,20,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+    mutate(sample = "3. Remove Outliers (Balanced panel)")
+  reduced_yearly_imr(var,var_name,df2 %>% filter(ano>1997),3,1998,-100,200,20,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
   table3 <- table %>% 
-    mutate(sample = "Removes States/Years with bad data")
+    mutate(sample = "4. Benchmark - Outliers (Balanced Panel)")
   reduced_yearly_imr(var,var_name,df %>% filter(ano>1997),3,1998,-100,200,20,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
   table4 <- table %>% 
-    mutate(sample = "Main regression")
+    mutate(sample = "1. Benchmark")
   
   table_final <- bind_rows(table1, table2, table3, table4)
   rm(table1, table2, table3, table4)
@@ -839,16 +914,16 @@ for (i in seq(1,16,1)){
   print(var_name)
   reduced_yearly_ab_imr2(var,var_name,df1,3,1996,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
   table1 <- table %>% 
-    mutate(sample = "Removes 3 SD Outliers")
+    mutate(sample = "2. Remove Outliers (Unbalanced panel)")
   reduced_yearly_ab_imr2(var,var_name,df2,3,1996,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
   table2 <- table %>% 
-    mutate(sample = "Removes States with bad data")
-  reduced_yearly_ab_imr2(var,var_name,df3,3,1996,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+    mutate(sample = "3. Remove Outliers (Balanced panel)")
+  reduced_yearly_ab_imr(var,var_name,df2 %>% filter(ano>1997),3,1998,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
   table3 <- table %>% 
-    mutate(sample = "Removes States/Years with bad data")
+    mutate(sample = "4. Benchmark - Outliers (Balanced Panel)")
   reduced_yearly_ab_imr(var,var_name,df %>% filter(ano>1997),3,1998,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
   table4 <- table %>% 
-    mutate(sample = "Main regression")
+    mutate(sample = "1. Benchmark")
   
   table_final <- bind_rows(table1, table2, table3, table4)
   rm(table1, table2, table3, table4)
@@ -879,7 +954,7 @@ for (i in seq(1,16,1)){
          units = "in")
   
   
-
+  
 }
 
 
