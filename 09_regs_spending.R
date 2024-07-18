@@ -44,7 +44,7 @@ options(digits = 15)
 # SET PATH FOR EC 29-2000 ON YOUR COMPUTER
 # ------------------------------------
 
-dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 
 # ------------------------------------
 
