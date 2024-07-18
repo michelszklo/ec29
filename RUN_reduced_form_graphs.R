@@ -46,7 +46,7 @@ options(digits = 15)
 if(Sys.getenv("USERNAME")=="dcc213") {
   dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
 } else {
-  dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+  dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 }
 
 # ------------------------------------
@@ -1862,7 +1862,30 @@ for (i in seq(5,8,1)){
 
 
 
-# 11. Tables output
+# 11. Other
+# =================================================================
+
+yearly_folder <- "regs_plots_trend/robust_other/"
+
+var_map <- rbind(cbind('gdp_mun_pcapita','GDP per capita'))
+
+
+
+for (i in seq(1,1,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-50,50,10,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1, spec = 2) # ec29baseline
+  
+  # table_main<- table_main %>% cbind(table_final)
+}
+
+
+
+
+
+
+# 12. Tables output
 # =================================================================
 
 output_file <- "regression_tables_raw.xlsx"
