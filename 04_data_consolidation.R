@@ -38,7 +38,7 @@ options(digits = 15)
 # SET PATH FOR EC 29-2000 ON YOUR COMPUTER
 # ------------------------------------
 
-dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 
 # ------------------------------------
 
@@ -140,7 +140,8 @@ siops <- siops %>%
 # 5. Transferências Fundo a Fundo
 # =================================================================
 
-fns <- data.frame(read.dta13(paste0(raw,"FNS/faf_2000_2015.dta"))) %>% 
+fns <- data.frame(read.dta13(paste0(raw,"FNS/faf_2000_2015.dta"))) 
+fns <- fns %>% 
   filter(tp_repasse == "MUNICIPAL") %>% 
   rename(cod_mun = co_municipio_ibge)
 
@@ -499,8 +500,25 @@ sih_flow <- sih_flow %>%
 munic <- read.csv(paste0(raw,"munic/munic2002.csv"), sep = ";")
 munic <- munic %>%
   mutate(gov_plan = ifelse(gov_plan=="Sim",1,0),
-         digital_health_records = ifelse(digital_health_records=="Sim",1,0))
+         digital_health_records = ifelse(digital_health_records=="Sim",1,0)) %>% 
+  mutate_at(vars(total_gov_empl,gov_emp_low,gov_emp_mid,gov_emp_high,
+                 total_council_empl,council_emp_low,council_emp_mid,council_emp_high),
+            as.numeric) %>% 
+  mutate(share_gov_emp_low = gov_emp_low/total_gov_empl,
+         share_gov_emp_mid = gov_emp_mid/total_gov_empl,
+         share_gov_emp_high = gov_emp_high/total_gov_empl,
+         share_council_emp_low = council_emp_low/total_council_empl,
+         share_council_emp_mid = council_emp_mid/total_council_empl,
+         share_council_emp_high = council_emp_high/total_council_empl) %>% 
+  select(-gov_emp_low,-gov_emp_mid,-gov_emp_high,-council_emp_low,-council_emp_mid,-council_emp_high)
 
+# 17. IQIM data
+# ==============================================================
+
+iqim <- read.csv(paste0(raw,"IQIM/IQIM09.csv"), sep = ";") %>% 
+  select(codufmun, IQIM) %>% 
+  rename(cod_mun = codufmun,
+         iqim09 = IQIM)
 
 
 # 17. Merging all
@@ -588,7 +606,8 @@ df <- mun_list %>%
   left_join(pbf, by = c("ano","cod_mun")) %>% 
   left_join(insurance, by = c("ano","cod_mun")) %>% 
   left_join(sih_flow, by = c("ano","cod_mun")) %>% 
-  left_join(munic, by = "cod_mun")
+  left_join(munic, by = "cod_mun") %>% 
+  left_join(iqim, by = "cod_mun")
 
 
 # creating dummies for the presence of hospitals
