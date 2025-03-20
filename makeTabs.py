@@ -54,27 +54,27 @@ last = len(lines)-1
 
 ## Spending                    
 rows = [3,8,9,10,11,12,13,14]
-makeTable('SpendEvent.tex',rows,last)
+makeTable('eventTabs/SpendEvent.tex',rows,last)
 
 ## IMR
 rows = [59,71,72,73]
-makeTable('IMREvent.tex',rows,last)
+makeTable('eventTabs/IMREvent.tex',rows,last)
 
 ## Inputs
-rows = [75,76,77,80,81,82]
-makeTable('InputEvent.tex',rows,last)
+rows = [75,76,77,78,79,80]
+makeTable('eventTabs/InputEvent.tex',rows,last)
 
 ## Systems Spillovers
-rows = [40,41,84,85]
-makeTable('SystemsEvent.tex',rows,last)
+rows = [40,41,42,85]
+makeTable('eventTabs/SystemsEvent.tex',rows,last)
 
 ## Geographic Spillovers
 rows = [89,90,91,86,87,88]
-makeTable('SpilloverEvent.tex',rows,last)
+makeTable('eventTabs/SpilloverEvent.tex',rows,last)
 
 ## Adults
 rows = [93,94,95,97,98,99]
-makeTable('AdultEvent.tex',rows,last)
+makeTable('eventTabs/AdultEvent.tex',rows,last)
 
 
 #---------------------------------------------------------------------
@@ -87,26 +87,26 @@ last = len(lines)-1
 
 ## Spending                    
 rows = [5,6,15,16,17,18,19,20]
-makeTable('SpendEventAB_1.tex',rows,last)
+makeTable('eventTabs/SpendEventAB_1.tex',rows,last)
 rows = [21,22,23,24,25,26,27,28]
-makeTable('SpendEventAB_2.tex',rows,last)
+makeTable('eventTabs/SpendEventAB_2.tex',rows,last)
 
 ## IMR
 rows = [117,118,141,142,143,144,145,146]
-makeTable('IMREventAB.tex',rows,last)
+makeTable('eventTabs/IMREventAB.tex',rows,last)
 
 ## Inputs
-rows = [149,150,151,152,153,154,159,160,161,162,163,164]
-makeTable('InputEventAB.tex',rows,last)
+rows = [149,150,151,152,153,154,155,156,157,158,159,160]
+makeTable('eventTabs/InputEventAB.tex',rows,last)
 
 ## Systems Spillovers
-rows = [79,80,81,82,167,168,169,170]
-makeTable('SystemsEventAB.tex',rows,last)
+rows = [79,80,81,82,83,84,169,170]
+makeTable('eventTabs/SystemsEventAB.tex',rows,last)
 
 ## Geographic Spillovers
 rows = [177,178,179,180,181,182,171,172,173,174,175,176]
-makeTable('SpilloverEventAB.tex',rows,last)
+makeTable('eventTabs/SpilloverEventAB.tex',rows,last)
 
 ## Adults
 rows = [185,186,187,188,189,190,193,194,195,196,197,198]
-makeTable('AdultEventAB.tex',rows,last)
+makeTable('eventTabs/AdultEventAB.tex',rows,last)
