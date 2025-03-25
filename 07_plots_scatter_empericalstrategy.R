@@ -38,10 +38,10 @@ if(length(to_install)>0) install.packages(to_install)
 
 lapply(packages,require,character.only=TRUE)
 
-dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 
 # --------------------------------------------------------------------------------------------------
-output <- "C:/Users/Michel/Documents/GitHub/ec29/outputs/scatter_plots/"
+output <- "C:/Users/mszklo/Documents/GitHub/ec29/outputs/scatter_plots/"
 
 
 load(paste0(dir,"regs.RData"))
@@ -57,12 +57,18 @@ for (i in seq(1,10,1)){
   varname1 <- paste0("change0",i,"_","finbra_desp_saude_san_pcapita")
   varname2 <- paste0("change0",i,"_","siops_despsaude_pcapita")
   varname3 <- paste0("change0",i,"_","siops_pct_recproprios_ec29")
+  varname4 <- paste0("change0",i,"_","tx_mi")
+  varname5 <- paste0("change0",i,"_","tx_mi_icsap")
+  varname6 <- paste0("change0",i,"_","tx_mi_nicsap")
   
   df_plot <- df_plot %>% 
     group_by(cod_mun) %>% 
     mutate(!!varname1 := dplyr::lead(finbra_desp_saude_san_pcapita,i) - finbra_desp_saude_san_pcapita,
            !!varname2 := dplyr::lead(siops_despsaude_pcapita,i) - siops_despsaude_pcapita,
-           !!varname3 := dplyr::lead(siops_pct_recproprios_ec29,i) - siops_pct_recproprios_ec29) %>% 
+           !!varname3 := dplyr::lead(siops_pct_recproprios_ec29,i) - siops_pct_recproprios_ec29,
+           !!varname4 := dplyr::lead(tx_mi,i) - tx_mi,
+           !!varname5 := dplyr::lead(tx_mi_icsap,i) - tx_mi_icsap,
+           !!varname6 := dplyr::lead(tx_mi_nicsap,i) - tx_mi_nicsap) %>% 
     ungroup()
   
 }
@@ -70,6 +76,7 @@ for (i in seq(1,10,1)){
 df_plot <- df_plot %>% 
   filter(ano==2000)
 
+grep("change0",names(df_plot), value = T)
 
 
 # 2. Scatter plots
@@ -156,6 +163,235 @@ ggsave(filePDF,
        device = "pdf",
        width = 7, height = 6,
        units = "in")
+
+
+
+# Infant Mortality - Total 2000 - 2005
+
+scatter <- ggplot(df_plot %>% 
+                    filter(dist_ec29_baseline>-0.5) %>% 
+                    filter(change05_tx_mi>-150)
+                  ,
+                  aes(x = dist_ec29_baseline, y = change05_tx_mi)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
+  geom_smooth(method = "loess", color = "#ef8a62", se = FALSE) +
+  scale_y_continuous(limits = c(-150,100), breaks = seq(-150,100,50)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  labs(y = "Change in IMR \n 2000-2005",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 13),
+        legend.position="none")
+
+
+filePNG <- paste0(output,"scatter_dist_ec29_baseline_change05_imr.png")
+filePDF <- paste0(output,"scatter_dist_ec29_baseline_change05_imr.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
+# Infant Mortality - Total 2000 - 2010
+scatter <- ggplot(df_plot %>% 
+                    filter(dist_ec29_baseline>-0.5) %>% 
+                    filter(change010_tx_mi>-150)
+                  ,
+                  aes(x = dist_ec29_baseline, y = change010_tx_mi)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
+  geom_smooth(method = "loess", color = "#ef8a62", se = FALSE) +
+  scale_y_continuous(limits = c(-150,100), breaks = seq(-150,100,50)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  labs(y = "Change in IMR \n 2000-2010",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 13),
+        legend.position="none")
+
+
+filePNG <- paste0(output,"scatter_dist_ec29_baseline_change10_imr.png")
+filePDF <- paste0(output,"scatter_dist_ec29_baseline_change10_imr.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
+
+
+
+
+# Infant Mortality - Total 2000 - 2005 - ICSAP
+
+scatter <- ggplot(df_plot %>% 
+                    filter(dist_ec29_baseline>-0.5) %>% 
+                    filter(change05_tx_mi_icsap>-150)
+                  ,
+                  aes(x = dist_ec29_baseline, y = change05_tx_mi_icsap)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
+  geom_smooth(method = "loess", color = "#ef8a62", se = FALSE) +
+  scale_y_continuous(limits = c(-150,100), breaks = seq(-150,100,50)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  labs(y = "Change in IMR ICSAP \n 2000-2005",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 13),
+        legend.position="none")
+
+
+filePNG <- paste0(output,"scatter_dist_ec29_baseline_change05_imr_icsap.png")
+filePDF <- paste0(output,"scatter_dist_ec29_baseline_change05_imr_icsap.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
+# Infant Mortality - Total 2000 - 2010 - ICSAP
+scatter <- ggplot(df_plot %>% 
+                    filter(dist_ec29_baseline>-0.5) %>% 
+                    filter(change010_tx_mi_icsap>-250)
+                  ,
+                  aes(x = dist_ec29_baseline, y = change010_tx_mi_icsap)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
+  geom_smooth(method = "loess", color = "#ef8a62", se = FALSE) +
+  scale_y_continuous(limits = c(-150,100), breaks = seq(-150,100,50)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  labs(y = "Change in IMR ICSAP \n 2000-2010",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 13),
+        legend.position="none")
+
+
+filePNG <- paste0(output,"scatter_dist_ec29_baseline_change10_imr_icsap.png")
+filePDF <- paste0(output,"scatter_dist_ec29_baseline_change10_imr_icsap.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
+
+
+
+# Infant Mortality - Total 2000 - 2005 - NICSAP
+
+scatter <- ggplot(df_plot %>% 
+                    filter(dist_ec29_baseline>-0.5) %>% 
+                    filter(change05_tx_mi_nicsap>-150)
+                  ,
+                  aes(x = dist_ec29_baseline, y = change05_tx_mi_nicsap)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
+  geom_smooth(method = "loess", color = "#ef8a62", se = FALSE) +
+  scale_y_continuous(limits = c(-150,100), breaks = seq(-150,100,50)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  labs(y = "Change in IMR NICSAP \n 2000-2005",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 13),
+        legend.position="none")
+
+
+filePNG <- paste0(output,"scatter_dist_ec29_baseline_change05_imr_nicsap.png")
+filePDF <- paste0(output,"scatter_dist_ec29_baseline_change05_imr_nicsap.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
+# Infant Mortality - Total 2000 - 2010 - NICSAP
+scatter <- ggplot(df_plot %>% 
+                    filter(dist_ec29_baseline>-0.5) %>% 
+                    filter(change010_tx_mi_nicsap>-150)
+                  ,
+                  aes(x = dist_ec29_baseline, y = change010_tx_mi_nicsap)) +
+  geom_hline(yintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_vline(xintercept = 0, color = "#9e9d9d", size = 0.7, alpha = 1, linetype = "dotted") +
+  geom_point(aes(size = pop),color = "steelblue4", alpha = 0.2) +
+  geom_smooth(method = "loess", color = "#ef8a62", se = FALSE) +
+  scale_y_continuous(limits = c(-150,100), breaks = seq(-150,100,50)) +
+  scale_x_continuous(limits = c(-0.35,0.155),breaks = seq(-0.40,0.15,0.05)) +
+  labs(y = "Change in IMR NICSAP \n 2000-2010",
+       x = "Distance to the EC29 target") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size=15),
+        axis.text = element_text(size = 13),
+        legend.position="none")
+
+
+filePNG <- paste0(output,"scatter_dist_ec29_baseline_change10_imr_nicsap.png")
+filePDF <- paste0(output,"scatter_dist_ec29_baseline_change10_imr_nicsap.pdf")
+ggsave(filePNG,
+       plot = scatter,
+       device = "png",
+       width = 7, height = 6,
+       units = "in")
+
+ggsave(filePDF,
+       plot = scatter,
+       device = "pdf",
+       width = 7, height = 6,
+       units = "in")
+
 
 
 
