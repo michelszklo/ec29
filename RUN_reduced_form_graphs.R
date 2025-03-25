@@ -91,9 +91,10 @@ robustPlot <- function(var, combined_df) {
 
 robustPlotAB <- function(var, combined_df) {
   graph <- ggplot(combined_df, aes(x=year, y=estimates, color = target,linetype = controls)) + 
-    geom_line(size=1.2) +
+    # geom_line(size=1.2) +
     geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
     geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
+    geom_pointrange(aes(ymin = lb2, ymax = ub2), size=0.3, position = position_dodge(width=0.8),shape=15) +
     scale_x_continuous(breaks = seq(1998,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
     theme_light() +
     labs(y = var_name,
@@ -104,7 +105,10 @@ robustPlotAB <- function(var, combined_df) {
           axis.text = element_text(size = 10),
           legend.position="bottom",
           legend.title = element_blank(),
-          legend.text = element_text(size = 9))
+          legend.text = element_text(size = 9),
+          panel.grid = element_blank()) +
+    guides(color=guide_legend(nrow=2,byrow=TRUE),
+           linetype=guide_legend(nrow=2,byrow=TRUE)           ) 
   ggsave(paste0(dir,robust_folder,var,"_ab.pdf"),
          plot = graph,
          device = "pdf",
@@ -1251,7 +1255,7 @@ for (i in seq(4,15,1)){
 if(Sys.getenv("USERNAME")=="dcc213") {
   index <- data.frame(read.dta13("/home/dcc213/investigacion/2021/decentralization/github/ec29/indexes.dta"))
 } else {
-  index <- data.frame(read.dta13("C:/Users/Michel/Documents/GitHub/ec29/indexes.dta"))
+  index <- data.frame(read.dta13("C:/Users/mszklo/Documents/GitHub/ec29/indexes.dta"))
 }
 # merge indexes to main df
 all_df <- c("df")
