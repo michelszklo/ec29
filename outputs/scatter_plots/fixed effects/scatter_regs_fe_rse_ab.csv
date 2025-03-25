@@ -1,0 +1,97 @@
+"","Estimate","Std. Error","t value","Pr(>|t|)","var"
+"(Intercept)1",-0.00167149779225467,0.00380546544797397,-0.439236097425237,0.66050893568219,"% Change in Average Years of Study 
+ 1991-2000"
+"dist_ec29_baseline_below1",0.205047088673502,0.216433551245091,0.947390492342405,0.343484370828942,"% Change in Average Years of Study 
+ 1991-2000"
+"dist_ec29_baseline_above:dist_ec29_baseline1",0.100824803597837,0.231346510924464,0.435817264738246,0.662987618138579,"% Change in Average Years of Study 
+ 1991-2000"
+"dist_ec29_baseline:dist_ec29_baseline_below1",-2.278478484355,2.11766561695157,-1.0759387441134,0.282005151883487,"% Change in Average Years of Study 
+ 1991-2000"
+"(Intercept)3",-0.00192948016731262,0.00163612820294755,-1.17929644134034,0.238334274159171,"% Change in Illiteracy Rates 
+ 1991-2000"
+"dist_ec29_baseline_below3",0.101618404000018,0.0823435993532389,1.23407775222569,0.217229875011747,"% Change in Illiteracy Rates 
+ 1991-2000"
+"dist_ec29_baseline_above:dist_ec29_baseline3",-0.0326480994950059,0.0992693895676314,-0.328883854702894,0.742256763215686,"% Change in Illiteracy Rates 
+ 1991-2000"
+"dist_ec29_baseline:dist_ec29_baseline_below3",-0.719360823346763,0.756980962620596,-0.950302397112345,0.342002922117655,"% Change in Illiteracy Rates 
+ 1991-2000"
+"(Intercept)5",0.00114849392256227,0.00320123601193467,0.358765776181613,0.719784983677564,"% Change in Gini Coefficient 
+ 1991-2000"
+"dist_ec29_baseline_below5",-0.132576139979859,0.161887898632624,-0.81893792618012,0.412859620609555,"% Change in Gini Coefficient 
+ 1991-2000"
+"dist_ec29_baseline_above:dist_ec29_baseline5",0.236067536583636,0.226710887833777,1.04127128096609,0.29779840814831,"% Change in Gini Coefficient 
+ 1991-2000"
+"dist_ec29_baseline:dist_ec29_baseline_below5",1.16519809222732,1.51118391375388,0.771049824989794,0.440712676176299,"% Change in Gini Coefficient 
+ 1991-2000"
+"(Intercept)7",0.00340031443697257,0.0078474220128739,0.433303374202925,0.664812370186272,"% Change in the Share of Pop in Extreme Poverty 
+ 1991-2000"
+"dist_ec29_baseline_below7",-0.433506113236239,0.349606048711139,-1.2399845907541,0.215037077257502,"% Change in the Share of Pop in Extreme Poverty 
+ 1991-2000"
+"dist_ec29_baseline_above:dist_ec29_baseline7",1.04871206650708,0.802486982829555,1.30682751115705,0.191329121891452,"% Change in the Share of Pop in Extreme Poverty 
+ 1991-2000"
+"dist_ec29_baseline:dist_ec29_baseline_below7",2.95742610188078,3.04455837661121,0.971380980768903,0.331403802725627,"% Change in the Share of Pop in Extreme Poverty 
+ 1991-2000"
+"(Intercept)9",0.00320833442244061,0.003945486628814,0.813165706610194,0.416160445671993,"% Change in the Share of Pop in Poverty 
+ 1991-2000"
+"dist_ec29_baseline_below9",-0.399512003009033,0.175526249678229,-2.27608123423938,0.0228818021494588,"% Change in the Share of Pop in Poverty 
+ 1991-2000"
+"dist_ec29_baseline_above:dist_ec29_baseline9",0.419451105613574,0.390680587923435,1.07364204564926,0.283033175680671,"% Change in the Share of Pop in Poverty 
+ 1991-2000"
+"dist_ec29_baseline:dist_ec29_baseline_below9",3.45271045280835,1.53826118009228,2.2445541092061,0.0248388300133247,"% Change in the Share of Pop in Poverty 
+ 1991-2000"
+"(Intercept)11",-0.00355267371937157,0.00689669589035125,-0.515126921043728,0.606486496395417,"% Change in Income Per Capita 
+ 1991-2000"
+"dist_ec29_baseline_below11",0.376476230907578,0.338939133489808,1.1107487855748,0.266728483413181,"% Change in Income Per Capita 
+ 1991-2000"
+"dist_ec29_baseline_above:dist_ec29_baseline11",0.369211697330401,0.540818447924914,0.682690649231813,0.494833123807173,"% Change in Income Per Capita 
+ 1991-2000"
+"dist_ec29_baseline:dist_ec29_baseline_below11",-3.29636068870262,3.12171797203043,-1.05594442490864,0.291043263148978,"% Change in Income Per Capita 
+ 1991-2000"
+"(Intercept)13",0.0881985459798207,0.047705685162341,1.84880576978789,0.0645427110446099,"% Change in the Share of Pop with Access to Water 
+ 1991-2000"
+"dist_ec29_baseline_below13",-2.08161871426744,2.16488131781039,-0.961539414258901,0.336325820863532,"% Change in the Share of Pop with Access to Water 
+ 1991-2000"
+"dist_ec29_baseline_above:dist_ec29_baseline13",1.95738463394176,3.74679790374581,0.522415322156792,0.601403491690407,"% Change in the Share of Pop with Access to Water 
+ 1991-2000"
+"dist_ec29_baseline:dist_ec29_baseline_below13",-10.3788134483923,19.8752365218972,-0.522198235827664,0.601554605111097,"% Change in the Share of Pop with Access to Water 
+ 1991-2000"
+"(Intercept)15",-0.10669149424174,0.0725073081156426,-1.47145849176441,0.141227817000059,"% Change in the Share of Pop with Access to Garbage Collection 
+ 1991-2000"
+"dist_ec29_baseline_below15",-3.05934053553929,4.53600465958563,-0.674457097188866,0.500050804801384,"% Change in the Share of Pop with Access to Garbage Collection 
+ 1991-2000"
+"dist_ec29_baseline_above:dist_ec29_baseline15",4.74017449826018,5.41657530614996,0.875123898467396,0.381547006813884,"% Change in the Share of Pop with Access to Garbage Collection 
+ 1991-2000"
+"dist_ec29_baseline:dist_ec29_baseline_below15",72.564597392229,48.1196076735975,1.50800475939965,0.131614198882408,"% Change in the Share of Pop with Access to Garbage Collection 
+ 1991-2000"
+"(Intercept)17",0.0237890661675636,0.0131469024506118,1.80948069379312,0.0704341522784292,"% Change in the Share of Pop with Access to Eletricity 
+ 1991-2000"
+"dist_ec29_baseline_below17",-0.464361846029782,0.60628437031506,-0.765914261963365,0.443762130137594,"% Change in the Share of Pop with Access to Eletricity 
+ 1991-2000"
+"dist_ec29_baseline_above:dist_ec29_baseline17",1.40104272343602,1.49131771191044,0.939466293631842,0.347535084576266,"% Change in the Share of Pop with Access to Eletricity 
+ 1991-2000"
+"dist_ec29_baseline:dist_ec29_baseline_below17",-3.94195770572305,5.14021663135127,-0.766885520287259,0.443184445204362,"% Change in the Share of Pop with Access to Eletricity 
+ 1991-2000"
+"(Intercept)19",-0.0221055537416578,0.128416399397121,-0.172139647626294,0.863334496972637,"% Change in the Share of Pop with Access to Adequate Water and Sewage 
+ 1991-2000"
+"dist_ec29_baseline_below19",1.24046880295445,7.26540104235482,0.170736452911951,0.864437695116894,"% Change in the Share of Pop with Access to Adequate Water and Sewage 
+ 1991-2000"
+"dist_ec29_baseline_above:dist_ec29_baseline19",-13.1224542587476,5.0617933875746,-2.59245157871513,0.00955635136233698,"% Change in the Share of Pop with Access to Adequate Water and Sewage 
+ 1991-2000"
+"dist_ec29_baseline:dist_ec29_baseline_below19",7.23480187801856,70.8268584289451,0.102147716819554,0.91864339714645,"% Change in the Share of Pop with Access to Adequate Water and Sewage 
+ 1991-2000"
+"(Intercept)21",0.00375271683156464,0.00301966915405744,1.24275761353598,0.214013888711635,"% Change in HDI 
+ 1991-2000"
+"dist_ec29_baseline_below21",-0.151183991355715,0.15591850852678,-0.969634668675324,0.332274275915852,"% Change in HDI 
+ 1991-2000"
+"dist_ec29_baseline_above:dist_ec29_baseline21",0.128432133965889,0.231033388655557,0.555902913917633,0.578301436426281,"% Change in HDI 
+ 1991-2000"
+"dist_ec29_baseline:dist_ec29_baseline_below21",0.513641157608082,1.47626597502172,0.347932666808583,0.727905007529444,"% Change in HDI 
+ 1991-2000"
+"(Intercept)22",0.0670473954359452,0.0425610507151808,1.57532284352253,0.115259665315405,"% Change in Healh and Sanitation Spending per capita (FINBRA) 
+ 1998-2000"
+"dist_ec29_baseline_below22",-5.9768459835426,2.73687655693286,-2.18382008074222,0.0290323731216429,"% Change in Healh and Sanitation Spending per capita (FINBRA) 
+ 1998-2000"
+"dist_ec29_baseline_above:dist_ec29_baseline22",0.708980299478146,1.36806999427254,0.518233937186188,0.604323229341437,"% Change in Healh and Sanitation Spending per capita (FINBRA) 
+ 1998-2000"
+"dist_ec29_baseline:dist_ec29_baseline_below22",49.0464933872095,31.2869612678124,1.5676336531176,0.117044392498701,"% Change in Healh and Sanitation Spending per capita (FINBRA) 
+ 1998-2000"

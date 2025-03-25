@@ -1,0 +1,25 @@
+;Estimate;Std. Error;t value;Pr(>|t|);var
+(Intercept);0.841561229;0.016602383;50.68918367;0;Change in Average Years of Study 
+dist_ec29_baseline;0.158714924;0.245960401;0.645286489;0.518769897;Change in Average Years of Study 
+(Intercept)1;-9.181711878;0.071366773;-128.6552765;0;Change in Illiteracy Rates 
+dist_ec29_baseline1;0.14547365;1.052070946;0.138273613;0.890029511;Change in Illiteracy Rates 
+(Intercept)2;0.020546592;0.001158366;17.73757012;2.1095E-68;Change in Gini Coefficient 
+dist_ec29_baseline2;-0.008209577;0.016276523;-0.504381491;0.614014603;Change in Gini Coefficient 
+(Intercept)3;-0.103305022;0.00140014;-73.78194317;0;Change in the Share of Pop in Extreme Poverty 
+dist_ec29_baseline3;-0.045403968;0.020425074;-2.222952453;0.026261657;Change in the Share of Pop in Extreme Poverty 
+(Intercept)4;-0.157600005;0.001388961;-113.4661304;0;Change in the Share of Pop in Poverty 
+dist_ec29_baseline4;-0.059882137;0.019381351;-3.089678112;0.002014294;Change in the Share of Pop in Poverty 
+(Intercept)5;105.5145051;1.175318704;89.77522845;0;Change in Income Per Capita 
+dist_ec29_baseline5;23.03875236;16.30833203;1.412698264;0.157804057;Change in Income Per Capita 
+(Intercept)6;13.30239367;0.184752192;72.00127672;0;Change in the Share of Pop with Access to Water 
+dist_ec29_baseline6;0.949114257;2.639051199;0.35964223;0.719129242;Change in the Share of Pop with Access to Water 
+(Intercept)7;28.35427757;0.358374332;79.11916402;0;Change in the Share of Pop with Access to Garbage Collection 
+dist_ec29_baseline7;23.07982928;5.028223595;4.590056279;4.53515E-06;Change in the Share of Pop with Access to Garbage Collection 
+(Intercept)8;16.58101754;0.202550342;81.86121707;0;Change in the Share of Pop with Access to Eletricity 
+dist_ec29_baseline8;6.707768331;3.025891325;2.216790892;0.026680304;Change in the Share of Pop with Access to Eletricity 
+(Intercept)9;-4.107097154;0.31298506;-13.1223425;9.99729E-39;Change in the Share of Pop with Access to Adequate Water and Sewage 
+dist_ec29_baseline9;10.70889555;4.995541784;2.143690517;0.032103742;Change in the Share of Pop with Access to Adequate Water and Sewage 
+(Intercept)10;0.143353394;0.000431042;332.574118;0;Change in HDI 
+dist_ec29_baseline10;-0.022180879;0.006328393;-3.504978409;0.000460652;Change in HDI 
+(Intercept)11;11.04349037;1.696102861;6.511097072;8.36626E-11;Change in Healh and Sanitation Spending per capita (FINBRA) 
+dist_ec29_baseline11;-146.6533861;27.54812581;-5.323534062;1.07251E-07;Change in Healh and Sanitation Spending per capita (FINBRA) 
