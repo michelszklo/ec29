@@ -43,8 +43,11 @@ options(digits = 15)
 # SET PATH FOR EC 29-2000 ON YOUR COMPUTER
 # ------------------------------------
 
-dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
-
+if(Sys.getenv("USERNAME")=="dcc213") {
+  dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
+} else {
+  dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+}
 # ------------------------------------
 
 
@@ -86,6 +89,25 @@ for (i in seq(1,16,1)){
   print(var_name)
   
   regress_output_imr(var,var_name,3,1998,"peso_pop")
+  
+  
+  if(exists("df_table_all")){
+    df_table_all <- rbind(df_table_all,table_all)
+    
+  } else {
+    
+    df_table_all <- table_all
+    
+  }
+  
+}
+
+for (i in seq(1,16,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  
+  regress_output_imr(var,var_name,3,1998,"reweightPop")
   
   
   if(exists("df_table_all")){

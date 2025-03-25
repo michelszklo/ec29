@@ -43,7 +43,11 @@ lapply(packages,require,character.only=TRUE)
 # SET PATH FOR EC 29-2000 ON YOUR COMPUTER
 # ------------------------------------
 
-dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+if(Sys.getenv("USERNAME")=="dcc213") {
+  dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
+} else {
+  dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+}
 
 # ------------------------------------
 
@@ -303,42 +307,43 @@ ams_vars <- grep("_pcapita",grep("ams",names(df),value = T),value = T)
 df <- df %>% 
   mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
 
-df_low_ineq <- df_low_ineq %>% 
-  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
-df_high_ineq <- df_high_ineq %>% 
-  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+#DC
+#df_low_ineq <- df_low_ineq %>% 
+#  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+#df_high_ineq <- df_high_ineq %>% 
+#  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
 
-df_low_pov <- df_low_pov %>% 
-  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
-df_high_pov <- df_high_pov %>% 
-  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+#df_low_pov <- df_low_pov %>% 
+#  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+#df_high_pov <- df_high_pov %>% 
+#  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
 
-df_low_hi <- df_low_hi %>% 
-  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
-df_high_hi <- df_high_hi %>% 
-  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+#df_low_hi <- df_low_hi %>% 
+#  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+#df_high_hi <- df_high_hi %>% 
+#  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
 
-df_first <- df_first %>% 
-  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+#df_first <- df_first %>% 
+#  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
 
-df_second <- df_second %>% 
-  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
+#df_second <- df_second %>% 
+#  mutate_at(ams_vars, function(x) ifelse(.$ano==2000,dplyr::lag(x,1),x))
 
 
 summary_stat(df %>% mutate(pop = pop/1000),2000,"stats_2000")
 
 
-summary_stat(df_low_ineq %>%  mutate(pop = pop/1000),2000,"stats_2000_low_ineq")
-summary_stat(df_high_ineq %>%  mutate(pop = pop/1000),2000,"stats_2000_high_ineq")
+#summary_stat(df_low_ineq %>%  mutate(pop = pop/1000),2000,"stats_2000_low_ineq")
+#summary_stat(df_high_ineq %>%  mutate(pop = pop/1000),2000,"stats_2000_high_ineq")
 
-summary_stat(df_low_pov %>%  mutate(pop = pop/1000),2000,"stats_2000_low_pov")
-summary_stat(df_high_pov %>%  mutate(pop = pop/1000),2000,"stats_2000_high_pov")
+#summary_stat(df_low_pov %>%  mutate(pop = pop/1000),2000,"stats_2000_low_pov")
+#summary_stat(df_high_pov %>%  mutate(pop = pop/1000),2000,"stats_2000_high_pov")
 
-summary_stat(df_low_hi %>%  mutate(pop = pop/1000),2000,"stats_2000_low_hi")
-summary_stat(df_high_hi %>%  mutate(pop = pop/1000),2000,"stats_2000_high_hi")
+#summary_stat(df_low_hi %>%  mutate(pop = pop/1000),2000,"stats_2000_low_hi")
+#summary_stat(df_high_hi %>%  mutate(pop = pop/1000),2000,"stats_2000_high_hi")
 
-summary_stat(df_first %>% mutate(pop = pop/1000),2000,"stats_2000_first")
-summary_stat(df_second %>% mutate(pop = pop/1000),2000,"stats_2000_second")
+#summary_stat(df_first %>% mutate(pop = pop/1000),2000,"stats_2000_first")
+#summary_stat(df_second %>% mutate(pop = pop/1000),2000,"stats_2000_second")
 
 
 # 6. Two sample t-test (first and second term)
@@ -454,6 +459,7 @@ sample <- c("","full","full","full","full","full",
 
 stats <- rbind(sample,stats)
 
+output_file <- "DCstats.xlsx"
 write.xlsx2(stats, file = paste0(dir,main_folder,output_file),sheetName = "descriptive",row.names = F,append = T)
 
 
