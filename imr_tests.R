@@ -1,8 +1,8 @@
 #######################################################################################################
 # Author: Michel Szklo
-# April 2022
+# June 2024
 # 
-# This scripts runs reduced form graphs for all outcomes
+# This scripts analyses IMR data in 1996 and 1997 to remove outliers and run regressions for the period
 #
 #
 #######################################################################################################
@@ -193,15 +193,23 @@ df <- df %>%
 
 # alternative outliers removal (median and MAD)
 df <- df %>% 
+  # mutate(tx_mi2 = tx_mi) %>% 
+  # mutate(tx_mi2 = ifelse(tx_mi2==0,0.2,tx_mi2)) %>% 
   mutate(ln_tx_mi = log(tx_mi)) %>% 
   mutate(ln_tx_mi = ifelse(is.infinite(ln_tx_mi),NA,ln_tx_mi)) %>% 
   select(ln_tx_mi, everything()) %>% 
-  group_by(cod_mun) %>% 
+  # group_by(cod_mun) %>% 
+  group_by(ano) %>% 
   mutate(median = median(ln_tx_mi,na.rm = T),
-         mad = mad(ln_tx_mi, na.rm = T)) %>% 
+         mad = mad(ln_tx_mi, na.rm = T),
+         mean = mean(ln_tx_mi, na.rm = T),
+         sd = sd(ln_tx_mi, na.rm = T)) %>%
+  ungroup() %>% 
   mutate(out = 0) %>% 
-  mutate(out = ifelse(ln_tx_mi>(median+2.5*mad),1,out)) %>% 
-  mutate(out = ifelse(ln_tx_mi<(median-2.5*mad),1,out)) %>%
+  # mutate(out = ifelse(ln_tx_mi>(median+2*mad),1,out)) %>% 
+  # mutate(out = ifelse(ln_tx_mi<(median-2*mad),1,out)) %>%
+  mutate(out = ifelse(ln_tx_mi>(mean+2*sd),1,out)) %>%
+  group_by(cod_mun) %>% 
   mutate(out2 = max(out,na.rm = T)) %>% 
   ungroup() %>% 
   select(median,mad,out,out2,everything())
@@ -211,19 +219,39 @@ plot_out <- df %>%
   group_by(ano) %>% 
   summarize(outs = mean(out))
 
+plot_out2 <- df %>% 
+  filter(out==1) %>% 
+  group_by(ano) %>% 
+  summarize(tx_mi_outliers = mean(tx_mi,na.rm = T))
+
+plot_out <- plot_out %>% 
+  left_join(plot_out2, by = "ano")
+
+rm(plot_out2)
+
 
 plot <- plot_out %>% 
-  ggplot(aes(x = ano, y = outs)) +
-  geom_line(size = 1.2, color = "#440154") +
+  ggplot(aes(x = ano)) +
+  geom_line(size = 1.2, color = "#440154",aes(y = outs)) +
+  geom_line(size = 1.2, color = "#21918c",aes(y = tx_mi_outliers/20000)) +
+  scale_y_continuous(
+    name = "Share of outliers",
+    sec.axis = sec_axis(~ . * 20000, name = "Avg. IMR of outliers"),
+    breaks = seq(0,0.1,0.02)# Adjust the scale back
+  ) +
   scale_x_continuous(breaks = seq(1996,year_cap,1), limits = c(1995.5,year_cap+0.5)) +
   theme_light() +
-  labs(y = "Share of outliers",
-       x = "Year") +
+  labs(x = "Year") +
   theme(plot.title = element_text(size = 10, face = "bold"),
         axis.title.x = element_text(size=10),
         axis.text = element_text(size = 10),
         legend.position="bottom",
-        legend.title = element_blank())
+        legend.title = element_blank(),
+        axis.title.y.left = element_text(color = "#440154"),
+        axis.text.y.left = element_text(color = "#440154"),
+        axis.title.y.right = element_text(color = "#21918c"),
+        axis.text.y.right = element_text(color = "#21918c"),
+        panel.grid = element_blank())
 ggsave(paste0(dir,main_folder,yearly_folder,"outliers.pdf"),
        plot = plot,
        device = "pdf",
@@ -241,27 +269,98 @@ df2 <- df %>% filter(out2==0)
 
 # Rudi's approach
 df <- df %>% 
-  mutate(mean = mean(ln_tx_mi,na.rm = T),
-         sd = sd(ln_tx_mi, na.rm = T)) %>%
-  mutate(out = 0) %>% 
-  mutate(out = ifelse(ln_tx_mi>(mean+1*mad),1,out)) %>% 
-  mutate(out = ifelse(ln_tx_mi<(median-1*mad),1,out)) %>%
-  mutate(out2 = max(out,na.rm = T)) %>% 
+  group_by(cod_mun) %>% 
+  mutate(mean = mean(tx_mi,na.rm = T),
+         sd = sd(tx_mi, na.rm = T)) %>% 
   ungroup() %>% 
-  select(median,mad,out,out2,everything())
+  mutate(p95 = quantile(sd, probs = 0.95, na.rm = T),
+         out3 = 0) %>% 
+  mutate(out3 = ifelse(sd>p95,1,out3)) %>% 
+  select(mean,sd,out,out2,out3,everything())
+
+# descriptive on samples
+desc <- df %>% 
+  filter(ano==1996) %>% 
+  group_by(out3) %>% 
+  summarize(mean = mean(tx_mi, na.rm = T),
+            sd = sd(tx_mi,na.rm = T),
+            n = n())
+
 
 
 plot_out2 <- df %>%
-  mutate(out = ifelse(is.na(out),0,out)) %>% 
-  group_by(ano) %>% 
-  summarize(outs = mean(out))
+  group_by(ano, out3) %>% 
+  summarize(tx_mi = mean(tx_mi, na.rm = T),
+            number = n()) %>% 
+  mutate(out3 = as.character(out3)) %>% 
+  mutate(out3 = ifelse(out3==1,"1. Outliers Sample (95 %ile of within Municipality SD)","2. Rest of the Sample"))
 
-# unbalanced painel
-df3 <- df %>% filter(out==0)
+
+
+plot <- plot_out2 %>% 
+  ggplot(aes(x = ano, y = tx_mi, color = out3)) +
+  geom_line(size = 1.2) +
+  scale_x_continuous(breaks = seq(1996,year_cap,1), limits = c(1995.5,year_cap+0.5)) +
+  theme_light() +
+  labs(x = "Year",
+       y = "Average IMR") +
+  # scale_color_viridis_d() +
+  scale_color_manual(values = c("#440154","#21918c")) +
+  theme(plot.title = element_text(size = 10, face = "bold"),
+        axis.title.x = element_text(size=10),
+        axis.text = element_text(size = 10),
+        legend.position="bottom",
+        legend.title = element_blank(),
+        panel.grid = element_blank()) +
+  guides(color=guide_legend(nrow=2,byrow=TRUE))
+ggsave(paste0(dir,main_folder,yearly_folder,"outliers.pdf"),
+       plot = plot,
+       device = "pdf",
+       width = 7, height = 5,
+       units = "in")
+
+
+
+plot_out3 <- df %>% 
+  mutate(share = 0) %>% 
+  mutate(share = ifelse(tx_mi>mean+2*sd,1,share)) %>% 
+  group_by(ano,out3) %>% 
+  summarize(share = mean(share,na.rm = T)) %>% 
+  ungroup() %>% 
+  mutate(line = ifelse(out3==0,
+                       "if IMR > Mean + 2 SD (within municipalities)",
+                       "if IMR > Mean + 2 SD (within municipalities), and SD > %ile 95"))
+
+
+plot <- plot_out3 %>% 
+  ggplot(aes(x = ano, y = share, color = line, group = line)) +
+  geom_line(size = 1.2) +
+  scale_x_continuous(breaks = seq(1996,year_cap,1), limits = c(1995.5,year_cap+0.5)) +
+  theme_light() +
+  labs(x = "Year",
+       y = "Share of outliers") +
+  # scale_color_viridis_d() +
+  scale_color_manual(values = c("#440154","#21918c")) +
+  theme(plot.title = element_text(size = 10, face = "bold"),
+        axis.title.x = element_text(size=10),
+        axis.text = element_text(size = 10),
+        legend.position="bottom",
+        legend.title = element_blank(),
+        panel.grid = element_blank()) +
+  guides(color=guide_legend(nrow=2,byrow=TRUE))
+ggsave(paste0(dir,main_folder,yearly_folder,"outliers2.pdf"),
+       plot = plot,
+       device = "pdf",
+       width = 7, height = 5,
+       units = "in")
+
+
+
+
+
 
 # balanced painel
-df4 <- df %>% filter(out2==0)
-
+df3 <- df %>% filter(out3==0)
 
 # 
 # 
@@ -858,25 +957,24 @@ reduced_yearly_ab_imr2 <- function(outcome,var_name,df,transform,year_filter,y0,
 
 
 
-for (i in seq(1,16,1)){
+for (i in seq(1,1,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_imr2(var,var_name,df1,3,1996,-100,200,20,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  reduced_yearly_imr2(var,var_name,df3,3,1996,-100,200,20,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
   table1 <- table %>% 
-    mutate(sample = "2. Remove Outliers (Unbalanced panel)")
-  reduced_yearly_imr2(var,var_name,df2,3,1996,-100,200,20,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  table2 <- table %>% 
-    mutate(sample = "3. Remove Outliers (Balanced panel)")
-  reduced_yearly_imr(var,var_name,df2 %>% filter(ano>1997),3,1998,-100,200,20,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  table3 <- table %>% 
-    mutate(sample = "4. Benchmark - Outliers (Balanced Panel)")
-  reduced_yearly_imr(var,var_name,df %>% filter(ano>1997),3,1998,-100,200,20,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  table4 <- table %>% 
-    mutate(sample = "1. Benchmark")
+    mutate(sample = "2. Remove Outliers (95 %ile of within Municipality SD)")
   
-  table_final <- bind_rows(table1, table2, table3, table4)
-  rm(table1, table2, table3, table4)
+  reduced_yearly_imr(var,var_name,df3 %>% filter(ano>1997),3,1998,-100,200,20,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  table2 <- table %>% 
+    mutate(sample = "3. Benchmark w/o Outliers")
+  
+  reduced_yearly_imr(var,var_name,df %>% filter(ano>1997),3,1998,-100,200,20,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  table3 <- table %>% 
+    mutate(sample = "1. Benchmark (main regression)")
+  
+  table_final <- bind_rows(table1, table2, table3)
+  rm(table1, table2, table3)
   
   
   graph <- table_final %>% 
@@ -895,7 +993,8 @@ for (i in seq(1,16,1)){
           axis.title.x = element_text(size=10),
           axis.text = element_text(size = 10),
           legend.position="bottom",
-          legend.title = element_blank()) +
+          legend.title = element_blank(),
+          panel.grid = element_blank()) +
     guides(color=guide_legend(nrow=2,byrow=TRUE))
   ggsave(paste0(dir,main_folder,yearly_folder,"1_cont_level_",i,"_",var,"_","robust.pdf"),
          plot = graph,
@@ -904,34 +1003,138 @@ for (i in seq(1,16,1)){
          units = "in")
   
   
+  graph <- table_final %>% 
+    ggplot(aes(x=year, y=estimate, color = sample)) + 
+    # geom_point(size=1.2,position = position_dodge(width=0.4)) +
+    geom_pointrange(aes(ymin = lb2, ymax = ub2), size=0.3, position = position_dodge(width=0.8),shape=15) +
+    geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
+    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
+    scale_x_continuous(breaks = seq(1996,year_cap,1), limits = c(1995.5,year_cap+0.5)) +
+    theme_light() +
+    scale_color_viridis_d() +
+    labs(y = var_name,
+         x = "Year",
+         color = "Specification") +
+    theme(plot.title = element_text(size = 10, face = "bold"),
+          axis.title.x = element_text(size=10),
+          axis.text = element_text(size = 10),
+          legend.position="bottom",
+          legend.title = element_blank(),
+          panel.grid = element_blank()) +
+    guides(shape=guide_legend(nrow=2,byrow=TRUE),
+           color=guide_legend(nrow=2,byrow=TRUE)) 
+  ggsave(paste0(dir,main_folder,yearly_folder,"1_cont_level_",i,"_",var,"_","robust_2.pdf"),
+         plot = graph,
+         device = "pdf",
+         width = 7, height = 5,
+         units = "in")
+  
+  
+  # separate by sample
+  graph <- table_final %>% filter(sample=="1. Benchmark (main regression)") %>% 
+    ggplot(aes(x = year, y = estimate))+
+    geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
+    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
+    geom_point(size = 1.2, alpha = 1,color = "grey20",shape=0,stroke = 0.8) +
+    geom_ribbon(aes(ymin = lb, ymax = ub),color = NA, alpha = 0.2) +
+    scale_x_continuous(breaks = seq(1996,year_cap,1), limits = c(1995.5,year_cap+0.5)) +
+    scale_y_continuous(breaks = seq(-30,30,10), limits = c(-30,30)) +
+    theme_light() +
+    labs(y = "Infant Mortality Rate",
+         x = "Year",
+         shape = "Specification") +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.title.x = element_text(size=10),
+          plot.title = element_text(size = 10, face = "bold"),
+          axis.text = element_text(size = 10),
+          legend.position="bottom")
+  
+  ggsave(paste0(dir,main_folder,yearly_folder,"1_cont_level_",i,"_",var,"_","robust_sample1.pdf"),
+         plot = graph,
+         device = "pdf",
+         width = 7, height = 5,
+         units = "in")
+  
+  
+  graph <- table_final %>% filter(sample=="2. Remove Outliers (95 %ile of within Municipality SD)") %>% 
+    ggplot(aes(x = year, y = estimate))+
+    geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
+    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
+    geom_point(size = 1.2, alpha = 1,color = "grey20",shape=0,stroke = 0.8) +
+    geom_ribbon(aes(ymin = lb, ymax = ub),color = NA, alpha = 0.2) +
+    scale_x_continuous(breaks = seq(1996,year_cap,1), limits = c(1995.5,year_cap+0.5)) +
+    scale_y_continuous(breaks = seq(-30,30,10), limits = c(-30,30)) +
+    theme_light() +
+    labs(y = "Infant Mortality Rate",
+         x = "Year",
+         shape = "Specification") +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.title.x = element_text(size=10),
+          plot.title = element_text(size = 10, face = "bold"),
+          axis.text = element_text(size = 10),
+          legend.position="bottom")
+  
+  ggsave(paste0(dir,main_folder,yearly_folder,"1_cont_level_",i,"_",var,"_","robust_sample2.pdf"),
+         plot = graph,
+         device = "pdf",
+         width = 7, height = 5,
+         units = "in")
+  
+  graph <- table_final %>% filter(sample=="3. Benchmark w/o Outliers") %>% 
+    ggplot(aes(x = year, y = estimate))+
+    geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
+    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
+    geom_point(size = 1.2, alpha = 1,color = "grey20",shape=0,stroke = 0.8) +
+    geom_ribbon(aes(ymin = lb, ymax = ub),color = NA, alpha = 0.2) +
+    scale_x_continuous(breaks = seq(1996,year_cap,1), limits = c(1995.5,year_cap+0.5)) +
+    scale_y_continuous(breaks = seq(-30,30,10), limits = c(-30,30)) +
+    theme_light() +
+    labs(y = "Infant Mortality Rate",
+         x = "Year",
+         shape = "Specification") +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.title.x = element_text(size=10),
+          plot.title = element_text(size = 10, face = "bold"),
+          axis.text = element_text(size = 10),
+          legend.position="bottom")
+  
+  ggsave(paste0(dir,main_folder,yearly_folder,"1_cont_level_",i,"_",var,"_","robust_sample3.pdf"),
+         plot = graph,
+         device = "pdf",
+         width = 7, height = 5,
+         units = "in")
+  
   
 }
 
 
-for (i in seq(1,16,1)){
+for (i in seq(1,1,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_ab_imr2(var,var_name,df1,3,1996,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  reduced_yearly_ab_imr2(var,var_name,df3,3,1996,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
   table1 <- table %>% 
-    mutate(sample = "2. Remove Outliers (Unbalanced panel)")
-  reduced_yearly_ab_imr2(var,var_name,df2,3,1996,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  table2 <- table %>% 
-    mutate(sample = "3. Remove Outliers (Balanced panel)")
-  reduced_yearly_ab_imr(var,var_name,df2 %>% filter(ano>1997),3,1998,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  table3 <- table %>% 
-    mutate(sample = "4. Benchmark - Outliers (Balanced Panel)")
-  reduced_yearly_ab_imr(var,var_name,df %>% filter(ano>1997),3,1998,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  table4 <- table %>% 
-    mutate(sample = "1. Benchmark")
+    mutate(sample = "2. Remove Outliers (95 %ile of within Municipality SD)")
   
-  table_final <- bind_rows(table1, table2, table3, table4)
-  rm(table1, table2, table3, table4)
+  reduced_yearly_ab_imr(var,var_name,df3 %>% filter(ano>1997),3,1998,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  table2 <- table %>% 
+    mutate(sample = "3. Benchmark w/o Outliers")
+  
+  reduced_yearly_ab_imr(var,var_name,df %>% filter(ano>1997),3,1998,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  table3 <- table %>% 
+    mutate(sample = "1. Benchmark (main regression)")
+  
+  table_final <- bind_rows(table1, table2, table3)
+  rm(table1, table2, table3)
   
   
   graph <- table_final %>% 
     ggplot(aes(x=year, y=estimate, color = target,linetype = sample)) + 
     geom_line(size=0.8) +
+    geom_errorbar(aes(ymin = lb2, ymax = ub2), width=0.1, position = position_dodge(width=0.3)) +
     geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
     geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
     scale_x_continuous(breaks = seq(1996,year_cap,1), limits = c(1995.5,year_cap+0.5)) +
@@ -945,8 +1148,10 @@ for (i in seq(1,16,1)){
           axis.text = element_text(size = 10),
           legend.position="bottom",
           legend.title = element_blank(),
-          legend.text = element_text(size = 9)) +
-    guides(linetype=guide_legend(nrow=2,byrow=TRUE))
+          legend.text = element_text(size = 9),
+          panel.grid = element_blank()) +
+    guides(linetype=guide_legend(nrow=2,byrow=TRUE),
+           color=guide_legend(nrow=2,byrow=TRUE))
   ggsave(paste0(dir,main_folder,yearly_folder,"2_ab_level_",i,"_",var,"_","robust.pdf"),
          plot = graph,
          device = "pdf",
@@ -954,6 +1159,115 @@ for (i in seq(1,16,1)){
          units = "in")
   
   
+  graph <- table_final %>% 
+    ggplot(aes(x=year, y=estimate, color = target, linetype = sample)) + 
+    # geom_point(size=1.2,position = position_dodge(width=0.4)) +
+    geom_pointrange(aes(ymin = lb2, ymax = ub2), size=0.2, position = position_dodge(width=0.9),shape=15) +
+    geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
+    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
+    scale_x_continuous(breaks = seq(1996,year_cap,1), limits = c(1995.5,year_cap+0.5)) +
+    theme_light() +
+    labs(y = var_name,
+         x = "Year",
+         color = "target",
+         linetype = "spec") +
+    theme(plot.title = element_text(size = 10, face = "bold"),
+          axis.title.x = element_text(size=10),
+          axis.text = element_text(size = 10),
+          legend.position="bottom",
+          legend.title = element_blank(),
+          panel.grid = element_blank()) +
+    guides(linetype=guide_legend(nrow=2,byrow=TRUE),
+           color=guide_legend(nrow=2,byrow=TRUE)) 
+  ggsave(paste0(dir,main_folder,yearly_folder,"2_ab_level_",i,"_",var,"_","robust_2.pdf"),
+         plot = graph,
+         device = "pdf",
+         width = 7, height = 5,
+         units = "in")
+  
+  
+  # separate by sample
+  graph <- table_final %>% filter(sample=="1. Benchmark (main regression)") %>% 
+    ggplot(aes(x = year, y = estimate, color = target, group = target))+
+    geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
+    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
+    geom_point(size = 1, alpha = 1,shape=0,stroke = 1, position = position_dodge(width=0.1)) +
+    geom_ribbon(aes(ymin = lb, ymax = ub, fill = target),color = NA, alpha = 0.2) +
+    scale_x_continuous(breaks = seq(1996,year_cap,1), limits = c(1995.5,year_cap+0.5)) +
+    scale_y_continuous(breaks = seq(-40,60,20), limits = c(-42,67)) +
+    # scale_color_manual(values = colors) +
+    theme_light() +
+    labs(y = var_name,
+         x = "Year",
+         shape = "Specification") +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          plot.title = element_text(size = 10, face = "bold"),
+          axis.title.x = element_text(size=10),
+          axis.text = element_text(size = 10),
+          legend.position="bottom",
+          legend.title = element_blank())
+  
+  ggsave(paste0(dir,main_folder,yearly_folder,"2_ab_level_",i,"_",var,"_","robust_sample1.pdf"),
+         plot = graph,
+         device = "pdf",
+         width = 7, height = 5,
+         units = "in")
+  
+  
+  graph <- table_final %>% filter(sample=="2. Remove Outliers (95 %ile of within Municipality SD)") %>% 
+    ggplot(aes(x = year, y = estimate, color = target, group = target))+
+    geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
+    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
+    geom_point(size = 1, alpha = 1,shape=0,stroke = 1, position = position_dodge(width=0.1)) +
+    geom_ribbon(aes(ymin = lb, ymax = ub, fill = target),color = NA, alpha = 0.2) +
+    scale_x_continuous(breaks = seq(1996,year_cap,1), limits = c(1995.5,year_cap+0.5)) +
+    scale_y_continuous(breaks = seq(-40,60,20), limits = c(-42,67)) +
+    # scale_color_manual(values = colors) +
+    theme_light() +
+    labs(y = var_name,
+         x = "Year",
+         shape = "Specification") +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          plot.title = element_text(size = 10, face = "bold"),
+          axis.title.x = element_text(size=10),
+          axis.text = element_text(size = 10),
+          legend.position="bottom",
+          legend.title = element_blank())
+  
+  ggsave(paste0(dir,main_folder,yearly_folder,"2_ab_level_",i,"_",var,"_","robust_sample2.pdf"),
+         plot = graph,
+         device = "pdf",
+         width = 7, height = 5,
+         units = "in")
+  
+  graph <- table_final %>% filter(sample=="3. Benchmark w/o Outliers") %>% 
+    ggplot(aes(x = year, y = estimate, color = target, group = target))+
+    geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
+    geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
+    geom_point(size = 1, alpha = 1,shape=0,stroke = 1, position = position_dodge(width=0.1)) +
+    geom_ribbon(aes(ymin = lb, ymax = ub, fill = target),color = NA, alpha = 0.2) +
+    scale_x_continuous(breaks = seq(1996,year_cap,1), limits = c(1995.5,year_cap+0.5)) +
+    scale_y_continuous(breaks = seq(-40,60,20), limits = c(-42,67)) +
+    # scale_color_manual(values = colors) +
+    theme_light() +
+    labs(y = var_name,
+         x = "Year",
+         shape = "Specification") +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          plot.title = element_text(size = 10, face = "bold"),
+          axis.title.x = element_text(size=10),
+          axis.text = element_text(size = 10),
+          legend.position="bottom",
+          legend.title = element_blank())
+  
+  ggsave(paste0(dir,main_folder,yearly_folder,"2_ab_level_",i,"_",var,"_","robust_sample3.pdf"),
+         plot = graph,
+         device = "pdf",
+         width = 7, height = 5,
+         units = "in")
   
 }
 
