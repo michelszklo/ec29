@@ -521,6 +521,19 @@ iqim <- read.csv(paste0(raw,"IQIM/IQIM09.csv"), sep = ";") %>%
          iqim09 = IQIM)
 
 
+# 17. RAIS data
+# ==============================================================
+
+rais <- readRDS(paste0(raw,"RAIS/rais_consol.rds"))
+rais <- rais %>%
+  ungroup() %>% 
+  rename(cod_mun = id_municipio) %>% 
+  mutate(cod_mun = substr(cod_mun,1,6)) %>% 
+  mutate(cod_mun = as.numeric(cod_mun),
+         ano = as.numeric(ano)) %>% 
+  select(-sigla_uf)
+
+
 # 17. Merging all
 # ==============================================================
 
@@ -607,7 +620,8 @@ df <- mun_list %>%
   left_join(insurance, by = c("ano","cod_mun")) %>% 
   left_join(sih_flow, by = c("ano","cod_mun")) %>% 
   left_join(munic, by = "cod_mun") %>% 
-  left_join(iqim, by = "cod_mun")
+  left_join(iqim, by = "cod_mun") %>% 
+  left_join(rais, by = c("ano","cod_mun"))
 
 
 # creating dummies for the presence of hospitals
