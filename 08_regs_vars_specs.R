@@ -330,7 +330,7 @@ dfw <- df %>%
   mutate(n = row_number()) %>% 
   mutate(grid = (n-1)/(N-1)*range + min,
          CGSw = 0)
-# Loop to creat CGS weights
+# Loop to create CGS weights
 for(i in seq.int(1,nrow(dfw))){
   ED <- dfw$ED[i]
   varD <- dfw$varD[i]
@@ -345,8 +345,9 @@ density_values <- density(dfw$dist_ec29_baseline)
 dfw$empiric <- approx(density_values$x, density_values$y, 
                       xout = dfw$dist_ec29_baseline)$y
 df <- left_join(df,select(dfw,cod_mun,CGSw,empiric),by="cod_mun")
+#df$CGSw[df$CGSw<0.2]<-0.2
 df$reweight    <- df$empiric/df$CGSw
-df$reweightPop <- ifelse(is.na(df$reweight*df$peso_pop), 0, df$reweight*df$peso_pop)
+df$reweightPop <- ifelse(is.na(df$reweight*df$peso_pop), df$peso_pop, df$reweight*df$peso_pop)
 
 
 # 3. Setting regression sample
@@ -395,6 +396,7 @@ spec1_post_imr_cont_c <- paste(" ~ ","iv"," + ",imr_controls," | cod_mun + uf_y_
 spec2_post_imr_cont_c <- paste(" ~ ","iv"," + ", paste(c(baseline_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec3_post_imr_cont_c <- paste(" ~ ","iv"," + ", paste(c(baseline_controls,tvarying_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec4_post_imr_cont_c <- paste(" ~ ","iv"," + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec5_post_imr_cont_c <- paste(" ~ ","iv"," + ", paste(c(baseline_controls,tvarying_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 # 2) Continuous above + below
@@ -411,6 +413,7 @@ spec1_post_imr_cont_a <- paste(" ~ ","iv_a + iv_b"," + ",imr_controls," | cod_mu
 spec2_post_imr_cont_a <- paste(" ~ ","iv_a + iv_b"," + ", paste(c(baseline_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec3_post_imr_cont_a <- paste(" ~ ","iv_a + iv_b"," + ", paste(c(baseline_controls,tvarying_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec4_post_imr_cont_a <- paste(" ~ ","iv_a + iv_b"," + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec5_post_imr_cont_a <- paste(" ~ ","iv_a + iv_b"," + ", paste(c(baseline_controls,tvarying_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 
@@ -428,6 +431,7 @@ spec1_post_imr_cont_b <- paste(" ~ ","iv_b + iv_a"," + ",imr_controls," | cod_mu
 spec2_post_imr_cont_b <- paste(" ~ ","iv_b + iv_a"," + ", paste(c(baseline_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec3_post_imr_cont_b <- paste(" ~ ","iv_b + iv_a"," + ", paste(c(baseline_controls,tvarying_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec4_post_imr_cont_b <- paste(" ~ ","iv_b + iv_a"," + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec5_post_imr_cont_b <- paste(" ~ ","iv_b + iv_a"," + ", paste(c(baseline_controls,tvarying_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 
@@ -445,6 +449,7 @@ spec1_post_imr_binary <- paste(" ~ ","iv_binary"," + ",imr_controls," | cod_mun 
 spec2_post_imr_binary <- paste(" ~ ","iv_binary"," + ", paste(c(baseline_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec3_post_imr_binary <- paste(" ~ ","iv_binary"," + ", paste(c(baseline_controls,tvarying_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 spec4_post_imr_binary <- paste(" ~ ","iv_binary"," + ", paste(c(baseline_controls,tvarying_controls,fiscal_controls,imr_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
+spec5_post_imr_binary <- paste(" ~ ","iv_binary"," + ", paste(c(baseline_controls,tvarying_controls), collapse = " + ")," | cod_mun + uf_y_fe | 0 | cod_mun")
 
 
 
@@ -540,8 +545,8 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
            peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
            finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
-  
-  df_reg <- df_reg[complete.cases(df_reg),]
+  #DC 19 Aug 2024: commented out
+  #df_reg <- df_reg[complete.cases(df_reg),]
   df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
   
   
@@ -549,32 +554,23 @@ reduced <- function(outcome,var_name,df,regression_output,transform,year_filter,
   # ------------------------------------
   
   # for (spec in c(1)){
-  for (spec in c(1,2,3,4)){
-    
-    spec_reduced<- get(paste0("spec",spec,"_post_",reg_type))
-    
+  for (spec in c(1,2,3,4,5)){
+    spec_reduced<- get(paste0("spec",spec,"_post_imr_",reg_type))
     weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
     
     # second stage regression
     # ------------------------------
-    
     regformula <- as.formula(paste(ln_outcome,spec_reduced))
     fit <- felm(regformula, data = df_reg,weights = weight_vector,exactDOF = T)
     
     out <- cbind(fit %>% broom::tidy() %>% slice(1),fit %>% broom::glance() %>% select(nobs))
-    
-    
     out <- cbind(out,spec)
-    
     if(spec==1){
       table <- out
     }
     else{
       table <- rbind(table,out)
     }
-    
-    
-    
   }
   
   table <- table %>% mutate(term = ln_outcome)
@@ -708,6 +704,7 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
     obs_2 <- d %>% slice(2) %>% select(nobs) %>% as.numeric()
     obs_3 <- d %>% slice(3) %>% select(nobs) %>% as.numeric()
     obs_4 <- d %>% slice(4) %>% select(nobs) %>% as.numeric()
+    obs_5 <- d %>% slice(5) %>% select(nobs) %>% as.numeric()
     
     obs_name <- paste0("obs_",sample_name)
     
@@ -718,7 +715,7 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
       table_2 <- d %>% mutate(sample = sample_name) %>% table_formating(2) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_2)
       table_3 <- d %>% mutate(sample = sample_name) %>% table_formating(3) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_3)
       table_4 <- d %>% mutate(sample = sample_name) %>% table_formating(4) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_4)
-      
+      table_5 <- d %>% mutate(sample = sample_name) %>% table_formating(5) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_5)
       
     } else {
       
@@ -726,6 +723,7 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
       table_2 <- d %>% mutate(sample = sample_name) %>% table_formating(2) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_2) %>% mutate(spec=2)
       table_3 <- d %>% mutate(sample = sample_name) %>% table_formating(3) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_3) %>% mutate(spec=3)
       table_4 <- d %>% mutate(sample = sample_name) %>% table_formating(4) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_4) %>% mutate(spec=4)
+      table_5 <- d %>% mutate(sample = sample_name) %>% table_formating(5) %>% rename(!!sample_name := "estimate") %>% mutate(!!obs_name := obs_5) %>% mutate(spec=5)
       
       
     }
@@ -735,11 +733,13 @@ regress_output <- function(var,var_name,transform,year_filter,weight){
     name2 <- paste0("table_2_",sample_name)
     name3 <- paste0("table_3_",sample_name)
     name4 <- paste0("table_4_",sample_name)
+    name5 <- paste0("table_5_",sample_name)
     
     assign(name1,table_1, envir = parent.frame()) 
     assign(name2,table_2, envir = parent.frame()) 
     assign(name3,table_3, envir = parent.frame()) 
     assign(name4,table_4, envir = parent.frame()) 
+    assign(name5,table_5, envir = parent.frame()) 
     
     
   }
@@ -929,7 +929,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
   
   
   if(missing(label_size)){
-    ylabel <- 8
+    ylabel <- 11
   }else{
     ylabel <-  label_size
   }
@@ -968,10 +968,41 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
            finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
-  df_reg <- df_reg[complete.cases(df_reg),]
+  #df_reg <- df_reg[complete.cases(df_reg),]
   df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
   
-  
+  # Descriptive
+  # ------------------------------------
+  if (spec == 1){
+    df_2000 <- df_reg %>% filter(ano == 2000)
+    
+    # Calculate statistics for the year 2000
+    mean_value <- mean(df_2000[[ln_outcome]], na.rm = TRUE)
+    min_value <- min(df_2000[[ln_outcome]], na.rm = TRUE)
+    max_value <- max(df_2000[[ln_outcome]], na.rm = TRUE)
+    sd_value <- sd(df_2000[[ln_outcome]], na.rm = TRUE)
+    num_obs <- nrow(df_2000)    
+
+    p <- ggplot(df_2000, aes(x = .data[[ln_outcome]])) +
+      geom_density(fill = "skyblue", alpha = 0.5) +
+      labs(title = "Kernel Density Plot for Year 2000") +
+      annotate("text", 
+               x = Inf, y = Inf, 
+               label = paste("Mean:", round(mean_value, 2), 
+                             "\nMin:", round(min_value, 2), 
+                             "\nMax:", round(max_value, 2), 
+                             "\nSD:", round(sd_value, 2), 
+                             "\nN:", num_obs),
+               hjust = 1.1, vjust = 1.1, size = 4, color = "blue") +
+      theme(plot.margin = unit(c(1, 1, 1.5, 1), "lines"))
+    
+    dname <- "desc"
+    ggsave(paste0(dir,main_folder,yearly_folder,dname,"_",outcome,".pdf"),
+           plot = p,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+  }  
   # Regressions
   # ------------------------------------
   
@@ -984,7 +1015,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
   weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
   regformula <- as.formula(paste(ln_outcome,spec_reduced))
   fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
-  
+  num_obs <- summary(fit)$N
   table <- fit %>% 
     broom::tidy() %>%
     slice(3:15) %>%
@@ -1057,22 +1088,17 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
     
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -1096,22 +1122,18 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
     
     
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -1135,22 +1157,18 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
     
     
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -1175,22 +1193,16 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
-    
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -1198,16 +1210,18 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
            units = "in")
     
   }
+  return(data.frame(year= table$year, estimates=table$estimate, lb=table$lb, 
+                    ub=table$ub, lb2=table$lb2, ub2=table$ub2))
   
   
   
 }
 
-reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
+reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3,base_year=2000){
   
   
   if(missing(label_size)){
-    ylabel <- 8
+    ylabel <- 11
   }else{
     ylabel <-  label_size
   }
@@ -1246,10 +1260,43 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
            finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
-  df_reg <- df_reg[complete.cases(df_reg),]
+  #df_reg <- df_reg[complete.cases(df_reg),]
   df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
   
+    
+  # Descriptive
+  # ------------------------------------
+  if (spec == 1){
+    df_2000 <- df_reg %>% filter(ano == base_year)
   
+    # Calculate statistics for the year 20''
+    mean_value <- mean(df_2000[[ln_outcome]], na.rm = TRUE)
+    min_value <- min(df_2000[[ln_outcome]], na.rm = TRUE)
+    max_value <- max(df_2000[[ln_outcome]], na.rm = TRUE)
+    sd_value <- sd(df_2000[[ln_outcome]], na.rm = TRUE)
+    num_obs <- nrow(df_2000)    
+    
+    Title = paste("Kernel Density Plot for Year", base_year)
+    p <- ggplot(df_2000, aes(x = .data[[ln_outcome]])) +
+      geom_density(fill = "skyblue", alpha = 0.5) +
+      labs(title = Title) +
+      annotate("text", 
+               x = Inf, y = Inf, 
+               label = paste("Mean:", round(mean_value, 2), 
+                             "\nMin:", round(min_value, 2), 
+                             "\nMax:", round(max_value, 2), 
+                             "\nSD:", round(sd_value, 2), 
+                             "\nN:", num_obs),
+               hjust = 1.1, vjust = 1.1, size = 4, color = "blue") +
+      theme(plot.margin = unit(c(1, 1, 1.5, 1), "lines"))
+    
+    dname <- "desc"
+    ggsave(paste0(dir,main_folder,yearly_folder,dname,"_",outcome,".pdf"),
+           plot = p,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
+  }
   # Regressions
   # ------------------------------------
   
@@ -1257,13 +1304,15 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
     spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
   } else{
     spec_reduced<- get(paste0("spec",spec,"_post_y_imr_binary"))
-    
   }
   weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
   regformula <- as.formula(paste(ln_outcome,spec_reduced))
   fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
-  
-  table <- fit %>% 
+  print(summary(fit))  
+  print(summary(fit)$N)  
+  num_obs <- summary(fit)$N
+
+table <- fit %>% 
     broom::tidy() %>%
     slice(3:15) %>%
     select(term,estimate,std.error,p.value) %>%
@@ -1302,7 +1351,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   # if all NA for lb_adj
   if(table %>% filter(!is.na(lb_adj)) %>% nrow() == 0){
     lb_na <- 1
-  }else{
+  } else{
     lb_na <- 0
   }
   
@@ -1313,11 +1362,8 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
     ub_na <- 0
   }
   
-  
   # graph with now bounds defines arrow size
   arrowsize <-  (yf - y0)*0.03
-  
-  
   
   if(lb_na==1 & ub_na==1){
     
@@ -1333,22 +1379,16 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
-    
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -1372,22 +1412,16 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
-    
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -1411,22 +1445,15 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
-    
-    
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -1451,22 +1478,17 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
     
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -1474,6 +1496,8 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
            units = "in")
     
   }
+  print(fit)
+  print(table)
   return(data.frame(year= table$year, estimates=table$estimate, lb=table$lb, 
                     ub=table$ub, lb2=table$lb2, ub2=table$ub2))
   
@@ -1483,7 +1507,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
 reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
   
   if(missing(label_size)){
-    ylabel <- 8
+    ylabel <- 11
   }else{
     ylabel <-  label_size
   }
@@ -1603,19 +1627,13 @@ reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,
            shape = "Specification") +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
     
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -1642,19 +1660,13 @@ reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,
            shape = "Specification") +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
     
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -1681,19 +1693,13 @@ reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,
            shape = "Specification") +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
     
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -1721,19 +1727,13 @@ reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,
            shape = "Specification") +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
     
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -1749,9 +1749,8 @@ reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,
 
 reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
   
-  
   if(missing(label_size)){
-    ylabel <- 8
+    ylabel <- 11
   }else{
     ylabel <-  label_size
   }
@@ -1790,7 +1789,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
            finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
-  df_reg <- df_reg[complete.cases(df_reg),]
+  #df_reg <- df_reg[complete.cases(df_reg),]
   df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
   
   
@@ -1806,6 +1805,7 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
   weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
   regformula <- as.formula(paste(ln_outcome,spec_reduced))
   fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
+  num_obs <- summary(fit)$N
   
   table1 <- fit %>% 
     broom::tidy() %>%
@@ -1905,23 +1905,17 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom",
             legend.title = element_blank())
     
-    
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -1948,22 +1942,16 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
-    
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -1989,22 +1977,17 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
     
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -2033,22 +2016,17 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
     
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -2056,16 +2034,14 @@ reduced_yearly_ab <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys
            units = "in")
     
   }
-  
-  
-  
+  return(data.frame(year= table$year, estimates=table$estimate, lb=table$lb, 
+                    ub=table$ub, lb2=table$lb2, ub2=table$ub2, 
+                    target=table$target))
 }
 
 reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3){
-  
-  
   if(missing(label_size)){
-    ylabel <- 8
+    ylabel <- 11
   }else{
     ylabel <-  label_size
   }
@@ -2104,7 +2080,7 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
            finbra_desp_saude_san_pcapita_neighbor,lrf,reweight,reweightPop) %>% 
     filter(ano>=year_filter)
   
-  df_reg <- df_reg[complete.cases(df_reg),]
+  #df_reg <- df_reg[complete.cases(df_reg),]
   df_reg <- df_reg[complete.cases(df_reg[,ln_outcome]),]
   
   
@@ -2120,7 +2096,10 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
   weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
   regformula <- as.formula(paste(ln_outcome,spec_reduced))
   fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
-  
+print(summary(fit)) 
+print(summary(fit)$N) 
+num_obs <- summary(fit)$N
+
   table1 <- fit %>% 
     broom::tidy() %>%
     slice(3:15) %>%
@@ -2219,23 +2198,18 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom",
             legend.title = element_blank())
     
     
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -2260,22 +2234,17 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
     
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -2300,22 +2269,17 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
     
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
@@ -2341,22 +2305,17 @@ reduced_yearly_ab_imr <- function(outcome,var_name,df,transform,year_filter,y0,y
       theme_light() +
       labs(y = var_name,
            x = "Year",
-           shape = "Specification") +
+           shape = "Specification",
+           caption = paste("Number of observations:", num_obs)) +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
-            plot.title = element_text(size = 10, face = "bold"),
-            axis.title.x = element_text(size=10),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_text(size=11),
             axis.title.y = element_text(size=ylabel),
-            axis.text = element_text(size = 10),
+            axis.text = element_text(size = 11),
             legend.position="bottom")
     
     
-    
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".png"),
-           plot = graph,
-           device = "png",
-           width = 7, height = 5,
-           units = "in")
     ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",

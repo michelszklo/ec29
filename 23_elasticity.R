@@ -49,7 +49,7 @@ if(Sys.getenv("USERNAME")=="dcc213") {
 }
 # ------------------------------------
 
-set.seed(28121989)
+set.seed(121316)
 
 # 1. Load data
 # =================================================================
@@ -88,7 +88,7 @@ f1 <- function(df,var,year_filter,spec){
            finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
     filter(ano>=year_filter)
   
-  df_reg <- df_reg[complete.cases(df_reg),]
+  #DCAug28 df_reg <- df_reg[complete.cases(df_reg),]
   
   
   
@@ -135,7 +135,7 @@ f1_ab <- function(df,var,year_filter,spec){
            finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
     filter(ano>=year_filter)
   
-  df_reg <- df_reg[complete.cases(df_reg),]
+  #DCAug28 df_reg <- df_reg[complete.cases(df_reg),]
   
   
   
@@ -193,7 +193,7 @@ f1_t <- function(df,var,year_filter,spec){
            finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
     filter(ano>=year_filter)
   
-  df_reg <- df_reg[complete.cases(df_reg),]
+  #DCAug28 df_reg <- df_reg[complete.cases(df_reg),]
   
   
   
@@ -225,7 +225,7 @@ f1_t <- function(df,var,year_filter,spec){
 }
 
 # function that creates samples (with, without outlier), run regressions and outputs table
-f2 <- function(df,var,year_filter, outlier, ab,spec){
+f2 <- function(df,var,year_filter, outlier, ab,spec=3){
   
   # create sample without spending outliers
   
@@ -283,7 +283,7 @@ f2 <- function(df,var,year_filter, outlier, ab,spec){
 }
 
 # function for dist * post regs
-f2_t <- function(df,var,year_filter, outlier,spec){
+f2_t <- function(df,var,year_filter, outlier,spec=3){
   
   
   # create sample without spending outliers
@@ -423,6 +423,7 @@ elasticity_main_ab <- do.call(bind_rows, lapply(elasticity_ab, "[[", "elasticity
 # =================================================================
 
 boots <- 1000
+boots <- 500
 elasticity_boots <- data.frame(matrix(nrow = 13*boots, ncol = 5))
 colnames(elasticity_boots) <- c("term","year",paste0("estimate_","tx_mi"),paste0("estimate_","siops_despsaude_pcapita"),"boot")
 
@@ -617,7 +618,9 @@ ecalc_plot <- function(i) {
            mean_tx_mi = baseline_mean_tx_mi) %>% 
     mutate(e = (estimate_tx_mi/mean_tx_mi)/(estimate_siops_despsaude_pcapita/mean_spending)) %>% 
     group_by(year) %>% 
-    summarize(e_p025 = quantile(e, probs = 0.025, na.rm = T),
+    summarize(e_mean = mean(e, na.rm = TRUE),
+              e_sd = sd(e, na.rm = TRUE),
+              e_p025 = quantile(e, probs = 0.025, na.rm = T),
               e_p975 = quantile(e, probs = 0.975, na.rm = T))
   
   elasticity_ci_ab <- elasticity_boots_ab %>% 
@@ -625,17 +628,23 @@ ecalc_plot <- function(i) {
            mean_tx_mi = baseline_mean_tx_mi) %>% 
     mutate(e = (estimate_tx_mi/mean_tx_mi)/(estimate_siops_despsaude_pcapita/mean_spending)) %>% 
     group_by(year,target) %>% 
-    summarize(e_p025 = quantile(e, probs = 0.025, na.rm = T),
+    summarize(e_mean = mean(e, na.rm = TRUE),
+              e_sd = sd(e, na.rm = TRUE),
+              e_p025 = quantile(e, probs = 0.025, na.rm = T),
               e_p975 = quantile(e, probs = 0.975, na.rm = T))
   
   
   # merging ci into the main dataframe
   elasticity_calc <- elasticity_calc %>% 
     left_join(elasticity_ci, by = "year")
-  
+  elasticity_calc$e_p025 <- elasticity_calc$e-1.96*elasticity_calc$e_sd
+  elasticity_calc$e_p975 <- elasticity_calc$e+1.96*elasticity_calc$e_sd
+
   elasticity_calc_ab <- elasticity_calc_ab %>% 
     left_join(elasticity_ci_ab, by = c("year","target"))
-  
+  elasticity_calc_ab$e_p025 <- elasticity_calc_ab$e-1.96*elasticity_calc_ab$e_sd
+  elasticity_calc_ab$e_p975 <- elasticity_calc_ab$e+1.96*elasticity_calc_ab$e_sd
+    
   
   # Plots
   # ----------------------------------------------------------------
@@ -650,17 +659,17 @@ ecalc_plot <- function(i) {
     geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
     geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
     geom_point(size = 1.2, alpha = 1,color = "grey20",shape=0,stroke = 0.8) +
-    geom_ribbon(aes(ymin = e_p025, ymax = e_p975),color = NA, alpha = 0.1) +
+    geom_ribbon(aes(ymin = e_p025, ymax = e_p975),color = NA, alpha = 0.2) +
     scale_x_continuous(breaks = seq(2000,2010,1), limits = c(1999.5,2010+0.5)) +
-    scale_y_continuous(breaks = seq(-0.6,0.3,0.1), limits = c(-0.6,0.3), labels = comma) +
+    scale_y_continuous(breaks = seq(-0.7,0.3,0.1), limits = c(-0.701,0.3), labels = comma) +
     theme_light() +
     labs(y = y_axis_title,
          x = "Year") +
     theme(panel.grid.minor = element_blank(),
-          plot.title = element_text(size = 10, face = "bold"),
-          axis.title.x = element_text(size=10),
-          axis.title.y = element_text(size=8),
-          axis.text = element_text(size = 10),
+          plot.title = element_text(size = 11, face = "bold"),
+          axis.title.x = element_text(size=11),
+          axis.title.y = element_text(size=11),
+          axis.text = element_text(size = 11),
           legend.position="bottom")
   
   
@@ -675,11 +684,6 @@ ecalc_plot <- function(i) {
   #        width = 7, height = 5,
   #        units = "in")
   
-  ggsave(paste0(dir,v,"_elasticity.png"),
-         plot = graph,
-         device = "png",
-         width = 7, height = 5,
-         units = "in")
   ggsave(paste0(dir,v,"_elasticity.pdf"),
          plot = graph,
          device = "pdf",
@@ -695,7 +699,7 @@ ecalc_plot <- function(i) {
     geom_hline(yintercept = 0, color = "red", size = 0.3, alpha = 1, linetype = "dashed") +
     geom_vline(xintercept = 2000, color = "#9e9d9d", size = 0.5, alpha = 1, linetype = "solid") +
     geom_point(size = 1, alpha = 1,shape=0,stroke = 0.8, position = position_dodge(width=0.1)) +
-    geom_ribbon(aes(ymin = e_p025, ymax = e_p975, fill = target),color = NA, alpha = 0.1) +
+    geom_ribbon(aes(ymin = e_p025, ymax = e_p975, fill = target),color = NA, alpha = 0.2) +
     scale_x_continuous(breaks = seq(2000,2010,1), limits = c(1999.5,2010+0.5)) +
     scale_y_continuous(breaks = seq(-1.4,0.8,0.2), limits = c(-1.4,0.8), labels = comma) +
     scale_color_manual(values = colors) +
