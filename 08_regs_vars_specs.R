@@ -43,18 +43,23 @@ options(digits = 15)
 
 # SET PATH FOR EC 29-2000 ON YOUR COMPUTER
 # ------------------------------------
+#Set-up path for principal directory
 if(Sys.getenv("USERNAME")=="dcc213") {
-  dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
+  dir <- "/home/dcc213/investigacion/2021/decentralization/github/"
 } else {
   dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 }
-
+SRC <- paste0(dir,"source/")
+DAT <- paste0(dir,"data/processed/")
+TAB <- paste0(dir,"results/tables/")
+FIG <- paste0(dir,"results/figures/")
 
 # loading Folder, files and instrument setup
+load(paste0(DAT,"output_setup.RData"))
 
-load(paste0(dir,"output_setup.RData"))
+
 if(Sys.getenv("USERNAME")=="dcc213") {
-  dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
+  dir <- "/home/dcc213/investigacion/2021/decentralization/github/"
 } else {
   dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 }
@@ -95,7 +100,7 @@ if(Sys.getenv("USERNAME")=="dcc213") {
 
 # 1. Load data frame
 # =================================================================
-raw <- readRDS(paste0(dir,"data/CONSOL_DATA.RDS"))
+raw <- readRDS(paste0(DAT,"CONSOL_DATA.RDS"))
 
 
 df <- raw %>% 
@@ -997,7 +1002,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
       theme(plot.margin = unit(c(1, 1, 1.5, 1), "lines"))
     
     dname <- "desc"
-    ggsave(paste0(dir,main_folder,yearly_folder,dname,"_",outcome,".pdf"),
+    ggsave(paste0(FIG,yearly_folder,dname,"_",outcome,".pdf"),
            plot = p,
            device = "pdf",
            width = 7, height = 5,
@@ -1099,7 +1104,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
             legend.position="bottom")
     
     
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(FIG,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1134,7 +1139,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
     
     
     
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(FIG,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1169,7 +1174,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
     
     
     
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(FIG,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1203,7 +1208,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
             axis.text = element_text(size = 11),
             legend.position="bottom")
     
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(FIG,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1291,7 +1296,7 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
       theme(plot.margin = unit(c(1, 1, 1.5, 1), "lines"))
     
     dname <- "desc"
-    ggsave(paste0(dir,main_folder,yearly_folder,dname,"_",outcome,".pdf"),
+    ggsave(paste0(FIG,yearly_folder,dname,"_",outcome,".pdf"),
            plot = p,
            device = "pdf",
            width = 7, height = 5,
@@ -1389,7 +1394,7 @@ table <- fit %>%
             axis.text = element_text(size = 11),
             legend.position="bottom")
     
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(FIG,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1422,7 +1427,7 @@ table <- fit %>%
             axis.text = element_text(size = 11),
             legend.position="bottom")
     
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(FIG,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1454,7 +1459,7 @@ table <- fit %>%
             axis.title.y = element_text(size=ylabel),
             axis.text = element_text(size = 11),
             legend.position="bottom")
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(FIG,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -1489,7 +1494,7 @@ table <- fit %>%
             legend.position="bottom")
     
     
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(FIG,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -2337,7 +2342,7 @@ num_obs <- summary(fit)$N
 
 rm(raw)
 
-save.image(paste0(dir,"regs.RData"))
+save.image(paste0(DAT,"regs.RData"))
 
 
 
