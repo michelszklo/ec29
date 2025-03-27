@@ -2215,7 +2215,7 @@ num_obs <- summary(fit)$N
             legend.title = element_blank())
     
     
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(FIG,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -2250,7 +2250,7 @@ num_obs <- summary(fit)$N
             legend.position="bottom")
     
     
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(FIG,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -2285,7 +2285,7 @@ num_obs <- summary(fit)$N
             legend.position="bottom")
     
     
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(FIG,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
@@ -2321,7 +2321,7 @@ num_obs <- summary(fit)$N
             legend.position="bottom")
     
     
-    ggsave(paste0(dir,main_folder,yearly_folder,name,"_",outcome,".pdf"),
+    ggsave(paste0(FIG,yearly_folder,name,"_",outcome,".pdf"),
            plot = graph,
            device = "pdf",
            width = 7, height = 5,
