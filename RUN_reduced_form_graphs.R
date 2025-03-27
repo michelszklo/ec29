@@ -1,16 +1,30 @@
-#######################################################################################################
-# Author: Michel Szklo
-# April 2022
-# 
-# This scripts runs reduced form graphs for all outcomes
-#
-#
-#######################################################################################################
+#--------------------------------------------------------------------------------
+#--- Author: Michel Szklo
+#--- April 2022
+#--- Edits: Damian Clarke
+#---        Most recent: 27/03/2025 (DC)
+#--- 
+#--- This scripts runs reduced form graphs for all outcomes.  The script relies
+#---  on the following scripts / functions:
+#---    - 08_regs_vars_specs.R / reduced_yearly_imr()
+#--------------------------------------------------------------------------------
 
-# 0. Set-up
-# =================================================================
-
+#--------------------------------------------------------------------------------
+#--- 0. Set-up
+#--------------------------------------------------------------------------------
 rm(list=ls())
+
+#Set-up path for principal directory
+if(Sys.getenv("USERNAME")=="dcc213") {
+  dir <- "/home/dcc213/investigacion/2021/decentralization/github/"
+} else {
+  dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+}
+SRC <- paste0(dir,"source/")
+DAT <- paste0(dir,"data/processed/")
+TAB <- paste0(dir,"results/tables/")
+FIG <- paste0(dir,"results/figures/")
+
 
 # packages
 packages<-c('readr',
@@ -36,20 +50,9 @@ to_install<-packages[!(packages %in% installed.packages()[,"Package"])]
 if(length(to_install)>0) install.packages(to_install)
 
 lapply(packages,require,character.only=TRUE)
-
-
 options(digits = 15)
 
-
-# SET PATH FOR EC 29-2000 ON YOUR COMPUTER
-# ------------------------------------
-if(Sys.getenv("USERNAME")=="dcc213") {
-  dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
-} else {
-  dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
-}
-
-# ------------------------------------
+#Set Base year (first year in data)
 YEAR <- 1998
 
 rnames <- seq.int(YEAR,2010) %>%
@@ -59,16 +62,20 @@ rnames <- seq.int(YEAR,2010) %>%
   select(b) %>% 
   rbind("obs")
 
+# Generate file for tabular output 
 NRR <- (2010-YEAR+1)*2+1
 table_main <- cbind(rnames,data.frame(matrix(nrow = NRR, ncol = 0)))
-table_ab <- cbind(rnames,data.frame(matrix(nrow = NRR, ncol = 0)))
+table_ab   <- cbind(rnames,data.frame(matrix(nrow = NRR, ncol = 0)))
 
 
-
-# ------------------------------------
+#--------------------------------------------------------------------------------
+#--- 1. Plotting functions for robustness plots 
+#---    Accepts: variable name (var)
+#---             dataframe with estimates, LB, UB, etc. (combined_df)
+#--------------------------------------------------------------------------------
 # Plotting functions
 robustPlot <- function(var, combined_df) {
-  graph <- ggplot(combined_df, aes(x=year, y=estimates, color = controls,linetype = controls)) + 
+  graph <- ggplot(combined_df, aes(x=year, y=estimates, color = controls, linetype = controls)) + 
     geom_line(size=1.2) +
     geom_errorbar(aes(ymin = lb2, ymax = ub2), width=0.2, color = "gray") +
     geom_hline(yintercept = 0, color = "red", linewidth = 0.3, alpha = 1, linetype = "dashed") +
@@ -84,7 +91,7 @@ robustPlot <- function(var, combined_df) {
           axis.text = element_text(size = 11),
           legend.position="bottom",
           legend.title = element_blank())
-  ggsave(paste0(dir,robust_folder,var,".pdf"),
+  ggsave(paste0(FIG,"robust/",var,".pdf"),
          plot = graph,
          device = "pdf",
          width = 7, height = 5,
@@ -109,24 +116,19 @@ robustPlotAB <- function(var, combined_df) {
           legend.title = element_blank(),
           legend.text = element_text(size = 9)) +
       guides(color = guide_legend(nrow = 2), linetype = guide_legend(nrow = 2))
-  ggsave(paste0(dir,robust_folder,var,"_ab.pdf"),
+  ggsave(paste0(FIG,"robust/",var,"_ab.pdf"),
          plot = graph,
          device = "pdf",
          width = 7, height = 5,
          units = "in")
 }
-# 1. Load data
-# =================================================================
-load(paste0(dir,"regs.RData"))
 
 
+#--------------------------------------------------------------------------------
+#--- 2. Load data
+#--------------------------------------------------------------------------------
+load(paste0(DAT,"regs.RData"))
 df2 <- df
-
-
-robust_folder <- "regs_outputs/regs_plots_trend/robust/"
-
-
-
 
 # 2. Spending
 # =================================================================
@@ -151,7 +153,7 @@ df <- df %>%
   filter(!(cod_mun %in% outliers))
 
 # redefines folder
-yearly_folder <- "regs_plots_trend/fiscal_response/"
+yearly_folder <- "fiscal_response/"
 
 var_map1 <- rbind(cbind('finbra_recorc_pcapita','Total Revenue per capita (log)'),
                   cbind('finbra_desp_o_pcapita','Total Spending per capita (log)'),
@@ -466,7 +468,7 @@ df <- df2
 # creating missing SIA variable
 df <- df %>% 
   mutate(sia_nab_pcapita = sia_pcapita - sia_ab_pcapita)
-yearly_folder <- "regs_plots_trend/access_production/"
+yearly_folder <- "access_production/"
 
 var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community Health Agents'),
                  cbind('eSF_popprop','Population covered (share) by Family Health Agents'),
@@ -724,7 +726,7 @@ for (i in seq(22,25,1)){
 # 4. Inputs
 # =================================================================
 
-yearly_folder <- "regs_plots_trend/inputs/"
+yearly_folder <- "inputs/"
 
 
 var_map <- rbind(cbind('ams_hospital_mun_pcapita','N. of Municipal Hospitals (per capita*1000)'),
@@ -905,7 +907,7 @@ for (i in seq(4,8,1)){
 # 5. Hospitalization
 # =================================================================
 
-yearly_folder <- "regs_plots_trend/hosp/"
+yearly_folder <- "hosp/"
 
 var_map <- rbind(cbind('tx_sih_infant','Infant Hospitalization Rate (pop 0-1y * 1000)'),
                  cbind('tx_sih_infant_icsap','Infant Hospitalization Rate - APC (pop 0-1y * 1000)'),
@@ -1084,7 +1086,7 @@ for (i in seq(5,5,1)){
 # 6. Fertility and Birth
 # =================================================================
 
-yearly_folder <- "regs_plots_trend/birth/"
+yearly_folder <- "birth/"
 
 
 var_map <- rbind(cbind('birth_fertility','Fertility (N. of Births per 10-49y women)'),
@@ -1156,7 +1158,7 @@ for (i in seq(2,3,1)){
 # 7. IMR
 # =================================================================
 
-yearly_folder <- "regs_plots_trend/imr/"
+yearly_folder <- "imr/"
 
 var_map <-  rbind(cbind('tx_mi','Infant Mortality Rate'),
                   cbind('tx_mi_icsap','Infant Mortality Rate - APC'),
@@ -1337,7 +1339,7 @@ for(d in all_df){
   assign(d,df_merge,envir = .GlobalEnv)
 }
 
-yearly_folder <- "regs_plots_trend/indexes/"
+yearly_folder <- "indexes/"
 
 var_map <-  rbind(cbind('access_index','Access and Production of Health Services Index','peso_pop'),
                   cbind('access_pc_index','Primary Care Access and Production Index','peso_pop'),
@@ -1530,7 +1532,7 @@ for (i in 8){
 # 9. System
 # =================================================================
 
-  yearly_folder <- "regs_plots_trend/system/"
+  yearly_folder <- "system/"
   
   var_map <- rbind(cbind('ams_hospital_pvt_pcapita','N. of Private Hospitals (per capita*1000)'),
                    cbind('cobertura_plano','Private Insurance Coverage'),
@@ -1735,7 +1737,7 @@ for (i in seq(3,8,1)){
 # 10. Adult
 # =================================================================
 
-yearly_folder <- "regs_plots_trend/adult/"
+yearly_folder <- "adult/"
 
 var_map <- rbind(cbind('tx_sih_maternal2','Maternal Hospitalization Rate (pop 0-1y * 1000)'),
                  cbind('tx_sih_adult','Adult Hospitalization Rate (pop 40+y * 1000)'),
@@ -1937,7 +1939,7 @@ for (i in seq(5,8,1)){
 # 11. Other
 # =================================================================
 
-yearly_folder <- "regs_plots_trend/robust_other/"
+yearly_folder <- "robust_other/"
 
 var_map <- rbind(cbind('gdp_mun_pcapita','GDP per capita'))
 
@@ -1948,21 +1950,18 @@ for (i in seq(1,1,1)){
   var_name <- var_map[i,2]
   print(var_name)
   reduced_yearly_imr(var,var_name,df,3,1998,-50,50,10,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1, spec = 2) # ec29baseline
-  
-  # table_main<- table_main %>% cbind(table_final)
 }
 
 
 
 
 
+#--------------------------------------------------------------------------------
+#--- 12. Tables output
+#--------------------------------------------------------------------------------
+output_file <- "regression_tables_raw.xlsx"
 
-# 12. Tables output
-# =================================================================
-
-output_file <- "regression_tables_raw_26Aug2024.xlsx"
-
-write.xlsx2(table_main, file = paste0(dir,main_folder,output_file),sheetName = "event_study",row.names = F,append = T)
-write.xlsx2(table_ab, file = paste0(dir,main_folder,output_file),sheetName = "event_study_ab",row.names = F,append = T)
-
-
+write.xlsx2(table_main, file = paste0(TAB,output_file),
+            sheetName = "event_study"   ,row.names = F,append = T)
+write.xlsx2(table_ab,   file = paste0(TAB,output_file),
+            sheetName = "event_study_ab",row.names = F,append = T)
