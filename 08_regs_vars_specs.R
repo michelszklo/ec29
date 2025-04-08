@@ -31,7 +31,8 @@ packages<-c('readr',
             'boot',
             'broom',
             'modelsummary',
-            'ggarchery')
+            'ggarchery',
+            'HonestDiD')
 to_install<-packages[!(packages %in% installed.packages()[,"Package"])]
 if(length(to_install)>0) install.packages(to_install)
 
@@ -1222,7 +1223,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
   
 }
 
-reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3,base_year=2000){
+reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3,base_year=2000,ramb_roth=FALSE){
   
   
   if(missing(label_size)){
@@ -1316,6 +1317,28 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   print(summary(fit))  
   print(summary(fit)$N)  
   num_obs <- summary(fit)$N
+
+if (ramb_roth==TRUE) {
+  print("Estimating Rambachan Roth")
+  keep_indices <- c(3,4,6,7,8,9,10,11,12,13,14,15)
+  beta_hat    <- coef(fit)[keep_indices]  
+  vcov_matrix <- vcov(fit)[keep_indices,keep_indices]
+  print(beta_hat)
+
+  BC_vec  <- basisVector(index=5, size=10)
+  results <- createSensitivityResults(
+            betahat = beta_hat,
+            sigma = vcov_matrix,
+            numPrePeriods = 2,
+            numPostPeriods = 10,
+            Mvec = 0, l_vec = BC_vec)
+print(results)
+  # Plot results
+  #HonestDiD::createSensitivityPlot(results)
+}
+
+  
+  # table formatting
 
 table <- fit %>% 
     broom::tidy() %>%
@@ -2334,6 +2357,54 @@ num_obs <- summary(fit)$N
   
 }
 
+
+
+#-------------------------------------------------------------------------------
+#--- Estimates Table with Multiple Point Estimates and Rambachan-Roth
+#-------------------------------------------------------------------------------
+estimate_table <- function(outcome,df,year_filter,weight) {
+
+  df_reg <- df
+
+  # filtering regression variables
+  df_reg <- df_reg %>% 
+    select(ano,cod_mun,mun_name,cod_uf,uf_y_fe,all_of(outcome),all_of(controls),pop,
+           all_of(yeartreat_dummies),all_of(yeartreat_dummies_binary),peso_pop,
+           finbra_desp_saude_san_pcapita_neighbor,lrf) %>% filter(ano>=year_filter)
+  
+  df_reg <- df_reg[complete.cases(df_reg[,outcome]),]
+  
+    
+  # Descriptive
+  # ------------------------------------  
+  spec_reduced<- get(paste0("spec3_post_y_imr"))
+  weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
+
+  regformula <- as.formula(paste(outcome,spec_reduced))
+  fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
+
+  print(summary(fit))  
+  print(summary(fit)$N)  
+  num_obs <- summary(fit)$N
+
+  print("Estimating Rambachan Roth")
+  keep_indices <- c(3,4,6,7,8,9,10,11,12,13,14,15)
+  beta_hat    <- coef(fit)[keep_indices]  
+  vcov_matrix <- vcov(fit)[keep_indices,keep_indices]
+  print(beta_hat)
+
+  BC_vec  <- basisVector(index=10, size=10)
+  results <- createSensitivityResults_relativeMagnitudes(
+            betahat = beta_hat,
+            sigma = vcov_matrix,
+            numPrePeriods = 2,
+            numPostPeriods = 10,
+            Mbarvec = 0, l_vec = BC_vec)
+    print(results)
+  # Plot results
+  #HonestDiD::createSensitivityPlot(results)
+}
+#estimate_table("tx_mi", df, 1998,"peso_pop")
 
 
 
