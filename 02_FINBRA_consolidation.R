@@ -38,7 +38,7 @@ lapply(packages,require,character.only=TRUE)
 # SET PATH FOR EC 29-2000 ON YOUR COMPUTER
 # ------------------------------------
 
-dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 
 # ------------------------------------
 
@@ -494,8 +494,8 @@ write.table(finbra, paste0(output,"FINBRA.csv"), fileEncoding = "latin1", sep = 
 for (ano in c(1998,1999)) {
   
   temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"), encoding = "UTF-8",sep = ";")
-  temp <- temp %>% select(c('X.U.FEFF.UF','MUNICIPIO','Rec.Correntes','Rec.Orçamentária','Rec.Tributária','Rec.Transf.Correntes'))
-  colnames(temp) <- c('uf','nome_mun','reccorr','recorc','rectribut','rectransf')
+  temp <- temp %>% select(c('UF','MUNICIPIO','Rec.Correntes','Rec.Orçamentária','Rec.Tributária','Rec.Transf.Correntes','Impostos','IPTU','ISS'))
+  colnames(temp) <- c('uf','nome_mun','reccorr','recorc','rectribut','rectransf','impostos_total','iptu','iss')
   temp <- temp %>% mutate(nome_mun = as.character(nome_mun), uf = as.character(uf))
   
   names_map <- rbind(
@@ -548,7 +548,10 @@ for (ano in c(1998,1999)) {
            reccorr = gsub(",","",reccorr),
            recorc = gsub(",","",recorc),
            rectribut = gsub(",","",rectribut),
-           rectransf = gsub(",","",rectransf))
+           rectransf = gsub(",","",rectransf),
+           impostos_total = gsub(",","",impostos_total),
+           iput = gsub(",","",iptu),
+           iss = gsub(",","",iss))
   
   temp <- left_join(temp,id_mun, by = c("mun_merge","uf"))
   temp$ano <- ano
@@ -567,11 +570,11 @@ for (ano in c(1998,1999)) {
 # 2. FINBRA 2000 and 2010 (except 2002)
 # =================================================================
 
-for (ano in c(2000,2001,seq.int(2003,2012))){
+for (ano in c(2000,2001)){
   # temp <- read.xlsx(file = paste0(raw,"finbra",ano,"_despesa.xlsx"),sheetIndex = 1, encoding = "UTF-8")
   temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"), encoding = "UTF-8",sep = ";")
-  temp <- temp %>% select(c('X.U.FEFF.CD_UF','CD_MUN','UF','MUNICIPIO','Rec.Correntes','Rec.Orçamentária','Rec.Tributária','Rec.Transf.Correntes'))
-  colnames(temp) <- c('cod_uf','cod_mun','uf','nome_mun','reccorr','recorc','rectribut','rectransf')
+  temp <- temp %>% select(c('CD_UF','CD_MUN','UF','MUNICIPIO','Rec.Correntes','Rec.Orçamentária','Rec.Tributária','Rec.Transf.Correntes','Impostos','IPTU','ISS'))
+  colnames(temp) <- c('cod_uf','cod_mun','uf','nome_mun','reccorr','recorc','rectribut','rectransf','impostos_total','iptu','iss')
   temp <- temp %>%
     mutate(nome_mun = as.character(nome_mun), uf = as.character(uf),
            n = nchar(cod_mun),
@@ -582,7 +585,41 @@ for (ano in c(2000,2001,seq.int(2003,2012))){
     mutate(reccorr = gsub(",","",reccorr),
            recorc = gsub(",","",recorc),
            rectribut = gsub(",","",rectribut),
-           rectransf = gsub(",","",rectransf))
+           rectransf = gsub(",","",rectransf),
+           impostos_total = gsub(",","",impostos_total),
+           iptu = gsub(",","",iptu),
+           iss = gsub(",","",iss))
+  
+  temp$ano <- ano
+  
+  finbra <- bind_rows(finbra,temp)
+  
+}
+
+
+# =================================================================
+# 2. FINBRA 2003 to 2012
+# =================================================================
+
+for (ano in c(seq.int(2003,2012))){
+  # temp <- read.xlsx(file = paste0(raw,"finbra",ano,"_despesa.xlsx"),sheetIndex = 1, encoding = "UTF-8")
+  temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"), encoding = "UTF-8",sep = ";")
+  temp <- temp %>% select(c('CD_UF','CD_MUN','UF','MUNICIPIO','Rec.Correntes','Rec.Orçamentária','Rec.Tributária','Rec.Transf.Correntes','Impostos','IPTU','ISSQN'))
+  colnames(temp) <- c('cod_uf','cod_mun','uf','nome_mun','reccorr','recorc','rectribut','rectransf','impostos_total','iptu','iss')
+  temp <- temp %>%
+    mutate(nome_mun = as.character(nome_mun), uf = as.character(uf),
+           n = nchar(cod_mun),
+           cod_mun = as.character(cod_mun)) %>%
+    mutate(cod_mun = ifelse(n==1, paste0("000",cod_mun), ifelse(n==2, paste0("00",cod_mun), ifelse(n==3,paste0("0",cod_mun),cod_mun)))) %>% 
+    mutate(cod_mun = as.numeric(paste0(cod_uf,cod_mun))) %>% 
+    select(-n) %>% 
+    mutate(reccorr = gsub(",","",reccorr),
+           recorc = gsub(",","",recorc),
+           rectribut = gsub(",","",rectribut),
+           rectransf = gsub(",","",rectransf),
+           impostos_total = gsub(",","",impostos_total),
+           iptu = gsub(",","",iptu),
+           iss = gsub(",","",iss))
   
   temp$ano <- ano
   
@@ -598,8 +635,8 @@ for (ano in c(2000,2001,seq.int(2003,2012))){
 for (ano in c(2002)){
   # temp <- read.xlsx(file = paste0(raw,"finbra",ano,"_despesa.xlsx"),sheetIndex = 1, encoding = "UTF-8")
   temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"), encoding = "UTF-8",sep = ";")
-  temp <- temp %>% select(c('X.U.FEFF.CD_UF','CD_MUN','UF','NOME.DO.MUNICIPIO.SIAFI','Rec.Correntes','Rec.Orçamentária','Rec.Tributária','Rec.Transf.Correntes'))
-  colnames(temp) <- c('cod_uf','cod_mun','uf','nome_mun','reccorr','recorc','rectribut','rectransf')
+  temp <- temp %>% select(c('CD_UF','CD_MUN','UF','NOME.DO.MUNICIPIO.SIAFI','Rec.Correntes','Rec.Orçamentária','Rec.Tributária','Rec.Transf.Correntes','Impostos','IPTU','ISSQN'))
+  colnames(temp) <- c('cod_uf','cod_mun','uf','nome_mun','reccorr','recorc','rectribut','rectransf','impostos_total','iptu','iss')
   temp <- temp %>%
     mutate(nome_mun = as.character(nome_mun), uf = as.character(uf),
            n = nchar(cod_mun),
@@ -610,7 +647,10 @@ for (ano in c(2002)){
     mutate(reccorr = gsub(",","",reccorr),
            recorc = gsub(",","",recorc),
            rectribut = gsub(",","",rectribut),
-           rectransf = gsub(",","",rectransf))
+           rectransf = gsub(",","",rectransf),
+           impostos_total = gsub(",","",impostos_total),
+           iptu = gsub(",","",iptu),
+           iss = gsub(",","",iss))
   
   temp$ano <- ano
   
@@ -623,48 +663,49 @@ for (ano in c(2002)){
 # 2. FINBRA 2013 and 2018 
 # =================================================================
 
-
-
-for (ano in seq.int(2013,2017)){
-  temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"), encoding = "Latin-1",sep = ";", skip = 3)
-  temp <- temp %>% 
-    filter((Conta=="1.0.0.0.00.00.00 - Receitas Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
-             (Conta=="1.1.0.0.00.00.00 - Receita Tributária" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
-             (Conta=="1.7.0.0.00.00.00 - Transferências Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas"))) %>% 
-    rename(cod_mun = Cod.IBGE) %>% 
-    select(c("cod_mun","Conta","Valor")) %>% 
-    mutate(Conta = ifelse(Conta=="1.0.0.0.00.00.00 - Receitas Correntes","reccorr",Conta),
-           Conta = ifelse(Conta=="1.1.0.0.00.00.00 - Receita Tributária","rectribut",Conta),
-           Conta = ifelse(Conta=="1.7.0.0.00.00.00 - Transferências Correntes","rectransf",Conta)) %>% 
-    mutate(Conta = gsub(",",".",Conta),
-           cod_mun = substr(cod_mun,1,6),
-           cod_mun = as.numeric(cod_mun)) %>% 
-    pivot_wider(names_from = "Conta",
-                values_from = "Valor")
-  
-  temp$ano <- ano
-  finbra <- bind_rows(finbra,temp)
-}
-
-temp <- read.csv(file = paste0(raw,"receita/finbra",2018,"_receita.csv"), encoding = "Latin-1",sep = ";", skip = 3)
-temp <- temp %>% 
-  filter((Conta=="1.0.0.0.00.0.0 - Receitas Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
-           (Conta=="1.1.0.0.00.0.0 - Impostos, Taxas e Contribuições de Melhoria" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
-           (Conta=="1.7.0.0.00.0.0 - Transferências Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas"))) %>%
-  rename(cod_mun = Cod.IBGE) %>% 
-  select(c("cod_mun","Conta","Valor")) %>% 
-  mutate(Conta = ifelse(Conta=="1.0.0.0.00.0.0 - Receitas Correntes","reccorr",Conta),
-         Conta = ifelse(Conta=="1.1.0.0.00.0.0 - Impostos, Taxas e Contribuições de Melhoria","rectribut",Conta),
-         Conta = ifelse(Conta=="1.7.0.0.00.0.0 - Transferências Correntes","rectransf",Conta)) %>% 
-  mutate(Conta = gsub(",",".",Conta),
-         cod_mun = substr(cod_mun,1,6),
-         cod_mun = as.numeric(cod_mun)) %>% 
-  pivot_wider(names_from = "Conta",
-              values_from = "Valor")
-
-
-temp$ano <- 2018
-finbra <- bind_rows(finbra,temp)
+# 
+# 
+# for (ano in seq.int(2013,2017)){
+#   temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"))
+#   temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"), encoding = "Latin-1",sep = ";", skip = 3)
+#   temp <- temp %>% 
+#     filter((Conta=="1.0.0.0.00.00.00 - Receitas Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
+#              (Conta=="1.1.0.0.00.00.00 - Receita Tributária" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
+#              (Conta=="1.7.0.0.00.00.00 - Transferências Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas"))) %>% 
+#     rename(cod_mun = Cod.IBGE) %>% 
+#     select(c("cod_mun","Conta","Valor")) %>% 
+#     mutate(Conta = ifelse(Conta=="1.0.0.0.00.00.00 - Receitas Correntes","reccorr",Conta),
+#            Conta = ifelse(Conta=="1.1.0.0.00.00.00 - Receita Tributária","rectribut",Conta),
+#            Conta = ifelse(Conta=="1.7.0.0.00.00.00 - Transferências Correntes","rectransf",Conta)) %>% 
+#     mutate(Conta = gsub(",",".",Conta),
+#            cod_mun = substr(cod_mun,1,6),
+#            cod_mun = as.numeric(cod_mun)) %>% 
+#     pivot_wider(names_from = "Conta",
+#                 values_from = "Valor")
+#   
+#   temp$ano <- ano
+#   finbra <- bind_rows(finbra,temp)
+# }
+# 
+# temp <- read.csv(file = paste0(raw,"receita/finbra",2018,"_receita.csv"), encoding = "Latin-1",sep = ";", skip = 3)
+# temp <- temp %>% 
+#   filter((Conta=="1.0.0.0.00.0.0 - Receitas Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
+#            (Conta=="1.1.0.0.00.0.0 - Impostos, Taxas e Contribuições de Melhoria" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
+#            (Conta=="1.7.0.0.00.0.0 - Transferências Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas"))) %>%
+#   rename(cod_mun = Cod.IBGE) %>% 
+#   select(c("cod_mun","Conta","Valor")) %>% 
+#   mutate(Conta = ifelse(Conta=="1.0.0.0.00.0.0 - Receitas Correntes","reccorr",Conta),
+#          Conta = ifelse(Conta=="1.1.0.0.00.0.0 - Impostos, Taxas e Contribuições de Melhoria","rectribut",Conta),
+#          Conta = ifelse(Conta=="1.7.0.0.00.0.0 - Transferências Correntes","rectransf",Conta)) %>% 
+#   mutate(Conta = gsub(",",".",Conta),
+#          cod_mun = substr(cod_mun,1,6),
+#          cod_mun = as.numeric(cod_mun)) %>% 
+#   pivot_wider(names_from = "Conta",
+#               values_from = "Valor")
+# 
+# 
+# temp$ano <- 2018
+# finbra <- bind_rows(finbra,temp)
 
 
 # =================================================================
@@ -672,7 +713,176 @@ finbra <- bind_rows(finbra,temp)
 # =================================================================
 
 
-finbra_select <- finbra %>% select(c("cod_mun","ano","reccorr","recorc","rectribut","rectransf"))
+finbra_select <- finbra %>% select(c("cod_mun","ano","reccorr","recorc","rectribut","rectransf","impostos_total","iptu","iss"))
 write.table(finbra_select, paste0(output,"FINBRA_receita.csv"), fileEncoding = "latin1", sep = ",", row.names = F)
 
+
+
+
+
+
+
+
+# #################################################################
+#       Passivo
+# #################################################################
+
+
+# =================================================================
+# 1. FINBRA 1998 and 1999
+# =================================================================
+
+
+for (ano in c(1998,1999)) {
+  
+  temp <- read.csv(file = paste0(raw,"passivo/finbra",ano,"_passivo.csv"), encoding = "UTF-8",sep = ";")
+  temp <- temp %>% select(c('UF','MUNICIPIO','Passivo','Passivo.Financeiro'))
+  colnames(temp) <- c('uf','nome_mun','passivo','passivo_fin')
+  temp <- temp %>% mutate(nome_mun = as.character(nome_mun), uf = as.character(uf))
+  
+  names_map <- rbind(
+    c('LIVRAMENTO DO BRUMADO', 'LIVRAMENTO DE NOSSA SENHORA','BA'),
+    c('MUQUEM DO SAO FRANCISCO', 'MUQUEM DE SAO FRANCISCO','BA'),
+    c('BRASOPOLIS', 'BRAZOPOLIS', 'MG'),
+    c('DONA EUZEBIA', 'DONA EUSEBIA','MG'),
+    c('GOUVEA' ,'GOUVEIA','MG'),
+    c('QUELUZITA', 'QUELUZITO','MG'),
+    c('SANTA RITA DO IBITIPOCA', 'SANTA RITA DE IBITIPOCA','MG'),
+    c('SAO TOME DAS LETRAS', 'SAO THOME DAS LETRAS','MG'),
+    c('BATAIPORA', 'BATAYPORA','MS'),
+    c('SAO BENTO DE POMBAL', 'SAO BENTINHO','PB'),
+    c('SAO DOMINGOS DE POMBAL', 'SAO DOMINGOS','PB'),
+    c('CARNAUBEIRAS DA PENHA', 'CARNAUBEIRA DA PENHA','PE'),
+    c('LAGOA DO ITAENGA', 'LAGOA DE ITAENGA','PE'),
+    c('BELA VISTA DO CAROBA', 'BELA VISTA DA CAROBA','PR'),
+    c('VILA ALTA', 'ALTO PARAISO','PR'),
+    c('PARATI', 'PARATY','RJ'),
+    c('TRAJANO DE MORAIS', 'TRAJANO DE MORAES','RJ'),
+    c('SAO MIGUEL DE TOUROS', 'SAO MIGUEL DO GOSTOSO','RN'),
+    c('SERRA CAIADA', 'PRESIDENTE JUSCELINO','RN'),
+    c('JAMARI', 'CANDEIAS DO JAMARI','RO'),
+    c('CHIAPETA', 'CHIAPETTA','RS'),
+    c('PICARRAS', 'BALNEARIO PICARRAS','SC'),
+    c("SAO MIGUEL D'OESTE", 'SAO MIGUEL DO OESTE','SC'),
+    c('BRODOSQUI', 'BRODOWSKI','SP'),
+    c('EMBU', 'EMBU DAS ARTES','SP'),
+    c('IPAUCU', 'IPAUSSU','SP'),
+    c('MOJI DAS CRUZES', 'MOGI DAS CRUZES','SP'),
+    c('MOJI-GUACU', 'MOGI-GUACU','SP'),
+    c('MOSQUITO', 'PALMEIRAS DO TOCANTINS','TO'),
+    c('SANTAREM','JOCA CLAUDINO','PB'),
+    c('PRESIDENTE CASTELO BRANCO','PRESIDENTE CASTELLO BRANCO','SC'),
+    c('ITABIRINHA DE MANTENA', 'ITABIRINHA','MG')
+  )
+  
+  for (i in seq(1,nrow(names_map),1)){
+    
+    old <- names_map[i,1]
+    new <- names_map[i,2]
+    s <- names_map[i,3]
+    
+    temp <- temp %>% mutate(nome_mun = ifelse(nome_mun==old,ifelse(uf==s,new,nome_mun),nome_mun))
+  }
+  
+  
+  temp <- temp %>% 
+    mutate(mun_merge = replace_non_ascii(gsub("-","",gsub("'","",gsub(" ","",tolower(as.character(nome_mun)))))),
+           passivo = gsub(",","",passivo),
+           passivo_fin = gsub(",","",passivo_fin))
+  
+  temp <- left_join(temp,id_mun, by = c("mun_merge","uf"))
+  temp$ano <- ano
+  temp <- temp %>% select(-mun_merge)
+  
+  if (ano==1998){
+    finbra <- temp
+  } else{
+    finbra <- bind_rows(finbra, temp)
+  }
+  
+}
+
+
+# =================================================================
+# 2. FINBRA 2000 and 2001
+# =================================================================
+
+for (ano in c(2000,2001)){
+  temp <- read.csv(file = paste0(raw,"passivo/finbra",ano,"_passivo.csv"), encoding = "UTF-8",sep = ";")
+  temp <- temp %>% select(c('CD_UF','UF','CD_MUN','MUNICIPIO','Passivo','Passivo.Financeiro'))
+  colnames(temp) <- c('cod_uf','uf','cod_mun','nome_mun','passivo','passivo_fin')
+  temp <- temp %>%
+    mutate(nome_mun = as.character(nome_mun), uf = as.character(uf),
+           n = nchar(cod_mun),
+           cod_mun = as.character(cod_mun)) %>%
+    mutate(cod_mun = ifelse(n==1, paste0("000",cod_mun), ifelse(n==2, paste0("00",cod_mun), ifelse(n==3,paste0("0",cod_mun),cod_mun)))) %>% 
+    mutate(cod_mun = as.numeric(paste0(cod_uf,cod_mun))) %>% 
+    select(-n) %>% 
+    mutate(passivo = gsub(",","",passivo),
+           passivo_fin = gsub(",","",passivo_fin))
+  
+  temp$ano <- ano
+  
+  finbra <- bind_rows(finbra,temp)
+  
+}
+
+
+# =================================================================
+# 2. FINBRA 2000 and 2010 (except 2002)
+# =================================================================
+
+for (ano in c(seq.int(2003,2012))){
+  temp <- read.csv(file = paste0(raw,"passivo/finbra",ano,"_passivo.csv"), encoding = "UTF-8",sep = ";")
+  temp <- temp %>% select(c('CdUF','UF','CdMun','MUNICIPIO','Passivo','Passivo.Financeiro'))
+  colnames(temp) <- c('cod_uf','uf','cod_mun','nome_mun','passivo','passivo_fin')
+  temp <- temp %>%
+    mutate(nome_mun = as.character(nome_mun), uf = as.character(uf),
+           n = nchar(cod_mun),
+           cod_mun = as.character(cod_mun)) %>%
+    mutate(cod_mun = ifelse(n==1, paste0("000",cod_mun), ifelse(n==2, paste0("00",cod_mun), ifelse(n==3,paste0("0",cod_mun),cod_mun)))) %>% 
+    mutate(cod_mun = as.numeric(paste0(cod_uf,cod_mun))) %>% 
+    select(-n) %>% 
+    mutate(passivo = gsub(",","",passivo),
+           passivo_fin = gsub(",","",passivo_fin))
+  
+  temp$ano <- ano
+  
+  finbra <- bind_rows(finbra,temp)
+  
+}
+
+
+# =================================================================
+# 3. FINBRA 2002 
+# =================================================================
+
+for (ano in c(2002)){
+  temp <- read.csv(file = paste0(raw,"passivo/finbra",ano,"_passivo.csv"), encoding = "UTF-8",sep = ";")
+  temp <- temp %>% select(c('CD_UF','UF','CD_MUN','MUNICIPIO','Passivo','Passivo.Financeiro'))
+  colnames(temp) <- c('cod_uf','uf','cod_mun','nome_mun','passivo','passivo_fin')
+  temp <- temp %>%
+    mutate(nome_mun = as.character(nome_mun), uf = as.character(uf),
+           n = nchar(cod_mun),
+           cod_mun = as.character(cod_mun)) %>%
+    mutate(cod_mun = ifelse(n==1, paste0("000",cod_mun), ifelse(n==2, paste0("00",cod_mun), ifelse(n==3,paste0("0",cod_mun),cod_mun)))) %>% 
+    mutate(cod_mun = as.numeric(paste0(cod_uf,cod_mun))) %>% 
+    select(-n) %>% 
+    mutate(passivo = gsub(",","",passivo),
+           passivo_fin = gsub(",","",passivo_fin))
+  
+  temp$ano <- ano
+  
+  finbra <- bind_rows(finbra,temp)
+  
+}
+
+
+
+# =================================================================
+# 5. Exporting
+# =================================================================
+
+finbra_select <- finbra %>% select(c("cod_mun","ano","passivo","passivo_fin"))
+write.table(finbra_select, paste0(output,"FINBRA_passivo.csv"), fileEncoding = "latin1", sep = ",", row.names = F)
 
