@@ -78,14 +78,24 @@ finbra_receita <- read.csv(paste0(raw,"Finbra/FINBRA_receita.csv"), encoding = "
   rename(finbra_reccorr=reccorr,
          finbra_rectribut = rectribut,
          finbra_rectransf = rectransf,
-         finbra_recorc = recorc) %>%
-  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc"), function(x) ifelse(.$ano>2012,gsub(",",".",x),x)) %>% 
-  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc"),as.numeric)
+         finbra_recorc = recorc,
+         finbra_impostos_total = impostos_total,
+         finbra_iptu = iptu,
+         finbra_iss = iss) %>%
+  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc","finbra_iptu"), function(x) ifelse(.$ano>2012,gsub(",",".",x),x)) %>% 
+  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc","finbra_iptu"),as.numeric)
 
 finbra <- finbra %>% left_join(finbra_receita, by = c("ano","cod_mun"))
-
 rm(finbra_receita)
 
+
+finbra_passivo <- read.csv(paste0(raw,"Finbra/FINBRA_passivo.csv"), encoding = "UTF-8") %>%
+  rename(finbra_passivo = passivo,
+         finbra_passivo_fin = passivo_fin)
+
+
+finbra <- finbra %>% left_join(finbra_passivo, by = c("ano","cod_mun"))
+rm(finbra_passivo)
 
 
 finbra[8:33] <- lapply(finbra[8:33], function(x) as.numeric(gsub(",","",x),digits = 15))
