@@ -78,14 +78,24 @@ finbra_receita <- read.csv(paste0(raw,"Finbra/FINBRA_receita.csv"), encoding = "
   rename(finbra_reccorr=reccorr,
          finbra_rectribut = rectribut,
          finbra_rectransf = rectransf,
-         finbra_recorc = recorc) %>%
-  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc"), function(x) ifelse(.$ano>2012,gsub(",",".",x),x)) %>% 
-  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc"),as.numeric)
+         finbra_recorc = recorc,
+         finbra_impostos_total = impostos_total,
+         finbra_iptu = iptu,
+         finbra_iss = iss) %>%
+  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc","finbra_iptu"), function(x) ifelse(.$ano>2012,gsub(",",".",x),x)) %>% 
+  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc","finbra_iptu"),as.numeric)
 
 finbra <- finbra %>% left_join(finbra_receita, by = c("ano","cod_mun"))
-
 rm(finbra_receita)
 
+
+finbra_passivo <- read.csv(paste0(raw,"Finbra/FINBRA_passivo.csv"), encoding = "UTF-8") %>%
+  rename(finbra_passivo = passivo,
+         finbra_passivo_fin = passivo_fin)
+
+
+finbra <- finbra %>% left_join(finbra_passivo, by = c("ano","cod_mun"))
+rm(finbra_passivo)
 
 
 finbra[8:33] <- lapply(finbra[8:33], function(x) as.numeric(gsub(",","",x),digits = 15))
@@ -251,6 +261,8 @@ sim_ma_4 <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_adult_4.dta")))
 sim_ma_5 <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_adult_5.dta")))
 
 sim_me <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_elderly.dta")))
+
+sim_mf <- data.frame(read.dta13(paste0(raw,"SIM/sim_collapse_fem1049.dta")))
 
 # population
 
@@ -527,10 +539,10 @@ iqim <- read.csv(paste0(raw,"IQIM/IQIM09.csv"), sep = ";") %>%
 rais <- readRDS(paste0(raw,"RAIS/rais_consol.rds"))
 rais <- rais %>%
   ungroup() %>% 
-  rename(cod_mun = id_municipio) %>% 
-  mutate(cod_mun = substr(cod_mun,1,6)) %>% 
-  mutate(cod_mun = as.numeric(cod_mun),
-         ano = as.numeric(ano)) %>% 
+  # rename(cod_mun = id_municipio) %>% 
+  # mutate(cod_mun = substr(cod_mun,1,6)) %>% 
+  # mutate(cod_mun = as.numeric(cod_mun),
+  #        ano = as.numeric(ano)) %>% 
   select(-sigla_uf)
 
 
@@ -556,6 +568,15 @@ df <- mun_list %>%
   left_join(sim, by = c("ano","cod_mun")) %>% 
   left_join(sim_mm, by = c("ano","cod_mun")) %>% 
   left_join(sim_mc, by = c("ano","cod_mun")) %>%
+  mutate(mc2 = mi + mc,
+         mc2_ext = mi_ext + mc_ext,
+         mc2_resp = mi_resp + mc_resp,
+         mc2_infec = mi_infec + mc_infec,
+         mc2_illdef = mi_illdef + mc_illdef,
+         mc2_cong = mi_cong + mc_cong,
+         mc2_out = mi_out + mc_out,
+         mc2_icsap = mi_icsap + mc_icsap,
+         mc2_nicsap = mi_nicsap + mc_nicsap) %>% 
   left_join(sim_ma, by = c("ano","cod_mun")) %>%
   left_join(sim_ma_1, by = c("ano","cod_mun")) %>%
   left_join(sim_ma_2, by = c("ano","cod_mun")) %>%
@@ -563,11 +584,13 @@ df <- mun_list %>%
   left_join(sim_ma_4, by = c("ano","cod_mun")) %>%
   left_join(sim_ma_5, by = c("ano","cod_mun")) %>%
   left_join(sim_me, by = c("ano","cod_mun")) %>%
+  left_join(sim_mf, by = c("ano","cod_mun")) %>% 
   mutate(mm = ifelse(is.na(mm),0,mm)) %>% 
   left_join(pop_96_97, by = c("ano","cod_mun")) %>%
   # adding pop_96_97 to pop var
   mutate(pop = ifelse(ano<=1997,pop_96_97,pop)) %>% 
   left_join(pop_1_4, by = c("ano","cod_mun")) %>% 
+  mutate(pop_0_4 = birth_nasc_vivos + pop_1_4) %>% 
   left_join(pop_15_59, by = c("ano","cod_mun")) %>% 
   left_join(pop_25_59, by = c("ano","cod_mun")) %>% 
   left_join(pop_15_39, by = c("ano","cod_mun")) %>%
@@ -688,7 +711,8 @@ sim_vars <- c(grep("^mi",names(df), value = T),
               grep("^mm",names(df), value = T),
               grep("^mc",names(df), value = T),
               grep("^ma",names(df), value = T),
-              grep("^me",names(df), value = T))
+              grep("^me",names(df), value = T),
+              grep("^mf",names(df), value = T))
 
 
 
@@ -712,14 +736,30 @@ df <- df %>%
 df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x),0))
 
 
-# Child mortality
-sim_vars <- grep("^mc",names(df), value = T)
+# Child mortality (1-4)
+sim_vars <- c(grep("^mc$",names(df), value = T),
+              grep("^mc_",names(df), value = T))
+              
 
 sim_vars_new <- sapply(sim_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F)
 df[sim_vars_new] <- df[sim_vars]
 
 df <- df %>% 
   mutate_at(sim_vars_new, `/`, quote(pop_1_4)) %>% 
+  mutate_at(sim_vars_new, `*`, quote(1000))
+
+df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x),0))
+
+
+# Child mortality (0-4)
+sim_vars <- (grep("^mc2",names(df), value = T))
+
+
+sim_vars_new <- sapply(sim_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F)
+df[sim_vars_new] <- df[sim_vars]
+
+df <- df %>% 
+  mutate_at(sim_vars_new, `/`, quote(pop_0_4)) %>% 
   mutate_at(sim_vars_new, `*`, quote(1000))
 
 df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x),0))
@@ -813,6 +853,19 @@ df <- df %>%
 
 df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x),0))
 
+
+
+# Female Mortality 1 (10-49)
+sim_vars <- grep("^mf",names(df), value = T)
+
+sim_vars_new <- sapply(sim_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F)
+df[sim_vars_new] <- df[sim_vars]
+
+df <- df %>% 
+  mutate_at(sim_vars_new, `/`, quote(pop_fem_10_49)) %>% 
+  mutate_at(sim_vars_new, `*`, quote(1000))
+
+df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x),0))
 
 
 
