@@ -46,12 +46,16 @@ options(digits = 15)
 
 dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 
+DAT <- paste0(dir,"data/processed/")
+TAB <- paste0(dir,"results/tables/")
+FIG <- paste0(dir,"results/figures/")
+
 # ------------------------------------
 
 
 # 1. Load data
 # =================================================================
-load(paste0(dir,"regs.RData"))
+load(paste0(DAT,"regs.RData"))
 
 
 # dropping municipalities with outliers in spending
@@ -137,6 +141,13 @@ var_map1 <- rbind(cbind('finbra_recorc_pcapita','Total Revenue per capita (log)'
                   cbind('finbra_despsocial_pcapita','Non-Health Social Spending per capita (log)'),
                   cbind('finbra_desp_outros_area_pcapita','Non-Social Spending per capita (log)'),
                   
+                  cbind('finbra_impostos_total_pcapita', 'Total Tax Revenue (log)'),
+                  cbind('finbra_iptu_pcapita', 'Property Tax Revenue (log)'),
+                  cbind('finbra_iss_pcapita', 'Services Tax Revenue (log)'),
+                  
+                  cbind('finbra_passivo_pcapita','Total Liabilities (log)'),
+                  cbind('finbra_passivo_pcapita','Financial Liabilities (log)'),
+                  
                   cbind('siops_despsaude_pcapita','Health Spending per capita - Total (log)'),
                   cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (log)'),
                   cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Other Resources (log)'),
@@ -149,22 +160,29 @@ var_map1 <- rbind(cbind('finbra_recorc_pcapita','Total Revenue per capita (log)'
 
 # per capita level
 var_map2 <- rbind(cbind('finbra_recorc_pcapita','Total Revenue per capita (2010 R$)'),
-                 cbind('finbra_reccorr_pcapita','Current Revenue per capita (2010 R$)'),
-                 
-                 cbind('finbra_desp_o_pcapita','Total Spending per capita (2010 R$)'),
-                 
-                 cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (2010 R$)'),
-                 cbind('finbra_desp_nao_saude_pcapita','Non-Health Spending per capita (2010 R$)'),
-                 cbind('finbra_despsocial_pcapita','Non-Health Social Spending per capita (2010 R$)'),
-                 cbind('finbra_desp_outros_area_pcapita','Non-Social Spending per capita (2010 R$)'),
-                 
-                 cbind('siops_despsaude_pcapita','Health Spending per capita - Total (2010 R$)'),
-                 cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (2010 R$)'),
-                 cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Other Resources (2010 R$)'),
-                 cbind('siops_desppessoal_pcapita','Health Spending per capita - Personnel (2010 R$)'),
-                 cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (2010 R$)'),
-                 cbind('siops_despservicoster_pcapita','Health Spending per capita - Outsourced (3rd parties services) (2010 R$)'),
-                 cbind('siops_despoutros_pcapita','Health Spending per capita - Admin, Management, others (2010 R$)'))
+                  cbind('finbra_reccorr_pcapita','Current Revenue per capita (2010 R$)'),
+                  
+                  cbind('finbra_desp_o_pcapita','Total Spending per capita (2010 R$)'),
+                  
+                  cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (2010 R$)'),
+                  cbind('finbra_desp_nao_saude_pcapita','Non-Health Spending per capita (2010 R$)'),
+                  cbind('finbra_despsocial_pcapita','Non-Health Social Spending per capita (2010 R$)'),
+                  cbind('finbra_desp_outros_area_pcapita','Non-Social Spending per capita (2010 R$)'),
+                  
+                  cbind('finbra_impostos_total_pcapita', 'Total Tax Revenue (2010 R$)'),
+                  cbind('finbra_iptu_pcapita', 'Property Tax Revenue (2010 R$)'),
+                  cbind('finbra_iss_pcapita', 'Services Tax Revenue (2010 R$)'),
+                  
+                  cbind('finbra_passivo_pcapita','Total Liabilities (2010 R$)'),
+                  cbind('finbra_passivo_pcapita','Financial Liabilities (2010 R$)'),
+                  
+                  cbind('siops_despsaude_pcapita','Health Spending per capita - Total (2010 R$)'),
+                  cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (2010 R$)'),
+                  cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Other Resources (2010 R$)'),
+                  cbind('siops_desppessoal_pcapita','Health Spending per capita - Personnel (2010 R$)'),
+                  cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (2010 R$)'),
+                  cbind('siops_despservicoster_pcapita','Health Spending per capita - Outsourced (3rd parties services) (2010 R$)'),
+                  cbind('siops_despoutros_pcapita','Health Spending per capita - Admin, Management, others (2010 R$)'))
 
 
 # 3. Run and ouput
