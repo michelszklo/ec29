@@ -95,7 +95,7 @@ robustPlot <- function(var, combined_df) {
          plot = graph,
          device = "pdf",
          width = 7, height = 5,
-       units = "in")
+         units = "in")
 }
 
 robustPlotAB <- function(var, combined_df) {
@@ -103,7 +103,7 @@ robustPlotAB <- function(var, combined_df) {
     geom_point(shape=15) +
     geom_errorbar(aes(ymin = lb2, ymax = ub2, color = target,linetype = controls), width=0.2) +
     geom_hline(yintercept = 0, color = "red", linewidth = 0.3, alpha = 1, linetype = "dashed") +
-     geom_vline(xintercept = 2000, color = "#9e9d9d", linewidth = 0.5, alpha = 1, linetype = "solid") +
+    geom_vline(xintercept = 2000, color = "#9e9d9d", linewidth = 0.5, alpha = 1, linetype = "solid") +
     scale_x_continuous(breaks = seq(YEAR,year_cap,1), limits = c(1997.5,year_cap+0.5)) +
     theme_light() +
     labs(y = var_name,
@@ -115,7 +115,7 @@ robustPlotAB <- function(var, combined_df) {
           legend.position="bottom",
           legend.title = element_blank(),
           legend.text = element_text(size = 9)) +
-      guides(color = guide_legend(nrow = 2), linetype = guide_legend(nrow = 2))
+    guides(color = guide_legend(nrow = 2), linetype = guide_legend(nrow = 2))
   ggsave(paste0(FIG,"robust/",var,"_ab.pdf"),
          plot = graph,
          device = "pdf",
@@ -127,7 +127,7 @@ robustPlotAB <- function(var, combined_df) {
 #--------------------------------------------------------------------------------
 #--- 2. Load data
 #--------------------------------------------------------------------------------
-load(paste0(DAT,"regs.RData"))
+load(paste0(DAT,"regs.RData")) 
 df2 <- df
 
 # 2. Spending
@@ -157,19 +157,27 @@ yearly_folder <- "fiscal_response/"
 
 var_map1 <- rbind(cbind('finbra_recorc_pcapita','Total Revenue per capita (log)'),
                   cbind('finbra_desp_o_pcapita','Total Spending per capita (log)'),
+                  # 
+                  # cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)'),
+                  # cbind('finbra_desp_nao_saude_pcapita','Non-Health Spending per capita (log)'),
+                  # cbind('finbra_despsocial_pcapita','Non-Health Social Spending per capita (log)'),
+                  # cbind('finbra_desp_outros_area_pcapita','Non-Social Spending per capita (log)'),
                   
-                  cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)'),
-                  cbind('finbra_desp_nao_saude_pcapita','Non-Health Spending per capita (log)'),
-                  cbind('finbra_despsocial_pcapita','Non-Health Social Spending per capita (log)'),
-                  cbind('finbra_desp_outros_area_pcapita','Non-Social Spending per capita (log)'),
+                  cbind('finbra_impostos_total_pcapita', 'Total Tax Revenue (log)'),
+                  cbind('finbra_iptu_pcapita', 'Property Tax Revenue (log)'),
+                  cbind('finbra_iss_pcapita', 'Services Tax Revenue (log)'),
                   
-                  cbind('siops_despsaude_pcapita','Health Spending per capita - Total (log)'),
-                  cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (log)'),
-                  cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Other Resources (log)'),
-                  cbind('siops_desppessoal_pcapita','Health Spending per capita - Personnel (log)'),
-                  cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (log)'),
-                  cbind('siops_despservicoster_pcapita','Health Spending per capita - Outsourced (3rd parties services) (log)'),
-                  cbind('siops_despoutros_pcapita','Health Spending per capita - Admin, Management, others (log)'))
+                  cbind('finbra_passivo_pcapita','Total Liabilities (log)'),
+                  cbind('finbra_passivo_pcapita','Financial Liabilities (log)')
+                  
+                  # cbind('siops_despsaude_pcapita','Health Spending per capita - Total (log)'),
+                  # cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (log)'),
+                  # cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Other Resources (log)'),
+                  # cbind('siops_desppessoal_pcapita','Health Spending per capita - Personnel (log)'),
+                  # cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (log)'),
+                  # cbind('siops_despservicoster_pcapita','Health Spending per capita - Outsourced (3rd parties services) (log)'),
+                  # cbind('siops_despoutros_pcapita','Health Spending per capita - Admin, Management, others (log)')
+                  )
 
 
 
@@ -177,18 +185,26 @@ var_map1 <- rbind(cbind('finbra_recorc_pcapita','Total Revenue per capita (log)'
 var_map2 <- rbind(cbind('finbra_recorc_pcapita','Total Revenue per capita (2010 R$)'),
                   cbind('finbra_desp_o_pcapita','Total Spending per capita (2010 R$)'),
                   
-                  cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (2010 R$)'),
-                  cbind('finbra_desp_nao_saude_pcapita','Non-Health Spending per capita (2010 R$)'),
-                  cbind('finbra_despsocial_pcapita','Non-Health Social Spending per capita (2010 R$)'),
-                  cbind('finbra_desp_outros_area_pcapita','Non-Social Spending per capita (2010 R$)'),
+                  # cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (2010 R$)'),
+                  # cbind('finbra_desp_nao_saude_pcapita','Non-Health Spending per capita (2010 R$)'),
+                  # cbind('finbra_despsocial_pcapita','Non-Health Social Spending per capita (2010 R$)'),
+                  # cbind('finbra_desp_outros_area_pcapita','Non-Social Spending per capita (2010 R$)'),
                   
-                  cbind('siops_despsaude_pcapita','Health Spending per capita - Total (2010 R$)'),
-                  cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (2010 R$)'),
-                  cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Other Resources (2010 R$)'),
-                  cbind('siops_desppessoal_pcapita','Health Spending per capita - Personnel (2010 R$)'),
-                  cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (2010 R$)'),
-                  cbind('siops_despservicoster_pcapita','Health Spending per capita - Outsourced (3rd parties services) (2010 R$)'),
-                  cbind('siops_despoutros_pcapita','Health Spending per capita - Admin, Management, others (2010 R$)'))
+                  cbind('finbra_impostos_total_pcapita', 'Total Tax Revenue (2010 R$)'),
+                  cbind('finbra_iptu_pcapita', 'Property Tax Revenue (2010 R$)'),
+                  cbind('finbra_iss_pcapita', 'Services Tax Revenue (2010 R$)'),
+                  
+                  cbind('finbra_passivo_pcapita','Total Liabilities (2010 R$)'),
+                  cbind('finbra_passivo_fin_pcapita','Financial Liabilities (2010 R$)')
+                  
+                  # cbind('siops_despsaude_pcapita','Health Spending per capita - Total (2010 R$)'),
+                  # cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (2010 R$)'),
+                  # cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Other Resources (2010 R$)'),
+                  # cbind('siops_desppessoal_pcapita','Health Spending per capita - Personnel (2010 R$)'),
+                  # cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (2010 R$)'),
+                  # cbind('siops_despservicoster_pcapita','Health Spending per capita - Outsourced (3rd parties services) (2010 R$)'),
+                  # cbind('siops_despoutros_pcapita','Health Spending per capita - Admin, Management, others (2010 R$)')
+                  )
 
 
 # continuous
@@ -232,33 +248,33 @@ for (i in seq(1,13,1)){
   robustPlot(var,combined_df)  
 }
 
-for (i in seq(1,3,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,1,1998,-1,2.5,0.25,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-}
-
-for (i in seq(3,6,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,1,1998,-1,2.5,0.25,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-}
-
-for (i in seq(3,3,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,1,1998,-3,9.25,1,paste0("1_cont_log2_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-}
-
-for (i in seq(7,13,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,1,1998,-3,9.25,1,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-}
+# for (i in seq(1,3,1)){
+#   var <- var_map1[i,1]
+#   var_name <- var_map1[i,2]
+#   print(var_name)
+#   reduced_yearly_imr(var,var_name,df,1,1998,-1,2.5,0.25,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+# }
+# 
+# for (i in seq(3,6,1)){
+#   var <- var_map1[i,1]
+#   var_name <- var_map1[i,2]
+#   print(var_name)
+#   reduced_yearly_imr(var,var_name,df,1,1998,-1,2.5,0.25,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+# }
+# 
+# for (i in seq(3,3,1)){
+#   var <- var_map1[i,1]
+#   var_name <- var_map1[i,2]
+#   print(var_name)
+#   reduced_yearly_imr(var,var_name,df,1,1998,-3,9.25,1,paste0("1_cont_log2_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+# }
+# 
+# for (i in seq(7,13,1)){
+#   var <- var_map1[i,1]
+#   var_name <- var_map1[i,2]
+#   print(var_name)
+#   reduced_yearly_imr(var,var_name,df,1,1998,-3,9.25,1,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+# }
 
 
 # continuous above and below
@@ -1952,6 +1968,86 @@ for (i in seq(1,1,1)){
   reduced_yearly_imr(var,var_name,df,3,1998,-50,50,10,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1, spec = 2) # ec29baseline
 }
 
+
+
+
+# 12. Child, maternal and female mortality
+# =================================================================
+
+yearly_folder <- "cmr/"
+
+var_map <-  rbind(cbind('tx_mc','1-4y Mortality Rate'),
+                  cbind('tx_mc_icsap','1-4y Mortality Rate - APC'),
+                  cbind('tx_mc_nicsap','1-4y Mortality Rate - non-APC'),
+                  cbind('tx_mc_infec','1-4y Mortality Rate - Infectious'),
+                  cbind('tx_mc_resp','1-4y Mortality Rate - Respiratory'),
+                  cbind('tx_mc_cong','1-4y Mortality Rate - Congenital'),
+                  cbind('tx_mc_ext','1-4y Mortality Rate - External'),
+                  cbind('tx_mc_nerv', '1-4y Mortality Rate - Nervous'),
+                  cbind('tx_mc_neop', '1-4y Mortality Rate - Neoplasm'),
+                  cbind('tx_mc_out','1-4y Mortality Rate - Other'),
+                  cbind('tx_mc_illdef','1-4y Mortality Rate - Ill-Defined'),
+                  
+                  
+                  cbind('tx_mc2','Under 5 Mortality Rate'),
+                  cbind('tx_mc2_icsap','Under 5 Mortality Rate - APC'),
+                  cbind('tx_mc2_nicsap','Under 5 Mortality Rate - non-APC'),
+                  cbind('tx_mc2_infec','Under 5 Mortality Rate - Infectious'),
+                  cbind('tx_mc2_resp','Under 5 Mortality Rate - Respiratory'),
+                  cbind('tx_mc2_cong','Under 5 Mortality Rate - Congenital'),
+                  cbind('tx_mc2_ext','Under 5 Mortality Rate - External'),
+                  cbind('tx_mc2_out','Under 5 Mortality Rate - Other'),
+                  cbind('tx_mc2_illdef','Under 5 Mortality Rate - Ill-Defined'),
+                  
+                  cbind('tx_mf',"Female Mortality Rate (10-49y)"),
+                  cbind('tx_mm',"Maternal Mortality Rate"))
+# continuous
+
+for (i in seq(1, 22, 1)) {
+  var <- var_map[i, 1]
+  df[[var]][df$birth_nasc_vivos == 0] <- NA  
+}
+
+for (i in seq(1,22,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  output_list <- list()
+  
+  res <- reduced_yearly_imr(var,var_name,df,3,1998,-3,2,1,
+                            paste0("1_cont_level_",i),weight = "reweightPop",
+                            year_cap = 2010, cont = 1, spec=3)
+  print(res)
+  res$con <-5
+  output_list[[1]] <- res
+  iter <- 2
+  for (control in c(1,2,4,3)) {
+    print(control)
+    res <- reduced_yearly_imr(var,var_name,df,3,1998,-3,2,1,
+                              paste0("1_cont_level_",i),weight = "peso_pop",
+                              year_cap = 2010, cont = 1, spec=control)
+    print(res)
+    res$con <-control 
+    output_list[[iter]] <- res
+    iter <- iter + 1
+  }
+  combined_df <- do.call(rbind, output_list)
+  combined_df <- combined_df %>%
+    mutate(controls = case_when(
+      con == 1 ~ "(1) Baseline",
+      con == 2 ~ "(2) + Municipal char.",
+      con == 3 ~ "(3) + Economic",
+      con == 4 ~ "(4) + Spending",
+      con == 5 ~ "(5) Reweight",
+    ))
+  
+  combined_df$con2<-as.character(combined_df$con)
+  combined_df$year<- combined_df$year+combined_df$con/10
+  ## Robustness plot
+  robustPlot(var,combined_df)  
+  
+  table_main<- table_main %>% cbind(table_final)
+}
 
 
 

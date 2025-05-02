@@ -48,7 +48,7 @@ if(Sys.getenv("USERNAME")=="dcc213") {
 } else if(Sys.getenv("USERNAME")=="damian") {
   dir <- "/home/damian/investigacion/2021/decentralization/github/ec29/"
 } else {
-  dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+  dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 }
 
 # ------------------------------------
@@ -68,7 +68,7 @@ if(Sys.getenv("USERNAME")=="dcc213") {
 } else if(Sys.getenv("USERNAME")=="damian") {
   index <- data.frame(read.dta13("/home/damian/investigacion/2021/decentralization/github/ec29/indexes.dta"))
 } else {
-  index <- data.frame(read.dta13("C:/Users/Michel/Documents/GitHub/ec29/indexes.dta"))
+  index <- data.frame(read.dta13("C:/Users/mszklo/Documents/GitHub/ec29/indexes.dta"))
 }
 
 
@@ -344,7 +344,8 @@ stats <- stats_2000 %>%
     select(-Baseline)
 
 stats_no <- stats_2000_no %>% 
-  mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
+  # mutate_at(c("Mean","Std.Dev","Min","Max","Obs"),~ round(.,digits = 3)) %>% 
+  mutate_at(c("Mean","Std.Dev","Obs"),~ round(.,digits = 3)) %>% 
   select(-Baseline)
 
 
@@ -373,11 +374,143 @@ outliers <- outliers$cod_mun
 df <- df %>% 
   filter(!(cod_mun %in% outliers))
 
+
+
+# 7 different sample descriptive stats and difference in means tests
+# =================================================================
+
 summary_stat(df %>% mutate(pop = pop/1000),2000,"stats_2000")
+summary_stat(df %>% filter(dist_ec29_baseline>0) %>% mutate(pop = pop/1000),2000,"stats_2000_below")
+summary_stat(df %>% filter(dist_ec29_baseline<=0) %>% mutate(pop = pop/1000),2000,"stats_2000_above")
+summary_stat(df %>% filter(dist_ec29_baseline>0 & dist_ec29_baseline<=0.10) %>% mutate(pop = pop/1000),2000,"stats_2000_below_0_10")
+summary_stat(df %>% filter(dist_ec29_baseline>0.10) %>% mutate(pop = pop/1000),2000,"stats_2000_below_10_")
+summary_stat(df %>% filter(dist_ec29_baseline<=0 & dist_ec29_baseline>-0.10) %>% mutate(pop = pop/1000),2000,"stats_2000_above_0_10")
+summary_stat(df %>% filter(dist_ec29_baseline<=-0.10) %>% mutate(pop = pop/1000),2000,"stats_2000_above_10_")
+
+
+stats_2000_above_below <- stats_2000_below %>%
+  bind_cols(stats_2000_above %>% 
+              select(-c(Variable,`Source of Data`,Period,Baseline)) %>% 
+              rename(Mean2 = Mean,
+                     Std.Dev2 = Std.Dev,
+                     Obs2 = Obs))
+
+
+stats_2000_above_below_trim <- stats_2000_below_0_10 %>%
+  bind_cols(stats_2000_above_0_10 %>% 
+              select(-c(Variable,`Source of Data`,Period,Baseline)) %>% 
+              rename(Mean2 = Mean,
+                     Std.Dev2 = Std.Dev,
+                     Obs2 = Obs))
 
 
 
-# 5. final table and export
+
+
+
+
+
+# df_manova <- rbind(
+#   df %>% 
+#     filter(ano==2000) %>% 
+#     filter(dist_ec29_baseline>0 & dist_ec29_baseline<=0.10) %>% mutate(pop = pop/1000) %>% 
+#     mutate(sample = "below_0_10"),
+#   df %>% 
+#     filter(ano==2000) %>% 
+#     filter(dist_ec29_baseline>0.10) %>% mutate(pop = pop/1000) %>% 
+#     mutate(sample = "below_10_"),
+#   df %>% 
+#     filter(ano==2000) %>% 
+#     filter(dist_ec29_baseline<=0 & dist_ec29_baseline>-0.10) %>% mutate(pop = pop/1000) %>% 
+#     mutate(sample = "above_0_10"),
+#   df %>% 
+#     filter(ano==2000) %>% 
+#     filter(dist_ec29_baseline<=-0.10) %>% mutate(pop = pop/1000) %>% 
+#     mutate(sample = "above_10_")
+# ) %>% 
+#   select(sample,all_of(var_map[,1])) %>% 
+#   mutate(sample = as.factor(sample))
+# 
+# 
+# df_manova <- df_manova[complete.cases(df_manova), ] 
+# manova <- manova(as.formula(paste("cbind(", paste(var_map[,1], collapse = ", "), ") ~ sample")), data = df_manova)
+# summary(manova)
+
+
+
+
+# 7. two sample t-test
+# =================================================================
+
+ttest <- function(table){
+  
+  table <- table %>% 
+    mutate(se = sqrt((Std.Dev^2 / Obs) + (Std.Dev2^2 / Obs2))) %>% 
+    mutate(t_stat = (Mean - Mean2) / se) %>% 
+    mutate(df = ((Std.Dev^2 / Obs + Std.Dev2^2 / Obs2)^2) / (((Std.Dev^2 / Obs)^2 / (Obs - 1)) + ((Std.Dev2^2 / Obs2)^2 / (Obs2 - 1)))) %>% 
+    mutate(pvalue = 2 * pt(-abs(t_stat), df)) %>% 
+    select(-c(se,df)) %>% 
+    mutate(mean_dif = Mean - Mean2)
+  
+  return(table)
+  
+}
+
+
+stats_2000_above_below <- stats_2000_above_below %>% 
+  ttest() %>% 
+  mutate_at(c("t_stat","pvalue","mean_dif"),~ round(.,digits = 3))
+
+
+vars <- paste(var_map[,1], collapse = " + ")
+
+fit <- lm(as.formula(paste("cbind(", vars, ") ~ treat")),
+          data = df %>% 
+            mutate(pop = pop/1000) %>% 
+            filter(ano==2000) %>% 
+            mutate(treat = 0) %>% 
+            mutate(treat = ifelse(dist_ec29_baseline>0,1,treat)))
+
+fstat <- summary(fit)$fstatistic[1] %>% as.numeric
+p_value <- pf(fstat,summary(fit)$fstatistic[2],summary(fit)$fstatistic[3],
+             lower.tail = F )
+
+stats_2000_above_below <- stats_2000_above_below %>% 
+  mutate(fstat = fstat,
+         pvalue2 = p_value) %>% 
+  mutate_at(c("fstat","pvalue2"),~ round(.,digits = 3))
+  
+
+
+
+
+stats_2000_above_below_trim <- stats_2000_above_below_trim %>% 
+  ttest() %>% 
+  mutate_at(c("t_stat","pvalue","mean_dif"),~ round(.,digits = 3))
+
+
+vars <- paste(var_map[,1], collapse = " + ")
+
+fit <- lm(as.formula(paste("cbind(", vars, ") ~ treat")),
+          data = df %>% 
+            mutate(pop = pop/1000) %>% 
+            filter(ano==2000) %>%
+            filter(dist_ec29_baseline > -0.10 & dist_ec29_baseline <= 0.10) %>% 
+            mutate(treat = 0) %>% 
+            mutate(treat = ifelse(dist_ec29_baseline>0,1,treat)))
+
+fstat <- summary(fit)$fstatistic[1] %>% as.numeric
+p_value <- pf(fstat,summary(fit)$fstatistic[2],summary(fit)$fstatistic[3],
+             lower.tail = F )
+
+stats_2000_above_below_trim <- stats_2000_above_below_trim %>% 
+  mutate(fstat = fstat,
+         pvalue2 = p_value) %>% 
+  mutate_at(c("fstat","pvalue2"),~ round(.,digits = 3))
+
+
+
+# 8. final table and export
 # =================================================================
 
 stats <- stats_2000 %>% 
@@ -386,3 +519,15 @@ stats <- stats_2000 %>%
 
 dir1 <- "/home/damian/investigacion/2021/decentralization/github/ec29/regs_outputs/"
 write.table(stats, file = paste0(dir1,"sumstats_nooutliers.tex"),row.names = F,sep="&", eol="\\\\ \n", quote=FALSE,col.names=F)
+
+
+
+
+write.table(stats_2000_above_below,file = paste0(dir,"results/table/summary_statistics/","above_below",".csv"),sep = ",")
+write.table(stats_2000_above_below_trim,file = paste0(dir,"results/table/summary_statistics/","above_below_trim",".csv"),sep = ",")
+write.table(stats_2000_below_0_10,file = paste0(dir,"results/table/summary_statistics/","below_0_10",".csv"),sep = ",")
+write.table(stats_2000_below_10_,file = paste0(dir,"results/table/summary_statistics/","below_10_",".csv"),sep = ",")
+write.table(stats_2000_above_0_10,file = paste0(dir,"results/table/summary_statistics/","above_0_10",".csv"),sep = ",")
+write.table(stats_2000_above_10_,file = paste0(dir,"results/table/summary_statistics/","above_10_",".csv"),sep = ",")
+
+
