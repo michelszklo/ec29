@@ -47,6 +47,8 @@ options(digits = 15)
 #Set-up path for principal directory
 if(Sys.getenv("USERNAME")=="dcc213") {
   dir <- "/home/dcc213/investigacion/2021/decentralization/github/"
+} else if (Sys.getenv("USERNAME") == "damian") {
+  dir <- "/home/damian/investigacion/2021/decentralization/github/"  
 } else {
   dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 }
@@ -61,9 +63,12 @@ load(paste0(DAT,"output_setup.RData"))
 
 if(Sys.getenv("USERNAME")=="dcc213") {
   dir <- "/home/dcc213/investigacion/2021/decentralization/github/"
+} else if (Sys.getenv("USERNAME") == "damian") {
+  dir <- "/home/damian/investigacion/2021/decentralization/github/"  
 } else {
   dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 }
+
 
 # ------------------------------------
 
@@ -1223,6 +1228,7 @@ reduced_yearly <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,na
   
 }
 
+
 reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,ys,name,weight,year_cap,label_size,cont,spec=3,base_year=2000,ramb_roth=FALSE){
   
   
@@ -1314,8 +1320,6 @@ reduced_yearly_imr <- function(outcome,var_name,df,transform,year_filter,y0,yf,y
   weight_vector <- df_reg[weight] %>% unlist() %>% as.numeric()
   regformula <- as.formula(paste(ln_outcome,spec_reduced))
   fit <- felm(regformula, data = df_reg, weights = weight_vector,exactDOF = T)
-  print(summary(fit))  
-  print(summary(fit)$N)  
   num_obs <- summary(fit)$N
 
 if (ramb_roth==TRUE) {
@@ -1324,21 +1328,45 @@ if (ramb_roth==TRUE) {
   beta_hat    <- coef(fit)[keep_indices]  
   vcov_matrix <- vcov(fit)[keep_indices,keep_indices]
   print(beta_hat)
+  rr_results <- tibble()
 
-  BC_vec  <- basisVector(index=5, size=10)
-  results <- createSensitivityResults(
-            betahat = beta_hat,
-            sigma = vcov_matrix,
-            numPrePeriods = 2,
-            numPostPeriods = 10,
-            Mvec = 0, l_vec = BC_vec)
-print(results)
-  # Plot results
-  #HonestDiD::createSensitivityPlot(results)
+  for (lag in 1:10) {
+    BC_vec  <- basisVector(index=lag, size=10)
+    results <- createSensitivityResults_relativeMagnitudes(
+              betahat = beta_hat,
+              sigma = vcov_matrix,
+              numPrePeriods = 2,
+              numPostPeriods = 10,
+              Mbarvec = 0, l_vec = BC_vec)
+    print(results)
+    rr_results <- bind_rows(rr_results, 
+                         results %>% mutate(
+                           lag = lag,
+                           beta_hat = beta_hat[lag+2]  
+                         ) %>% select(lag, lb, ub, beta_hat))
+  }
+  # RR Plot
+  RRplot <- ggplot(rr_results, aes(x = lag)) +
+  geom_ribbon(aes(ymin = lb, ymax = ub), fill = "lightblue", alpha = 0.4) +
+  geom_line(aes(y = lb), color = "blue", linetype = "dashed") +
+  geom_line(aes(y = ub), color = "blue", linetype = "dashed") +
+  geom_point(aes(y = beta_hat), color = "black", size = 2) +
+  geom_hline(yintercept = 0, color = "red", linetype = "solid") +
+  scale_x_continuous(breaks = c(2, 4, 6, 8, 10)) +  
+    labs(
+    title = "Rambachan & Roth Bounds and Point Estimates by Lag",
+    x = "Lag",
+    y = var_name,
+    caption = paste("Number of observations:", num_obs)
+  ) +
+  theme_minimal()
+
+  ggsave(paste0(FIG,yearly_folder,"RR","_",outcome,".pdf"),
+           plot = RRplot,
+           device = "pdf",
+           width = 7, height = 5,
+           units = "in")
 }
-
-  
-  # table formatting
 
 table <- fit %>% 
     broom::tidy() %>%
@@ -1359,7 +1387,7 @@ table <- fit %>%
            ub = ifelse(ub>yf,yf,ub),
            lb2 = ifelse(lb2<y0,y0,lb2),
            ub2 = ifelse(ub2>yf,yf,ub2))
-  
+
   table_final <- data.frame()
   for(i in 1:nrow(table)){
     t <- table[i,]
@@ -1369,7 +1397,7 @@ table <- fit %>%
     
     table_final <- bind_rows(table_final,t)
   }
-  
+
   table_final <- table_final %>% rbind(fit %>% broom::glance() %>% select(nobs) %>% as.character())
   
   assign("table_final",table_final, envir = .GlobalEnv)
@@ -1526,7 +1554,7 @@ table <- fit %>%
   }
   print(fit)
   print(table)
-  return(data.frame(year= table$year, estimates=table$estimate, lb=table$lb, 
+  return(data.frame(year=table$year, estimates=table$estimate, lb=table$lb, 
                     ub=table$ub, lb2=table$lb2, ub2=table$ub2))
   
   

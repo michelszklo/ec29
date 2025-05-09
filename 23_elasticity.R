@@ -1,15 +1,16 @@
-#######################################################################################################
-# Author: Michel Szklo
-# January 2024
-# 
-# This scripts estimates elasticity rates and bootstrap CIs
-#
-#
-#######################################################################################################
+#--------------------------------------------------------------------------------
+#--- Author: Michel Szklo
+#--- January 2024
+#--- Edits: Damian Clarke
+#---        Most recent: 27/03/2025 (DC)
+#--- 
+#--- This scripts estimates elasticity rates and bootstrap CIs.  Updated version
+#---  now does this based on an IV given comments from Referee 1.
+#--------------------------------------------------------------------------------
 
-# 0. Set-up
-# =================================================================
-
+#--------------------------------------------------------------------------------
+#--- (0) Set-up
+#--------------------------------------------------------------------------------
 rm(list=ls())
 
 # packages
@@ -44,6 +45,8 @@ options(digits = 15)
 # ------------------------------------
 if(Sys.getenv("USERNAME")=="dcc213") {
   dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
+} else if(Sys.getenv("USERNAME")=="damian") {
+  dir <- "/home/damian/investigacion/2021/decentralization/github/ec29/"
 } else {
   dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 }
@@ -51,18 +54,17 @@ if(Sys.getenv("USERNAME")=="dcc213") {
 
 set.seed(121316)
 
-# 1. Load data
-# =================================================================
+#--------------------------------------------------------------------------------
+#--- (1) Load and subset data
+#--------------------------------------------------------------------------------
 load(paste0(dir,"regs.RData"))
 
 # removing variables that will not be used
 #------------------------------------------
-
 # select outcomes
 outcomes <- c("siops_despsaude_pcapita","finbra_desp_o_pcapita","finbra_desp_saude_san_pcapita","tx_mi","tx_mi_icsap","tx_mi_nicsap",
               "tx_mi_infec","tx_mi_resp","tx_mi_perinat","tx_mi_cong","tx_mi_ext","tx_mi_nut",
               "tx_mi_out","tx_mi_illdef","tx_mi_fet","tx_mi_24h","tx_mi_27d","tx_mi_ano")
-
 df <- df %>%
   select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(outcomes),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
          all_of(yeartreat_dummies),all_of(yeartreat_dummies_ab),all_of(yeartreat_dummies_binary),
@@ -70,6 +72,31 @@ df <- df %>%
          finbra_desp_saude_san_pcapita_neighbor,lrf)
 
 # "finbra_desp_saude_san_pcapita","siops_despsaude_pcapita","tx_mi"
+
+#--------------------------------------------------------------------------------
+#--- (2) Set-up estimation
+#--------------------------------------------------------------------------------
+
+
+df_reg <- df %>% 
+  select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(outcomes),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
+         all_of(yeartreat_dummies_ab),all_of(yeartreat_dummies),
+         peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
+         finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
+  filter(ano>=year_filter)
+
+weight_vector <- df_reg["peso_pop"] %>% unlist() %>% as.numeric()
+
+
+spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
+regformula <- as.formula(paste(var,spec_reduced))
+fit <- felm(tx_mi ~  t_analf18m_baseline + t_espvida_baseline + t_e_anosestudo_baseline + 
+            t_t_analf18m_baseline + t_pmpob_baseline + t_rdpc_baseline + t_gini_baseline + 
+            t_sewage_gen_network_baseline + t_garbage_coll_service_baseline + t_water_gen_network_baseline + 
+            t_elect_access_baseline + t_urb_baseline + gdp_mun_pcapita + pbf_pcapita + t_tx_mi_baseline  
+            | cod_mun + uf_y_fe | () | cod_mun, data = df_reg, weights = weight_vector,exactDOF = 
+
+stop("Stopping script execution.")
 
 # 2. Functions
 # =================================================================

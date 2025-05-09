@@ -17,6 +17,8 @@ rm(list=ls())
 #Set-up path for principal directory
 if(Sys.getenv("USERNAME")=="dcc213") {
   dir <- "/home/dcc213/investigacion/2021/decentralization/github/"
+} else if (Sys.getenv("USERNAME") == "damian") {
+  dir <- "/home/damian/investigacion/2021/decentralization/github/"  
 } else {
   dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 }
@@ -45,7 +47,8 @@ packages<-c('readr',
             'boot',
             'broom',
             'modelsummary',
-            'ggsci')
+            'ggsci',
+            'HonestDiD')
 to_install<-packages[!(packages %in% installed.packages()[,"Package"])]
 if(length(to_install)>0) install.packages(to_install)
 
@@ -248,33 +251,26 @@ for (i in seq(1,13,1)){
   robustPlot(var,combined_df)  
 }
 
-# for (i in seq(1,3,1)){
-#   var <- var_map1[i,1]
-#   var_name <- var_map1[i,2]
-#   print(var_name)
-#   reduced_yearly_imr(var,var_name,df,1,1998,-1,2.5,0.25,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-# }
-# 
-# for (i in seq(3,6,1)){
-#   var <- var_map1[i,1]
-#   var_name <- var_map1[i,2]
-#   print(var_name)
-#   reduced_yearly_imr(var,var_name,df,1,1998,-1,2.5,0.25,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-# }
-# 
-# for (i in seq(3,3,1)){
-#   var <- var_map1[i,1]
-#   var_name <- var_map1[i,2]
-#   print(var_name)
-#   reduced_yearly_imr(var,var_name,df,1,1998,-3,9.25,1,paste0("1_cont_log2_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-# }
-# 
-# for (i in seq(7,13,1)){
-#   var <- var_map1[i,1]
-#   var_name <- var_map1[i,2]
-#   print(var_name)
-#   reduced_yearly_imr(var,var_name,df,1,1998,-3,9.25,1,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-# }
+for (i in seq(1,6,1)){
+  var <- var_map1[i,1]
+  var_name <- var_map1[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,1,1998,-1,2.5,0.25,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+}
+
+for (i in seq(3,3,1)){
+  var <- var_map1[i,1]
+  var_name <- var_map1[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,1,1998,-3,9.25,1,paste0("1_cont_log2_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+}
+
+for (i in seq(7,13,1)){
+  var <- var_map1[i,1]
+  var_name <- var_map1[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,1,1998,-3,9.25,1,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
+}
 
 
 # continuous above and below
@@ -380,6 +376,16 @@ df_balance_siops <- df[complete.cases(df[c('siops_despsaude_pcapita',
                          df$siops_despinvest_pcapita != 0 & 
                          df$siops_despservicoster_pcapita != 0 & 
                          df$siops_despoutros_pcapita>0, ]
+
+
+#Ramb Roth
+for (i in c(2,3,4,5)){
+  var <- var_map1[i,1]
+  var_name <- var_map1[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df_balance_finbra,1,1998,-1,2.5,0.25,paste0("1_bal_fin_",i),weight = "peso_pop",year_cap = 2010,cont = 1,ramb_roth=T) # ec29baseline
+}
+
 
 
 for (i in seq(1,3,1)){
@@ -1199,6 +1205,15 @@ for (i in seq(1, 16, 1)) {
   df[[var]][df$birth_nasc_vivos == 0] <- NA  
 }
 
+#Make Rambachan and Roth plots
+for (i in c(1,13,14,15,16)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-15,10,5,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1, ramb_roth=T) # ec29baseline
+}
+
+
 for (i in seq(1,16,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
@@ -1239,6 +1254,8 @@ for (i in seq(1,16,1)){
   
   table_main<- table_main %>% cbind(table_final)
 }
+
+
 
 for (i in seq(4,15,1)){
   var <- var_map[i,1]
@@ -1336,11 +1353,7 @@ for (i in seq(4,15,1)){
 
 # 8. Indexes
 # =================================================================
-if(Sys.getenv("USERNAME")=="dcc213") {
-  index <- data.frame(read.dta13("/home/dcc213/investigacion/2021/decentralization/github/ec29/indexes.dta"))
-} else {
-  index <- data.frame(read.dta13("C:/Users/mszklo/Documents/GitHub/ec29/indexes.dta"))
-}
+index <- data.frame(read.dta13(paste0(DAT, "indexes.dta")))
 # merge indexes to main df
 all_df <- c("df")
 
