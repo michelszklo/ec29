@@ -106,7 +106,7 @@ if(Sys.getenv("USERNAME")=="dcc213") {
 
 # 1. Load data frame
 # =================================================================
-raw <- readRDS(paste0(DAT,"CONSOL_DATA.RDS"))
+raw <- readRDS(paste0(DAT,"CONSOL_DATA_2025.RDS"))
 
 
 df <- raw %>% 
@@ -1554,6 +1554,10 @@ table <- fit %>%
   }
   print(fit)
   print(table)
+  if (ramb_roth==TRUE) {
+    print("RR")
+    print(rr_results)
+  }
   return(data.frame(year=table$year, estimates=table$estimate, lb=table$lb, 
                     ub=table$ub, lb2=table$lb2, ub2=table$ub2))
   
