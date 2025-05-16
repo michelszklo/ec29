@@ -601,7 +601,7 @@ for (i in seq(1,25,1)){
   iter <- 1
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_ab_imr(var,var_name,df_est,3,1998,
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,
                                  vals$x_min,vals$x_max,vals$x_inc,
                                   paste0("2_ab_level_",i),weight = "peso_pop",
                                  year_cap = 2010, cont = 1, spec=control)
@@ -854,7 +854,7 @@ for (i in seq(1,9,1)){
   iter <- 1
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_ab_imr(var,var_name,df_est,3,1998,
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,
                                  vals$x_min,vals$x_max,vals$x_inc,
                                   paste0("2_ab_level_",i),weight = "peso_pop",
                                  year_cap = 2010, cont = 1, spec=control)
@@ -993,7 +993,7 @@ for (i in seq(1,6,1)){
   iter <- 1
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_ab_imr(var,var_name,df_est,3,1998,
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,
                                  vals$x_min,vals$x_max,vals$x_inc,
                                   paste0("2_ab_level_",i),weight = "peso_pop",
                                  year_cap = 2010, cont = 1, spec=control)
@@ -1140,7 +1140,7 @@ for (i in seq(1,16,1)){
   iter <- 1
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_ab_imr(var,var_name,df_est,3,1998,
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,
                                  vals$x_min,vals$x_max,vals$x_inc,
                                   paste0("2_ab_level_",i),weight = "peso_pop",
                                  year_cap = 2010, cont = 1, spec=control)
@@ -1608,7 +1608,7 @@ for (i in seq(1,8,1)){
   iter <- 1
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_ab_imr(var,var_name,df_est,3,1998,
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,
                                  vals$x_min,vals$x_max,vals$x_inc,
                                   paste0("2_ab_level_",i),weight = "peso_pop",
                                  year_cap = 2010, cont = 1, spec=control)
@@ -1701,7 +1701,7 @@ for (i in seq(1,1,1)){
   iter <- 1
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_ab_imr(var,var_name,df_est,3,1998,
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,
                                  vals$x_min,vals$x_max,vals$x_inc,
                                   paste0("2_ab_level_",i),weight = "peso_pop",
                                  year_cap = 2010, cont = 1, spec=control)
@@ -1764,7 +1764,7 @@ for (i in seq(1,1,1)){
   iter <- 1
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_ab_imr(var,var_name,df_est,3,1998,
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,
                                  vals$x_min,vals$x_max,vals$x_inc,
                                   paste0("2_ab_level_",i),weight = "peso_pop",
                                  year_cap = 2010, cont = 1, spec=control)
