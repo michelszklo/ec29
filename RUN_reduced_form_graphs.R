@@ -10,13 +10,15 @@
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
-#--- 0. Set-up
+#--- (0) Set-up
 #--------------------------------------------------------------------------------
 rm(list=ls())
 
 #Set-up path for principal directory
 if(Sys.getenv("USERNAME")=="dcc213") {
   dir <- "/home/dcc213/investigacion/2021/decentralization/github/"
+} else if (Sys.getenv("USERNAME") == "damian") {
+  dir <- "/home/damian/investigacion/2021/decentralization/github/"  
 } else {
   dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
 }
@@ -45,7 +47,8 @@ packages<-c('readr',
             'boot',
             'broom',
             'modelsummary',
-            'ggsci')
+            'ggsci',
+            'HonestDiD')
 to_install<-packages[!(packages %in% installed.packages()[,"Package"])]
 if(length(to_install)>0) install.packages(to_install)
 
@@ -69,8 +72,8 @@ table_ab   <- cbind(rnames,data.frame(matrix(nrow = NRR, ncol = 0)))
 
 
 #--------------------------------------------------------------------------------
-#--- 1. Plotting functions for robustness plots 
-#---    Accepts: variable name (var)
+#--- (1) Plotting functions for robustness plots 
+#---     Accepts: variable name (var)
 #---             dataframe with estimates, LB, UB, etc. (combined_df)
 #--------------------------------------------------------------------------------
 # Plotting functions
@@ -125,14 +128,13 @@ robustPlotAB <- function(var, combined_df) {
 
 
 #--------------------------------------------------------------------------------
-#--- 2. Load data
+#--- (2) Load data and set up data frames
 #--------------------------------------------------------------------------------
 load(paste0(DAT,"regs.RData")) 
-df2 <- df
+#df holds full data
 
-# 2. Spending
-# =================================================================
 
+# Examine spending data removing outliers as spenders 5sd above or below the mean
 outliers <- df %>% 
   mutate(s = log(finbra_desp_o_pcapita)) %>% 
   select(s,everything())
@@ -149,74 +151,98 @@ outliers <- outliers %>%
 
 outliers <- outliers$cod_mun
 
-df <- df %>% 
+df_noout <- df %>% 
   filter(!(cod_mun %in% outliers))
 
-# redefines folder
+
+# Define variable sets
+vars_finbra <- c('finbra_recorc_pcapita','finbra_desp_o_pcapita',
+                 'finbra_desp_saude_san_pcapita','finbra_desp_nao_saude_pcapita',
+                 'finbra_despsocial_pcapita','finbra_desp_outros_area_pcapita',
+                 'gdp_mun_pcapita','pbf_pcapita','t_tx_mi_baseline',
+                 'dist_ec29_baseline')
+
+nonzero_finbra <- c('finbra_recorc_pcapita','finbra_desp_o_pcapita',
+                    'finbra_desp_saude_san_pcapita','finbra_desp_nao_saude_pcapita',
+                    'finbra_despsocial_pcapita','finbra_desp_outros_area_pcapita')
+
+vars_siops <- c('siops_despsaude_pcapita','siops_desprecpropriosaude_pcapita',
+                'siops_despexrecproprio_pcapita','siops_desppessoal_pcapita',
+                'siops_despinvest_pcapita','siops_despservicoster_pcapita',
+                'siops_despoutros_pcapita','gdp_mun_pcapita',
+                'pbf_pcapita','t_tx_mi_baseline','dist_ec29_baseline')
+
+nonzero_siops <- c('siops_despsaude_pcapita','siops_desprecpropriosaude_pcapita',
+                   'siops_despexrecproprio_pcapita','siops_desppessoal_pcapita',
+                   'siops_despinvest_pcapita','siops_despservicoster_pcapita')
+
+# Filter for balanced data
+df_balance_finbra <- df_noout[
+  complete.cases(df_noout[vars_finbra]) &
+    rowSums(df_noout[nonzero_finbra] == 0) == 0,
+]
+
+df_balance_siops <- df_noout[
+  complete.cases(df_noout[vars_siops]) &
+    rowSums(df_noout[nonzero_siops] == 0) == 0 &
+    df_noout$siops_despoutros_pcapita > 0,
+]
+
+
+
+
+#--------------------------------------------------------------------------------
+#--- (2) Run analysis for fiscal responses
+#--------------------------------------------------------------------------------
 yearly_folder <- "fiscal_response/"
 
-var_map1 <- rbind(cbind('finbra_recorc_pcapita','Total Revenue per capita (log)'),
-                  cbind('finbra_desp_o_pcapita','Total Spending per capita (log)'),
-                  # 
-                  # cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)'),
-                  # cbind('finbra_desp_nao_saude_pcapita','Non-Health Spending per capita (log)'),
-                  # cbind('finbra_despsocial_pcapita','Non-Health Social Spending per capita (log)'),
-                  # cbind('finbra_desp_outros_area_pcapita','Non-Social Spending per capita (log)'),
-                  
-                  cbind('finbra_impostos_total_pcapita', 'Total Tax Revenue (log)'),
-                  cbind('finbra_iptu_pcapita', 'Property Tax Revenue (log)'),
-                  cbind('finbra_iss_pcapita', 'Services Tax Revenue (log)'),
-                  
-                  cbind('finbra_passivo_pcapita','Total Liabilities (log)'),
-                  cbind('finbra_passivo_pcapita','Financial Liabilities (log)')
-                  
-                  # cbind('siops_despsaude_pcapita','Health Spending per capita - Total (log)'),
-                  # cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (log)'),
-                  # cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Other Resources (log)'),
-                  # cbind('siops_desppessoal_pcapita','Health Spending per capita - Personnel (log)'),
-                  # cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (log)'),
-                  # cbind('siops_despservicoster_pcapita','Health Spending per capita - Outsourced (3rd parties services) (log)'),
-                  # cbind('siops_despoutros_pcapita','Health Spending per capita - Admin, Management, others (log)')
-                  )
+var_map1 <- rbind(
+  cbind('finbra_recorc_pcapita','Total Revenue per capita (log)'),
+  cbind('finbra_desp_o_pcapita','Total Spending per capita (log)'),                 
+  cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (log)'),
+  cbind('finbra_desp_nao_saude_pcapita','Non-Health Spending per capita (log)'),
+  cbind('finbra_despsocial_pcapita','Non-Health Social Spending per capita (log)'),
+  cbind('finbra_desp_outros_area_pcapita','Non-Social Spending per capita (log)'),
+  cbind('finbra_impostos_total_pcapita', 'Total Tax Revenue (log)'),
+  cbind('finbra_iptu_pcapita', 'Property Tax Revenue (log)'),
+  cbind('finbra_iss_pcapita', 'Services Tax Revenue (log)'),
+  cbind('finbra_passivo_pcapita','Total Liabilities (log)'),
+  cbind('finbra_passivo_pcapita','Financial Liabilities (log)'),
+  cbind('siops_despsaude_pcapita','Health Spending per capita - Total (log)'),
+  cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (log)'),
+  cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Other Resources (log)'),
+  cbind('siops_desppessoal_pcapita','Health Spending per capita - Personnel (log)'),
+  cbind('siops_despinvest_pcapita','Health Spending per capita - Investment (log)'),
+  cbind('siops_despservicoster_pcapita','Health Spending per capita - Outsourced (3rd parties services) (log)'),
+  cbind('siops_despoutros_pcapita','Health Spending per capita - Admin, Management, others (log)')
+)
 
-
-
-# per capita level
-var_map2 <- rbind(cbind('finbra_recorc_pcapita','Total Revenue per capita (2010 R$)'),
-                  cbind('finbra_desp_o_pcapita','Total Spending per capita (2010 R$)'),
-                  
-                  # cbind('finbra_desp_saude_san_pcapita','Health and Sanitation Spending per capita (2010 R$)'),
-                  # cbind('finbra_desp_nao_saude_pcapita','Non-Health Spending per capita (2010 R$)'),
-                  # cbind('finbra_despsocial_pcapita','Non-Health Social Spending per capita (2010 R$)'),
-                  # cbind('finbra_desp_outros_area_pcapita','Non-Social Spending per capita (2010 R$)'),
-                  
-                  cbind('finbra_impostos_total_pcapita', 'Total Tax Revenue (2010 R$)'),
-                  cbind('finbra_iptu_pcapita', 'Property Tax Revenue (2010 R$)'),
-                  cbind('finbra_iss_pcapita', 'Services Tax Revenue (2010 R$)'),
-                  
-                  cbind('finbra_passivo_pcapita','Total Liabilities (2010 R$)'),
-                  cbind('finbra_passivo_fin_pcapita','Financial Liabilities (2010 R$)')
-                  
-                  # cbind('siops_despsaude_pcapita','Health Spending per capita - Total (2010 R$)'),
-                  # cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (2010 R$)'),
-                  # cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Other Resources (2010 R$)'),
-                  # cbind('siops_desppessoal_pcapita','Health Spending per capita - Personnel (2010 R$)'),
-                  # cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (2010 R$)'),
-                  # cbind('siops_despservicoster_pcapita','Health Spending per capita - Outsourced (3rd parties services) (2010 R$)'),
-                  # cbind('siops_despoutros_pcapita','Health Spending per capita - Admin, Management, others (2010 R$)')
-                  )
-
-
-# continuous
-
-for (i in seq(1,13,1)){
+#--------------------------------------------------------------------------------
+#--- (2A) Estimate single spending shock
+#--------------------------------------------------------------------------------
+for (i in seq(1,18,1)) {
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
   output_list <- list()
   
-  res <- reduced_yearly_imr(var,var_name,df,1,1998,-1000,1000,10,
-                            paste0("1_cont_level_",i),weight = "reweightPop",
+  ##Set axis
+  if (i %in% c(1,2,4,5,6)) {
+    x_min <- -1
+    x_max <- 2.5
+    x_inc <- 0.25
+  } else if (i %in% c(3, 7:18)) {
+    x_min <- -3
+    x_max <- 9.25
+    x_inc <- 1
+  } else {
+    x_min <- -1000
+    x_max <- 1000
+    x_inc <- 100
+  }
+
+  res <- reduced_yearly_imr(var,var_name,df_noout,1,1998,-1000,1000,10,
+                            paste0("1_cont_log_",i),weight = "reweightPop",
                             year_cap = 2010, cont = 1, spec=3)
   print(res)
   res$con <-5
@@ -224,8 +250,8 @@ for (i in seq(1,13,1)){
   iter <- 2
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_imr(var,var_name,df,1,1998,-1000,1000,10,
-                              paste0("1_cont_level_",i),weight = "peso_pop",
+    res <- reduced_yearly_imr(var,var_name,df_noout,1,1998,x_min,x_max,x_inc,
+                              paste0("1_cont_log_",i),weight = "peso_pop",
                               year_cap = 2010, cont = 1, spec=control)
     print(res)
     res$con <-control 
@@ -245,48 +271,38 @@ for (i in seq(1,13,1)){
   combined_df$con2<-as.character(combined_df$con)
   combined_df$year<- combined_df$year+combined_df$con/10
   ## Robustness plot
-  robustPlot(var,combined_df)  
+  robustPlot(var,combined_df)
 }
 
-# for (i in seq(1,3,1)){
-#   var <- var_map1[i,1]
-#   var_name <- var_map1[i,2]
-#   print(var_name)
-#   reduced_yearly_imr(var,var_name,df,1,1998,-1,2.5,0.25,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-# }
-# 
-# for (i in seq(3,6,1)){
-#   var <- var_map1[i,1]
-#   var_name <- var_map1[i,2]
-#   print(var_name)
-#   reduced_yearly_imr(var,var_name,df,1,1998,-1,2.5,0.25,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-# }
-# 
-# for (i in seq(3,3,1)){
-#   var <- var_map1[i,1]
-#   var_name <- var_map1[i,2]
-#   print(var_name)
-#   reduced_yearly_imr(var,var_name,df,1,1998,-3,9.25,1,paste0("1_cont_log2_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-# }
-# 
-# for (i in seq(7,13,1)){
-#   var <- var_map1[i,1]
-#   var_name <- var_map1[i,2]
-#   print(var_name)
-#   reduced_yearly_imr(var,var_name,df,1,1998,-3,9.25,1,paste0("1_cont_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-# }
 
-
-# continuous above and below
-for (i in seq(1,13,1)){
+#--------------------------------------------------------------------------------
+#--- (2B) Estimate with above and below
+#--------------------------------------------------------------------------------
+for (i in seq(1,18,1)){
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
   output_list <- list()
+
+  if (i %in% c(1,2,4,5,6)) {
+    x_min <- -2.5
+    x_max <- 2.5
+    x_inc <- 0.5
+  } else if (i %in% c(3, 7:18)) {
+    x_min <- -10
+    x_max <- 14
+    x_inc <- 2
+  } else {
+    x_min <- -1000
+    x_max <- 1000
+    x_inc <- 100
+  }
+
+
   iter <- 1
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_ab_imr(var,var_name,df,1,1998,-1000,1000,10,
+    res <- reduced_yearly_ab_imr(var,var_name,df_noout,1,1998,x_min,x_max,x_inc,
                                  paste0("2_ab_level_",i),weight = "peso_pop",
                                  year_cap = 2010, cont = 1, spec=control)
     print(res)
@@ -312,636 +328,213 @@ for (i in seq(1,13,1)){
   robustPlotAB(var,df_nona)
 }
 
-for (i in seq(1,3,1)){
+
+
+#--------------------------------------------------------------------------------
+#--- (3) Run analysis for fiscal responses with balanced samples
+#--------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------
+#--- (3A) Estimate single spending shock
+#--------------------------------------------------------------------------------
+for (i in seq(1,18,1)) {
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,1,1998,-2.5,2.5,0.5,paste0("2_ab_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-}
-
-
-for (i in seq(3,6,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,1,1998,-2.5,3.5,0.5,paste0("2_ab_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-}
-
-for (i in seq(3,3,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,1,1998,-10,14,2,paste0("2_ab_log2_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-}
-
-for (i in seq(7,13,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,1,1998,-10,14,2,paste0("2_ab_log_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-}
-
-
-
-##############COMMON SAMPLE OF SPENDING VARIABLES
-
-
-df_balance_finbra <- df[complete.cases(df[c('finbra_recorc_pcapita',
-                                            'finbra_desp_o_pcapita',
-                                            'finbra_desp_saude_san_pcapita',
-                                            'finbra_desp_nao_saude_pcapita',
-                                            'finbra_despsocial_pcapita',
-                                            'finbra_desp_outros_area_pcapita',
-                                            'gdp_mun_pcapita',
-                                            'pbf_pcapita',
-                                            't_tx_mi_baseline',
-                                            'dist_ec29_baseline')]) & 
-                          df$finbra_recorc_pcapita != 0 & 
-                          df$finbra_desp_o_pcapita != 0 & 
-                          df$finbra_desp_saude_san_pcapita != 0 & 
-                          df$finbra_desp_nao_saude_pcapita != 0 & 
-                          df$finbra_despsocial_pcapita != 0 & 
-                          df$finbra_desp_outros_area_pcapita != 0, ]
-df_balance_siops <- df[complete.cases(df[c('siops_despsaude_pcapita',
-                                           'siops_desprecpropriosaude_pcapita',
-                                           'siops_despexrecproprio_pcapita',
-                                           'siops_desppessoal_pcapita',
-                                           'siops_despinvest_pcapita',
-                                           'siops_despservicoster_pcapita',
-                                           'siops_despoutros_pcapita',
-                                           'gdp_mun_pcapita',
-                                           'pbf_pcapita',
-                                           't_tx_mi_baseline',
-                                           'dist_ec29_baseline')]) & 
-                         df$siops_despsaude_pcapita != 0 & 
-                         df$siops_desprecpropriosaude_pcapita != 0 & 
-                         df$siops_despexrecproprio_pcapita != 0 & 
-                         df$siops_desppessoal_pcapita != 0 & 
-                         df$siops_despinvest_pcapita != 0 & 
-                         df$siops_despservicoster_pcapita != 0 & 
-                         df$siops_despoutros_pcapita>0, ]
-
-
-for (i in seq(1,3,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df_balance_finbra,1,1998,-1,2.5,0.25,paste0("1_bal_fin_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-  table_main <- table_main %>% cbind(table_final)
-  reduced_yearly_imr(var,var_name,df_balance_siops,1,1998,-1,2.5,0.25,paste0("1_bal_siops_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-}
-
-for (i in seq(3,6,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df_balance_finbra,1,1998,-1,2.5,0.25,paste0("1_bal_fin_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-  table_main <- table_main %>% cbind(table_final)
-  reduced_yearly_imr(var,var_name,df_balance_siops,1,1998,-1,2.5,0.25,paste0("1_bal_siops_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-}
-
-for (i in seq(7,13,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df_balance_finbra,1,1998,-3,9.25,1,paste0("1_bal_fin_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-  reduced_yearly_imr(var,var_name,df_balance_siops,1,1998,-3,9.25,1,paste0("1_bal_siops_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-  table_main <- table_main %>% cbind(table_final)
-}
-
-
-for (i in seq(1,3,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df_balance_finbra,1,1998,-2.5,2.5,0.5,paste0("2_bal_fin_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-  table_ab<- table_ab %>% cbind(table_final)
-  reduced_yearly_ab_imr(var,var_name,df_balance_siops,1,1998,-2.5,2.5,0.5,paste0("2_bal_siops_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-}
-
-
-for (i in seq(3,6,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df_balance_finbra,1,1998,-2.5,3.5,0.5,paste0("2_bal_fin_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-  table_ab<- table_ab %>% cbind(table_final)
-  reduced_yearly_ab_imr(var,var_name,df_balance_finbra,1,1998,-2.5,3.5,0.5,paste0("2_bal_siops_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-}
-
-for (i in seq(7,13,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df_balance_finbra,1,1998,-10,14,2,paste0("2_bal_fin_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-  reduced_yearly_ab_imr(var,var_name,df_balance_siops,1,1998,-10,14,2,paste0("2_bal_siops_",i),weight = "peso_pop",year_cap = 2010,cont = 1) # ec29baseline
-  table_ab<- table_ab %>% cbind(table_final)
-}
-
-
-
-
-
-# binary
-
-for (i in seq(1,2,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,1,1998,-0.1,0.25,0.025,paste0("3_binary_log_",i),weight = "peso_pop",year_cap = 2010,cont = 0) # ec29baseline
+  output_list <- list()
   
+  ##Set axis
+  vals <- if (i %in% c(1, 2, 4, 5, 6)) {
+    list(x_min = -1, x_max = 2.5, x_inc = 0.25)
+  } else if (i %in% c(3, 7:18)) {
+    list(x_min = -3, x_max = 9.25, x_inc = 1)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
+
+  ##Set sample and title
+  if (i %in% seq(1,11,1)) {
+    df_est <- df_balance_finbra
+    fname  <- paste0("1_bal_fin_",i)
+  } else {
+    df_est <- df_balance_siops
+    fname  <- paste0("1_bal_siops_",i)
+  }
+
+  res <- reduced_yearly_imr(var,var_name,df_est,1,1998,-1000,1000,10,
+                            fname,weight = "reweightPop",
+                            year_cap = 2010, cont = 1, spec=3)
+  print(res)
+  res$con <-5
+  output_list[[1]] <- res
+  iter <- 2
+  for (control in c(1,2,4,3)) {
+    print(control)
+    res <- reduced_yearly_imr(var,var_name,df_est,1,1998,
+                              vals$x_min,vals$x_max,vals$x_inc,
+                              fname,weight = "peso_pop",
+                              year_cap = 2010, cont = 1, spec=control)
+    print(res)
+    res$con <-control 
+    output_list[[iter]] <- res
+    iter <- iter + 1
+  }
+  table_main <- table_main %>% cbind(table_final)
+  combined_df <- do.call(rbind, output_list)
+  combined_df <- combined_df %>%
+    mutate(controls = case_when(
+      con == 1 ~ "(1) Baseline",
+      con == 2 ~ "(2) + Municipal char.",
+      con == 3 ~ "(3) + Economic",
+      con == 4 ~ "(4) + Spending",
+      con == 5 ~ "(5) Reweight",
+    ))
+  
+  combined_df$con2<-as.character(combined_df$con)
+  combined_df$year<- combined_df$year+combined_df$con/10
+  ## Robustness plot
+  robustPlot(var,combined_df)
 }
 
 
-for (i in seq(3,6,1)){
+#--------------------------------------------------------------------------------
+#--- (3B) Estimate with above and below
+#--------------------------------------------------------------------------------
+for (i in seq(1,18,1)){
   var <- var_map1[i,1]
   var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly_imr(var,var_name,df,1,1998,-0.1,0.25,0.025,paste0("3_binary_log_",i),weight = "peso_pop",year_cap = 2010,cont = 0) # ec29baseline
+  output_list <- list()
+
+  #set axis values
+  vals <- if (i %in% c(1, 2, 4, 5, 6)) {
+    list(x_min = -2.5, x_max = 2.5, x_inc = 0.5)
+  } else if (i %in% c(3, 7:18)) {
+    list(x_min = -10, x_max = 14, x_inc = 2)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
+
+
+  ##Set sample and title
+  if (i %in% seq(1,11,1)) {
+    df_est <- df_balance_finbra
+    fname  <- paste0("2_bal_fin_",i)
+  } else {
+    df_est <- df_balance_siops
+    fname  <- paste0("2_bal_siops_",i)
+  }
+
+  iter <- 1
+  for (control in c(1,2,4,3)) {
+    print(control)
+    res <- reduced_yearly_ab_imr(var,var_name,df_est,1,1998,
+                                 vals$x_min,vals$x_max,vals$x_inc,
+                                 fname,weight = "peso_pop",
+                                 year_cap = 2010, cont = 1, spec=control)
+    print(res)
+    res$con <-control 
+    output_list[[iter]] <- res
+    iter <- iter + 1
+  }
+  combined_df <- do.call(rbind, output_list)
+  combined_df <- combined_df %>%
+    mutate(controls = case_when(
+      con == 1 ~ "(1) Baseline",
+      con == 2 ~ "(2) + Municipal char.",
+      con == 3 ~ "(3) + Economic",
+      con == 4 ~ "(4) + Spending",
+      con == 5 ~ "(5) Reweight",
+    ))
+  
+  table_ab<- table_ab %>% cbind(table_final)
+  combined_df$con2<-as.character(combined_df$con)
+  combined_df$year<- combined_df$year+combined_df$con/10-0.4
+  combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
+  ## Robustness plot
+  df_nona <- combined_df[!is.na(combined_df$estimates),]
+  robustPlotAB(var,df_nona)
 }
 
-for (i in seq(3,3,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,1,1998,-0.3,1.3,0.1,paste0("3_binary_log2_",i),weight = "peso_pop",year_cap = 2010,cont = 0) # ec29baseline
-}
 
-for (i in seq(7,13,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,1,1998,-0.3,1.3,0.1,paste0("3_binary_log_",i),weight = "peso_pop",year_cap = 2010,cont = 0) # ec29baseline
-}
+
+#--------------------------------------------------------------------------------
+#--- (3C) Implement Rambachan & Roth
+#--------------------------------------------------------------------------------
+#for (i in c(2,3,4,5)){
+#  var <- var_map1[i,1]
+#  var_name <- var_map1[i,2]
+#  print(var_name)
+#  reduced_yearly_imr(var,var_name,df_balance_finbra,1,1998,-1,2.5,0.25,"remove",weight = "peso_pop",year_cap = 2010,cont = 1,ramb_roth=T) # ec29baseline
+#}
 
 
 
 
-# 3. Access and Production
-# =================================================================
-
-df <- df2
+#--------------------------------------------------------------------------------
+#--- (4) Run analysis for access and production
+#--------------------------------------------------------------------------------
 # creating missing SIA variable
 df <- df %>% 
   mutate(sia_nab_pcapita = sia_pcapita - sia_ab_pcapita)
 yearly_folder <- "access_production/"
 
-var_map <- rbind(cbind('ACS_popprop','Population covered (share) by Community Health Agents'),
-                 cbind('eSF_popprop','Population covered (share) by Family Health Agents'),
-                 cbind('siab_accomp_especif_pcapita','N. of People Visited by Primary Care Agents (per capita)'),
-                 cbind('siab_accomp_especif_pacs_pcapita','N. of People Visited by Community Health Agents (per capita)'),
-                 cbind('siab_accomp_especif_psf_pcapita','N. of People Visited by Family Health Agents (per capita)'),
-                 cbind('siab_visit_cons_pcapita','N. of Household Visits and Appointments (per capita)'),
-                 cbind('siab_visit_cons_pacs_pcapita','N. of Household Visits and Appointments from Community Health Agents (per capita)'),
-                 cbind('siab_visit_cons_psf_pcapita','N. of Household Visits and Appointments from Family Health Agents (per capita)'),
-                 
-                 cbind('sia_ncnes_amb_mun_pcapita','N. of Health Facilities with Ambulatory Service (per capita*1000)'),
-                 cbind('sia_ncnes_acs_pcapita','N. of Health Facilities with Ambulatory Service and ACS Teams (per capita*1000)'),
-                 cbind('sia_ncnes_psf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Teams (per capita*1000)'),
-                 cbind('sia_ncnes_medcom_pcapita','N. of Health Facilities with Ambulatory Service and Community Doctors (per capita*1000)'),
-                 cbind('sia_ncnes_medpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Doctors (per capita*1000)'),
-                 cbind('sia_ncnes_enfacs_pcapita','N. of Health Facilities with Ambulatory Service and ACS Nurses (per capita*1000)'),
-                 cbind('sia_ncnes_enfpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Nurses (per capita*1000)'),
-                 cbind('sia_ncnes_outpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Nursing Assistants (per capita*1000)'),
-                 
-                 cbind('sia_pcapita','N. Outpatient Procedures (per capita)'),
-                 cbind('sia_ab_pcapita','N. Primary Care Outpatient Procedures (per capita)'),
-                 cbind('sia_nab_pcapita','N. Non-Primary Care Outpatient Procedures (per capita)'), # precisa criar
-                 cbind('sia_nprod_amb_lc_mun_pcapita','N. Low & Mid Complexity Outpatient Procedures (per capita)'),
-                 cbind('sia_nprod_amb_hc_mun_pcapita','N. High Complexity Outpatient Procedures (per capita)'),
-                 
-                 cbind('birth_prenat_ig','Proportion of births with unknown prenatal care coverage'),
-                 cbind('birth_prenat_0','Proportion of births with 0 prenatal visits'),
-                 cbind('birth_prenat_1_6','Proportion of births with 1-6 prenatal visits'),
-                 cbind('birth_prenat_7_plus','Proportion of births with 7+ prenatal visits')
-                 
-                 
-)
-
-# continuous
-#reduced_yearly_imr(var,var_name,df,3,1998,-0.5,0.75,0.1,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-for (i in seq(1,25,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  output_list <- list()
-  
-  res <- reduced_yearly_imr(var,var_name,df,3,1998,-0.5,0.75,0.1,
-                            paste0("1_cont_level_",i),weight = "reweightPop",
-                            year_cap = 2010, cont = 1, spec=3)
-  print(res)
-  res$con <-5
-  output_list[[1]] <- res
-  iter <- 2
-  for (control in c(1,2,4,3)) {
-    print(control)
-    res <- reduced_yearly_imr(var,var_name,df,3,1998,-25,15,5,
-                              paste0("1_cont_level_",i),weight = "peso_pop",
-                              year_cap = 2010, cont = 1, spec=control)
-    print(res)
-    res$con <-control 
-    output_list[[iter]] <- res
-    iter <- iter + 1
-  }
-  combined_df <- do.call(rbind, output_list)
-  combined_df <- combined_df %>%
-    mutate(controls = case_when(
-      con == 1 ~ "(1) Baseline",
-      con == 2 ~ "(2) + Municipal char.",
-      con == 3 ~ "(3) + Economic",
-      con == 4 ~ "(4) + Spending",
-      con == 5 ~ "(5) Reweight",
-    ))
-  
-  combined_df$con2<-as.character(combined_df$con)
-  combined_df$year<- combined_df$year+combined_df$con/10
-  ## Robustness plot
-  robustPlot(var,combined_df)  
-  
-  table_main <- table_main %>% cbind(table_final)
-}
-
-for (i in seq(3,5,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-1,1.5,0.5,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-for (i in seq(6,8,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-1.5,3,0.5,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-for (i in seq(9,16,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-0.5,0.5,0.1,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2007, cont = 1) # ec29baseline
-}
-
-
-for (i in seq(17,21,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-7,14,1,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-for (i in seq(22,25,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-0.3,0.3,0.1,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-
-# continuous above and below 2_ab_log_
-for (i in seq(1,25,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  output_list <- list()
-  iter <- 1
-  for (control in c(1,2,4,3)) {
-    print(control)
-    res <- reduced_yearly_ab_imr(var,var_name,df,1,1998,-1000,1000,10,
-                                 paste0("2_ab_level_",i),weight = "peso_pop",
-                                 year_cap = 2010, cont = 1, spec=control)
-    print(res)
-    res$con <-control 
-    output_list[[iter]] <- res
-    iter <- iter + 1
-  }
-  combined_df <- do.call(rbind, output_list)
-  combined_df <- combined_df %>%
-    mutate(controls = case_when(
-      con == 1 ~ "(1) Baseline",
-      con == 2 ~ "(2) + Municipal char.",
-      con == 3 ~ "(3) + Economic",
-      con == 4 ~ "(4) + Spending",
-      con == 5 ~ "(5) Reweight",
-    ))
-  table_ab<- table_ab %>% cbind(table_final)
-  combined_df$con2<-as.character(combined_df$con)
-  combined_df$year<- combined_df$year+combined_df$con/10-0.4
-  combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
-  ## Robustness plot
-  df_nona <- combined_df[!is.na(combined_df$estimates),]
-  robustPlotAB(var,df_nona)
-}
-
-for (i in seq(1,2,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-1,1.4,0.2,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-for (i in seq(3,5,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-1.75,1.5,0.25,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-for (i in seq(6,8,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-4.5,4.5,0.5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-for (i in seq(9,16,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-0.8,0.4,0.2,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2007, cont = 1) # ec29baseline
-}
-
-
-for (i in seq(17,21,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-20,30,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-for (i in seq(22,25,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-0.5,0.5,0.1,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-
-
-
-# binary
-
-for (i in seq(1,2,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-0.075,0.15,0.025,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-for (i in seq(3,5,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-0.1,0.2,0.05,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-
-for (i in seq(6,8,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-0.15,0.45,0.05,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-
-for (i in seq(9,16,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-0.05,0.05,0.01,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2007, cont = 0) # ec29baseline
-}
-
-
-for (i in seq(17,21,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-1.25,2.25,0.5,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-
-for (i in seq(22,25,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-0.06,0.06,0.01,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-
-
-
-
-# 4. Inputs
-# =================================================================
-
-yearly_folder <- "inputs/"
-
-
-var_map <- rbind(cbind('ams_hospital_mun_pcapita','N. of Municipal Hospitals (per capita*1000)'),
-                 cbind('ams_hospital_nmun_pcapita','N. of Federal and State Hospitals (per capita*1000)'),
-                 cbind('ams_hospital_pvt_pcapita','N. of Private Hospitals (per capita*1000)'),
-                 
-                 cbind('ams_hr_all_pcapita',"N. of Health Professionals (per capita*1000)"),
-                 cbind('ams_hr_superior_pcapita','N. of Doctors (per capita*1000)'),
-                 cbind('ams_hr_technician_pcapita','N. of Nurses (per capita*1000)'),
-                 cbind('ams_hr_elementary_pcapita','N. of Nursing Assistants (per capita*1000)'),
-                 cbind('ams_hr_admin_pcapita','N. of Administrative Professionals (per capita*1000)')
-                 
-                 # cbind('ams_hospital_mun_esp_pcapita', 'N. of Specialty Hospitals (per capita*1000)'),
-                 # cbind('ams_unity_mun_pcapita','N. of Health Facilities (per capita*1000)'),
-                 # cbind('ams_therapy_mun_pcapita','N. of Therapy Units (per capita*1000)')
+var_map <- rbind(
+  cbind('ACS_popprop','Population covered (share) by Community Health Agents'),
+  cbind('eSF_popprop','Population covered (share) by Family Health Agents'),
+  cbind('siab_accomp_especif_pcapita','N. of People Visited by Primary Care Agents (per capita)'),
+  cbind('siab_accomp_especif_pacs_pcapita','N. of People Visited by Community Health Agents (per capita)'),
+  cbind('siab_accomp_especif_psf_pcapita','N. of People Visited by Family Health Agents (per capita)'),
+  cbind('siab_visit_cons_pcapita','N. of Household Visits and Appointments (per capita)'),
+  cbind('siab_visit_cons_pacs_pcapita','N. of Household Visits and Appointments from Community Health Agents (per capita)'),
+  cbind('siab_visit_cons_psf_pcapita','N. of Household Visits and Appointments from Family Health Agents (per capita)'),
+  cbind('sia_ncnes_amb_mun_pcapita','N. of Health Facilities with Ambulatory Service (per capita*1000)'),
+  cbind('sia_ncnes_acs_pcapita','N. of Health Facilities with Ambulatory Service and ACS Teams (per capita*1000)'),
+  cbind('sia_ncnes_psf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Teams (per capita*1000)'),
+  cbind('sia_ncnes_medcom_pcapita','N. of Health Facilities with Ambulatory Service and Community Doctors (per capita*1000)'),
+  cbind('sia_ncnes_medpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Doctors (per capita*1000)'),
+  cbind('sia_ncnes_enfacs_pcapita','N. of Health Facilities with Ambulatory Service and ACS Nurses (per capita*1000)'),
+  cbind('sia_ncnes_enfpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Nurses (per capita*1000)'),
+  cbind('sia_ncnes_outpsf_pcapita','N. of Health Facilities with Ambulatory Service and PSF Nursing Assistants (per capita*1000)'),
+  cbind('sia_pcapita','N. Outpatient Procedures (per capita)'),
+  cbind('sia_ab_pcapita','N. Primary Care Outpatient Procedures (per capita)'),
+  cbind('sia_nab_pcapita','N. Non-Primary Care Outpatient Procedures (per capita)'), # precisa criar
+  cbind('sia_nprod_amb_lc_mun_pcapita','N. Low & Mid Complexity Outpatient Procedures (per capita)'),
+  cbind('sia_nprod_amb_hc_mun_pcapita','N. High Complexity Outpatient Procedures (per capita)'),
+  cbind('birth_prenat_ig','Proportion of births with unknown prenatal care coverage'),
+  cbind('birth_prenat_0','Proportion of births with 0 prenatal visits'),
+  cbind('birth_prenat_1_6','Proportion of births with 1-6 prenatal visits'),
+  cbind('birth_prenat_7_plus','Proportion of births with 7+ prenatal visits')
 )
 
 
-# continuous
-#reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-0.04,0.1,0.02,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
 
-for (i in seq(1,8,1)){
+
+#--------------------------------------------------------------------------------
+#--- (4A) Estimate single spending shock
+#--------------------------------------------------------------------------------
+for (i in seq(1,25,1)) {
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  
   output_list <- list()
   
-  res <- reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),
-                            3,1998,-15,30,5,
-                            paste0("1_cont_level_",i),weight = "reweightPop",
-                            year_cap = 2010, cont = 1, spec=3)
-  print(res)
-  res$con <-5
-  output_list[[1]] <- res
-  iter <- 2
-  for (control in c(1,2,4,3)) {
-    print(control)
-    res <- reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),
-                              3,1998,-15,30,5,
-                              paste0("1_cont_level_",i),weight = "peso_pop",
-                              year_cap = 2010, cont = 1, spec=control)
-    print(res)
-    res$con <-control 
-    output_list[[iter]] <- res
-    iter <- iter + 1
+  ##Set axis
+  vals <- if (i %in% seq(1, 5, 1)) {
+    list(x_min = -1, x_max = 1.5, x_inc = 0.5)
+  } else if (i %in% c(6,7,8)) {
+    list(x_min = -1.5, x_max = 3, x_inc = 0.5)
+  } else if (i %in% seq(9,16,1)) {
+    list(x_min = -0.5, x_max = 0.5, x_inc = 0.1)
+  } else if (i %in% seq(17,21,1)) {
+    list(x_min = -7, x_max = 14, x_inc = 1)
+  } else if (i %in% seq(22,25,1)) {
+    list(x_min = -0.3, x_max = 0.3, x_inc = 0.1)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
   }
-  combined_df <- do.call(rbind, output_list)
-  combined_df <- combined_df %>%
-    mutate(controls = case_when(
-      con == 1 ~ "(1) Baseline",
-      con == 2 ~ "(2) + Municipal char.",
-      con == 3 ~ "(3) + Economic",
-      con == 4 ~ "(4) + Spending",
-      con == 5 ~ "(5) Reweight",
-    ))
-  
-  combined_df$con2<-as.character(combined_df$con)
-  combined_df$year<- combined_df$year+combined_df$con/10
-  ## Robustness plot
-  df_nona <- combined_df[!is.na(combined_df$estimates),]
-  robustPlot(var,df_nona)  
-  
-  table_main <- table_main %>% cbind(table_final)
-}
-
-
-for (i in seq(1,3,1)) {
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-0.1,0.125,0.025,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-for (i in 4) {
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-15,30,5,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-for (i in seq(5,8,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-10,15,5,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-
-# continuous above and below
-for (i in seq(1,8,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  output_list <- list()
-  iter <- 1
-  for (control in c(1,2,4,3)) {
-    print(control)
-    res <- reduced_yearly_ab_imr(var,var_name,
-                                 df %>% mutate(above_pre_99_dist_ec29_baseline=0,below_pre_99_dist_ec29_baseline=0),
-                                 3,1998,-1000,1000,10,
-                                 paste0("2_ab_level_",i),weight = "peso_pop",
-                                 year_cap = 2010, cont = 1, spec=control)
-    print(res)
-    res$con <-control 
-    output_list[[iter]] <- res
-    iter <- iter + 1
-  }
-  combined_df <- do.call(rbind, output_list)
-  combined_df <- combined_df %>%
-    mutate(controls = case_when(
-      con == 1 ~ "(1) Baseline",
-      con == 2 ~ "(2) + Municipal char.",
-      con == 3 ~ "(3) + Economic",
-      con == 4 ~ "(4) + Spending",
-      con == 5 ~ "(5) Reweight",
-    ))
-  table_ab<- table_ab %>% cbind(table_final)
-  combined_df$con2<-as.character(combined_df$con)
-  combined_df$year<- combined_df$year+combined_df$con/10-0.4
-  combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
-  ## Robustness plot
-  df_nona <- combined_df[!is.na(combined_df$estimates),]
-  robustPlotAB(var,df_nona)
-}
-
-
-for (i in seq(1,3,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df %>% mutate(above_pre_99_dist_ec29_baseline=0,below_pre_99_dist_ec29_baseline=0),3,1998,-0.1,0.125,0.025,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-for (i in 4){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df %>% mutate(above_pre_99_dist_ec29_baseline=0,below_pre_99_dist_ec29_baseline=0),3,1998,-40,80,10,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-for (i in seq(5,8,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df %>% mutate(above_pre_99_dist_ec29_baseline=0,below_pre_99_dist_ec29_baseline=0),3,1998,-15,35,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-
-# Binary
-
-for (i in seq(1,3,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline_binary=0),3,1998,-0.006,0.01,0.002,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-
-for (i in 4){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline_binary=0),3,1998,-5,5,1,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-for (i in seq(4,8,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline_binary=0),3,1998,-3,3,1,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-
-# 5. Hospitalization
-# =================================================================
-
-yearly_folder <- "hosp/"
-
-var_map <- rbind(cbind('tx_sih_infant','Infant Hospitalization Rate (pop 0-1y * 1000)'),
-                 cbind('tx_sih_infant_icsap','Infant Hospitalization Rate - APC (pop 0-1y * 1000)'),
-                 cbind('tx_sih_infant_nicsap','Infant Hospitalization Rate - non-APC (pop 0-1y * 1000)'),
-                 cbind('tx_sih_maternal2','Maternal Hospitalization Rate (pop 0-1y * 1000)'),
-                 cbind('tx_sih_maternal','Maternal Hospitalization Rate (women 10-49y * 1000)'),
-                 
-                 cbind('sih_infant','Infant Hospitalization - Total (log)'),
-                 cbind('sih_infant_icsap','Infant Hospitalization - APC (log)'),
-                 cbind('sih_infant_nicsap','Infant Hospitalization - non-APC (log)'),
-                 cbind('sih_maternal','Maternal Hospitalization - Total (log)')
-)
-
-for (i in seq(1,9,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  output_list <- list()
 
   res <- reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,10,
                             paste0("1_cont_level_",i),weight = "reweightPop",
@@ -952,9 +545,66 @@ for (i in seq(1,9,1)){
   iter <- 2
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,10,
+    res <- reduced_yearly_imr(var,var_name,df,3,1998,
+                              vals$x_min,vals$x_max,vals$x_inc,
                               paste0("1_cont_level_",i),weight = "peso_pop",
                               year_cap = 2010, cont = 1, spec=control)
+    print(res)
+    res$con <-control 
+    output_list[[iter]] <- res
+    iter <- iter + 1
+  }
+  table_main <- table_main %>% cbind(table_final)
+  combined_df <- do.call(rbind, output_list)
+  combined_df <- combined_df %>%
+    mutate(controls = case_when(
+      con == 1 ~ "(1) Baseline",
+      con == 2 ~ "(2) + Municipal char.",
+      con == 3 ~ "(3) + Economic",
+      con == 4 ~ "(4) + Spending",
+      con == 5 ~ "(5) Reweight",
+    ))
+  
+  combined_df$con2<-as.character(combined_df$con)
+  combined_df$year<- combined_df$year+combined_df$con/10
+  ## Robustness plot
+  robustPlot(var,combined_df)
+}
+
+
+#--------------------------------------------------------------------------------
+#--- (4B) Estimate with above and below
+#--------------------------------------------------------------------------------
+for (i in seq(1,25,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  output_list <- list()
+
+  #set axis values
+  vals <- if (i %in% c(1, 2)) {
+    list(x_min = -1, x_max = 1.4, x_inc = 0.2)
+  } else if (i %in% c(3, 4, 5)) {
+    list(x_min = -1.75, x_max = 1.5, x_inc = 0.25)
+  } else if (i %in% c(6, 7, 8)) {
+    list(x_min = -4.5, x_max = 4.5, x_inc = 0.5)
+  } else if (i %in% seq(9, 16, 1)) {
+    list(x_min = -0.8, x_max = 0.4, x_inc = 0.2)
+  } else if (i %in% seq(17, 21, 1)) {
+    list(x_min = -20, x_max = 30, x_inc = 5)
+  } else if (i %in% seq(22, 25, 1)) {
+    list(x_min = -0.5, x_max = 0.5, x_inc = 0.1)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
+  iter <- 1
+  for (control in c(1,2,4,3)) {
+    print(control)
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,
+                                 vals$x_min,vals$x_max,vals$x_inc,
+                                  paste0("2_ab_level_",i),weight = "peso_pop",
+                                 year_cap = 2010, cont = 1, spec=control)
     print(res)
     res$con <-control 
     output_list[[iter]] <- res
@@ -970,45 +620,118 @@ for (i in seq(1,9,1)){
       con == 5 ~ "(5) Reweight",
     ))
   
+  table_ab<- table_ab %>% cbind(table_final)
   combined_df$con2<-as.character(combined_df$con)
-  combined_df$year<- combined_df$year+combined_df$con/10
+  combined_df$year<- combined_df$year+combined_df$con/10-0.4
+  combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
   ## Robustness plot
   df_nona <- combined_df[!is.na(combined_df$estimates),]
-  robustPlot(var,combined_df)  
-}
-
-# continuous
-for (i in seq(1,4,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-600,1000,200,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  
-  table_main<- table_main %>% cbind(table_final)
-  
-}
-
-for (i in seq(5,5,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-50,50,10,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont =1) # ec29baseline
-  
-  table_main<- table_main %>% cbind(table_final)
+  robustPlotAB(var,df_nona)
 }
 
 
-# continuous above and below
-# continuous above and below 2_ab_log_
-for (i in seq(1,9,1)){
+
+#--------------------------------------------------------------------------------
+#--- (5) Run analysis for inputs
+#--------------------------------------------------------------------------------
+yearly_folder <- "inputs/"
+
+var_map <- rbind(
+  cbind('ams_hospital_mun_pcapita','N. of Municipal Hospitals (per capita*1000)'),
+  cbind('ams_hospital_nmun_pcapita','N. of Federal and State Hospitals (per capita*1000)'),
+  cbind('ams_hospital_pvt_pcapita','N. of Private Hospitals (per capita*1000)'),  
+  cbind('ams_hr_all_pcapita',"N. of Health Professionals (per capita*1000)"),
+  cbind('ams_hr_superior_pcapita','N. of Doctors (per capita*1000)'),
+  cbind('ams_hr_technician_pcapita','N. of Nurses (per capita*1000)'),
+  cbind('ams_hr_elementary_pcapita','N. of Nursing Assistants (per capita*1000)'),
+  cbind('ams_hr_admin_pcapita','N. of Administrative Professionals (per capita*1000)'),
+  cbind('ams_hospital_mun_esp_pcapita', 'N. of Specialty Hospitals (per capita*1000)'),
+  cbind('ams_unity_mun_pcapita','N. of Health Facilities (per capita*1000)'),
+  cbind('ams_therapy_mun_pcapita','N. of Therapy Units (per capita*1000)')
+)
+
+#--------------------------------------------------------------------------------
+#--- (5A) Estimate single spending shock
+#--------------------------------------------------------------------------------
+for (i in seq(1,11,1)) {
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   output_list <- list()
+  
+  ##Set axis
+  vals <- if (i %in% c(1, 2, 3)) {
+    list(x_min = -0.1, x_max = 0.125, x_inc = 0.025)
+  } else if (i %in% c(4)) {
+    list(x_min = -15, x_max = 30, x_inc = 5)
+  } else if (i %in% seq(5,11,1)) {
+    list(x_min = -10, x_max = 15, x_inc = 5)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
+  res <- reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),
+                            3,1998,-1000,1000,10,paste0("1_cont_level_",i),
+                            weight = "reweightPop",year_cap = 2010, cont = 1, spec=3)
+  print(res)
+  res$con <-5
+  output_list[[1]] <- res
+  iter <- 2
+  for (control in c(1,2,4,3)) {
+    print(control)
+    res <- reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),
+                              3,1998,vals$x_min,vals$x_max,vals$x_inc,
+                              paste0("1_cont_level_",i),weight = "peso_pop",
+                              year_cap = 2010, cont = 1, spec=control)
+    print(res)
+    res$con <-control 
+    output_list[[iter]] <- res
+    iter <- iter + 1
+  }
+  table_main <- table_main %>% cbind(table_final)
+  combined_df <- do.call(rbind, output_list)
+  combined_df <- combined_df %>%
+    mutate(controls = case_when(
+      con == 1 ~ "(1) Baseline",
+      con == 2 ~ "(2) + Municipal char.",
+      con == 3 ~ "(3) + Economic",
+      con == 4 ~ "(4) + Spending",
+      con == 5 ~ "(5) Reweight",
+    ))
+  
+  combined_df$con2<-as.character(combined_df$con)
+  combined_df$year<- combined_df$year+combined_df$con/10
+  ## Robustness plot
+  robustPlot(var,combined_df)
+}
+
+
+#--------------------------------------------------------------------------------
+#--- (5B) Estimate with above and below
+#--------------------------------------------------------------------------------
+for (i in seq(1,25,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  output_list <- list()
+
+  #set axis values
+  vals <- if (i %in% c(1, 2, 3)) {
+    list(x_min = -0.1, x_max = 0.125, x_inc = 0.025)
+  } else if (i %in% c(4)) {
+    list(x_min = -40, x_max = 80, x_inc = 20)
+  } else if (i %in% seq(5, 11, 1)) {
+    list(x_min = -15, x_max = 35, x_inc = 5)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
   iter <- 1
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,-10000,10000,1000,
+    res <- reduced_yearly_ab_imr(var,var_name,
+                                 df %>% mutate(above_pre_99_dist_ec29_baseline=0,below_pre_99_dist_ec29_baseline=0)
+                                 ,3,1998,vals$x_min,vals$x_max,vals$x_inc,
                                  paste0("2_ab_level_",i),weight = "peso_pop",
                                  year_cap = 2010, cont = 1, spec=control)
     print(res)
@@ -1025,6 +748,8 @@ for (i in seq(1,9,1)){
       con == 4 ~ "(4) + Spending",
       con == 5 ~ "(5) Reweight",
     ))
+  
+  table_ab<- table_ab %>% cbind(table_final)
   combined_df$con2<-as.character(combined_df$con)
   combined_df$year<- combined_df$year+combined_df$con/10-0.4
   combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
@@ -1033,179 +758,334 @@ for (i in seq(1,9,1)){
   robustPlotAB(var,df_nona)
 }
 
-for (i in seq(1,4,1)){
+
+
+#--------------------------------------------------------------------------------
+#--- (6) Run analysis for hospitalization
+#--------------------------------------------------------------------------------
+yearly_folder <- "hosp/"
+
+var_map <- rbind(
+  cbind('tx_sih_infant','Infant Hospitalization Rate (pop 0-1y * 1000)'),
+  cbind('tx_sih_infant_icsap','Infant Hospitalization Rate - APC (pop 0-1y * 1000)'),
+  cbind('tx_sih_infant_nicsap','Infant Hospitalization Rate - non-APC (pop 0-1y * 1000)'),
+  cbind('tx_sih_maternal2','Maternal Hospitalization Rate (pop 0-1y * 1000)'),
+  cbind('tx_sih_maternal','Maternal Hospitalization Rate (women 10-49y * 1000)'),
+  cbind('sih_infant','Infant Hospitalization - Total (log)'),
+  cbind('sih_infant_icsap','Infant Hospitalization - APC (log)'),
+  cbind('sih_infant_nicsap','Infant Hospitalization - non-APC (log)'),
+  cbind('sih_maternal','Maternal Hospitalization - Total (log)')
+)
+
+
+
+
+#--------------------------------------------------------------------------------
+#--- (6A) Estimate single spending shock
+#--------------------------------------------------------------------------------
+for (i in seq(1,9,1)) {
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-1500,3500,500,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  output_list <- list()
+  
+  ##Set axis
+  vals <- if (i %in% seq(1, 4, 1)) {
+    list(x_min = -600, x_max = 1000, x_inc = 200)
+  } else if (i %in% seq(5,9,1)) {
+    list(x_min = -50, x_max = 50, x_inc = 10)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
+  res <- reduced_yearly_imr(var,var_name,df,
+                            3,1998,-1000,1000,10,paste0("1_cont_level_",i),
+                            weight = "reweightPop",year_cap = 2010, cont = 1, spec=3)
+  print(res)
+  res$con <-5
+  output_list[[1]] <- res
+  iter <- 2
+  for (control in c(1,2,4,3)) {
+    print(control)
+    res <- reduced_yearly_imr(var,var_name,df,
+                              3,1998,vals$x_min,vals$x_max,vals$x_inc,
+                              paste0("1_cont_level_",i),weight = "peso_pop",
+                              year_cap = 2010, cont = 1, spec=control)
+    print(res)
+    res$con <-control 
+    output_list[[iter]] <- res
+    iter <- iter + 1
+  }
+  table_main <- table_main %>% cbind(table_final)
+  combined_df <- do.call(rbind, output_list)
+  combined_df <- combined_df %>%
+    mutate(controls = case_when(
+      con == 1 ~ "(1) Baseline",
+      con == 2 ~ "(2) + Municipal char.",
+      con == 3 ~ "(3) + Economic",
+      con == 4 ~ "(4) + Spending",
+      con == 5 ~ "(5) Reweight",
+    ))
+  
+  combined_df$con2<-as.character(combined_df$con)
+  combined_df$year<- combined_df$year+combined_df$con/10
+  ## Robustness plot
+  robustPlot(var,combined_df)
+}
+
+#--------------------------------------------------------------------------------
+#--- (6B) Estimate with above and below
+#--------------------------------------------------------------------------------
+for (i in seq(1,9,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  output_list <- list()
+
+  #set axis values
+  vals <- if (i %in% seq(1, 4, 1)) {
+    list(x_min = -1500, x_max = 3500, x_inc = 500)
+  } else if (i %in% seq(5, 9, 1)) {
+    list(x_min = -50, x_max = 50, x_inc = 10)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
+  iter <- 1
+  for (control in c(1,2,4,3)) {
+    print(control)
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,
+                                 vals$x_min,vals$x_max,vals$x_inc,
+                                  paste0("2_ab_level_",i),weight = "peso_pop",
+                                 year_cap = 2010, cont = 1, spec=control)
+    print(res)
+    res$con <-control 
+    output_list[[iter]] <- res
+    iter <- iter + 1
+  }
+  combined_df <- do.call(rbind, output_list)
+  combined_df <- combined_df %>%
+    mutate(controls = case_when(
+      con == 1 ~ "(1) Baseline",
+      con == 2 ~ "(2) + Municipal char.",
+      con == 3 ~ "(3) + Economic",
+      con == 4 ~ "(4) + Spending",
+      con == 5 ~ "(5) Reweight",
+    ))
   
   table_ab<- table_ab %>% cbind(table_final)
+  combined_df$con2<-as.character(combined_df$con)
+  combined_df$year<- combined_df$year+combined_df$con/10-0.4
+  combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
+  ## Robustness plot
+  df_nona <- combined_df[!is.na(combined_df$estimates),]
+  robustPlotAB(var,df_nona)
 }
-# 
-for (i in seq(5,5,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
+
+
+
+#--------------------------------------------------------------------------------
+#--- (6C) Implement Rambachan & Roth
+#--------------------------------------------------------------------------------
+for (i in seq(1,9,1)){
+  var <- var_map1[i,1]
+  var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-50,50,10,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont =1) # ec29baseline
-  
-  table_ab<- table_ab %>% cbind(table_final)
+  reduced_yearly_imr(var,var_name,df,1,1998,-1,2.5,0.25,"remove",
+                     weight = "peso_pop",year_cap = 2010,cont = 1,ramb_roth=T) 
 }
 
 
-
-# binary
-
-for (i in seq(1,4,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-60,100,20,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-for (i in seq(5,5,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-5,5,1,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-
-
-for (i in seq(6,9,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df,1,1998,-1,1,0.2,paste0("4_cont_log_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-#Capped at 1000
-for (i in seq(1,4,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  capped_var <- paste0(var, "_capped")
-  df[[capped_var]] <- ifelse(df[[var]] > 1000, 1000, df[[var]]) 
-  reduced_yearly_imr(capped_var,var_name,df,3,1998,-600,1000,200,paste0("4a_capped_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  reduced_yearly_ab_imr(capped_var,var_name,df,3,1998,-1500,3500,500,paste0("4b_capped_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-for (i in seq(5,5,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  capped_var <- paste0(var, "_capped")
-  df[[capped_var]] <- ifelse(df[[var]] > 1000, 1000, df[[var]]) 
-  reduced_yearly_imr(capped_var,var_name,df,3,1998,-50,50,10,paste0("4a_capped_level_",i),weight = "peso_pop",year_cap = 2010, cont =1) # ec29baseline
-  reduced_yearly_ab_imr(capped_var,var_name,df,3,1998,-50,50,10,paste0("4b_capped_level_",i),weight = "peso_pop",year_cap = 2010, cont =1) # ec29baseline
-}
-
-# 6. Fertility and Birth
-# =================================================================
-
+#--------------------------------------------------------------------------------
+#--- (7) Fertility and Birth
+#--------------------------------------------------------------------------------
 yearly_folder <- "birth/"
 
 
-var_map <- rbind(cbind('birth_fertility','Fertility (N. of Births per 10-49y women)'),
-                 cbind('birth_apgar1','Apgar 1'),
-                 cbind('birth_apgar5','Apgar 5'),
-                 cbind('birth_low_weight_2500g','Low Birth Weight (<2.5k)'),
-                 cbind('birth_premature','Premature Birth'),
-                 cbind('birth_sexratio',"Sex Ratio at Birth"))
+var_map <- rbind(
+  cbind('birth_fertility','Fertility (N. of Births per 10-49y women)'),
+  cbind('birth_apgar1','Apgar 1'),
+  cbind('birth_apgar5','Apgar 5'),
+  cbind('birth_low_weight_2500g','Low Birth Weight (<2.5k)'),
+  cbind('birth_premature','Premature Birth'),
+  cbind('birth_sexratio',"Sex Ratio at Birth")
+)
 
 
-# continuous
 
-for (i in c(1,seq(4,6,1))){
+
+#--------------------------------------------------------------------------------
+#--- (7A) Estimate single spending shock
+#--------------------------------------------------------------------------------
+for (i in seq(1,6,1)) {
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-0.1,0.15,0.05,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  output_list <- list()
   
-  table_main<- table_main %>% cbind(table_final)
+  ##Set axis
+  vals <- if (i %in% c(1)) {
+    list(x_min = -1, x_max = 1, x_inc = 0.25)
+  } else if (i %in% seq(2,3,1)) {
+    list(x_min = -1, x_max = 1.5, x_inc = 0.5)
+  } else if (i %in% seq(4,6,1)) {
+    list(x_min = -0.1, x_max = 0.15, x_inc = 0.05)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
+  res <- reduced_yearly_imr(var,var_name,df,
+                            3,1998,-1000,1000,10,paste0("1_cont_level_",i),
+                            weight = "reweightPop",year_cap = 2010, cont = 1, spec=3)
+  print(res)
+  res$con <-5
+  output_list[[1]] <- res
+  iter <- 2
+  for (control in c(1,2,4,3)) {
+    print(control)
+    res <- reduced_yearly_imr(var,var_name,df,
+                              3,1998,vals$x_min,vals$x_max,vals$x_inc,
+                              paste0("1_cont_level_",i),weight = "peso_pop",
+                              year_cap = 2010, cont = 1, spec=control)
+    print(res)
+    res$con <-control 
+    output_list[[iter]] <- res
+    iter <- iter + 1
+  }
+  table_main <- table_main %>% cbind(table_final)
+  combined_df <- do.call(rbind, output_list)
+  combined_df <- combined_df %>%
+    mutate(controls = case_when(
+      con == 1 ~ "(1) Baseline",
+      con == 2 ~ "(2) + Municipal char.",
+      con == 3 ~ "(3) + Economic",
+      con == 4 ~ "(4) + Spending",
+      con == 5 ~ "(5) Reweight",
+    ))
+  
+  combined_df$con2<-as.character(combined_df$con)
+  combined_df$year<- combined_df$year+combined_df$con/10
+  ## Robustness plot
+  robustPlot(var,combined_df)
 }
 
-for (i in seq(2,3,1)){
+
+#--------------------------------------------------------------------------------
+#--- (7B) Estimate with above and below
+#--------------------------------------------------------------------------------
+for (i in seq(1,6,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-1,1.5,0.5,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  
-  table_main<- table_main %>% cbind(table_final)
-}
+  output_list <- list()
 
+  #set axis values
+  vals <- if (i %in% c(1)) {
+    list(x_min = -1, x_max = 1, x_inc = 0.25)
+  } else if (i %in% seq(2,3,1)) {
+    list(x_min = -1.5, x_max = 3, x_inc = 0.5)
+  } else if (i %in% seq(4,6,1)) {
+    list(x_min = -0.2, x_max = 0.25, x_inc = 0.05)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
 
-# continuous above and below
-
-for (i in c(1,seq(4,6,1))){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-0.2,0.25,0.05,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  iter <- 1
+  for (control in c(1,2,4,3)) {
+    print(control)
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,
+                                 vals$x_min,vals$x_max,vals$x_inc,
+                                  paste0("2_ab_level_",i),weight = "peso_pop",
+                                 year_cap = 2010, cont = 1, spec=control)
+    print(res)
+    res$con <-control 
+    output_list[[iter]] <- res
+    iter <- iter + 1
+  }
+  combined_df <- do.call(rbind, output_list)
+  combined_df <- combined_df %>%
+    mutate(controls = case_when(
+      con == 1 ~ "(1) Baseline",
+      con == 2 ~ "(2) + Municipal char.",
+      con == 3 ~ "(3) + Economic",
+      con == 4 ~ "(4) + Spending",
+      con == 5 ~ "(5) Reweight",
+    ))
   
   table_ab<- table_ab %>% cbind(table_final)
+  combined_df$con2<-as.character(combined_df$con)
+  combined_df$year<- combined_df$year+combined_df$con/10-0.4
+  combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
+  ## Robustness plot
+  df_nona <- combined_df[!is.na(combined_df$estimates),]
+  robustPlotAB(var,df_nona)
 }
 
-for (i in seq(2,3,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
+
+
+
+#--------------------------------------------------------------------------------
+#--- (7C) Implement Rambachan & Roth
+#--------------------------------------------------------------------------------
+for (i in seq(1,6,1)){
+  var <- var_map1[i,1]
+  var_name <- var_map1[i,2]
   print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-1.5,3,0.5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  
-  table_ab<- table_ab %>% cbind(table_final)
-}
-
-# binary
-
-for (i in c(1,seq(4,6,1))){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-0.02,0.015,0.005,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-for (i in seq(2,3,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-0.1,0.25,0.05,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,1,1998,-1,2.5,0.25,"remove",
+                     weight = "peso_pop",year_cap = 2010,cont = 1,ramb_roth=T) 
 }
 
 
-# 7. IMR
-# =================================================================
 
+#--------------------------------------------------------------------------------
+#--- (8) IMR
+#--------------------------------------------------------------------------------
 yearly_folder <- "imr/"
 
-var_map <-  rbind(cbind('tx_mi','Infant Mortality Rate'),
-                  cbind('tx_mi_icsap','Infant Mortality Rate - APC'),
-                  cbind('tx_mi_nicsap','Infant Mortality Rate - non-APC'),
-                  cbind('tx_mi_infec','Infant Mortality Rate - Infectious'),
-                  cbind('tx_mi_resp','Infant Mortality Rate - Respiratory'),
-                  cbind('tx_mi_perinat','Infant Mortality Rate - Perinatal'),
-                  cbind('tx_mi_cong','Infant Mortality Rate - Congenital'),
-                  cbind('tx_mi_ext','Infant Mortality Rate - External'),
-                  cbind('tx_mi_nut','Infant Mortality Rate - Nutritional'),
-                  cbind('tx_mi_out','Infant Mortality Rate - Other'),
-                  cbind('tx_mi_illdef','Infant Mortality Rate - Ill-Defined'),
-                  cbind('tx_mi_fet','Infant Mortality Rate - Fetal'),
-                  cbind('tx_mi_24h','Infant Mortality Rate - Within 24h'),
-                  cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days'),
-                  cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year'),
-                  cbind('tx_mm',"Maternal Mortality Rate"))
-# continuous
+var_map <-  rbind(
+  cbind('tx_mi','Infant Mortality Rate'),
+  cbind('tx_mi_icsap','Infant Mortality Rate - APC'),
+  cbind('tx_mi_nicsap','Infant Mortality Rate - non-APC'),
+  cbind('tx_mi_infec','Infant Mortality Rate - Infectious'),
+  cbind('tx_mi_resp','Infant Mortality Rate - Respiratory'),
+  cbind('tx_mi_perinat','Infant Mortality Rate - Perinatal'),
+  cbind('tx_mi_cong','Infant Mortality Rate - Congenital'),
+  cbind('tx_mi_ext','Infant Mortality Rate - External'),
+  cbind('tx_mi_nut','Infant Mortality Rate - Nutritional'),
+  cbind('tx_mi_out','Infant Mortality Rate - Other'),
+  cbind('tx_mi_illdef','Infant Mortality Rate - Ill-Defined'),
+  cbind('tx_mi_fet','Infant Mortality Rate - Fetal'),
+  cbind('tx_mi_24h','Infant Mortality Rate - Within 24h'),
+  cbind('tx_mi_27d','Infant Mortality Rate - 1 to 27 days'),
+  cbind('tx_mi_ano','Infant Mortality Rate - 27 days to 1 year'),
+  cbind('tx_mm',"Maternal Mortality Rate")
+)
 
 for (i in seq(1, 16, 1)) {
   var <- var_map[i, 1]
   df[[var]][df$birth_nasc_vivos == 0] <- NA  
 }
 
-for (i in seq(1,16,1)){
+
+
+
+#--------------------------------------------------------------------------------
+#--- (8A) Estimate single spending shock
+#--------------------------------------------------------------------------------
+for (i in seq(1,16,1)) {
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   output_list <- list()
+  
+  ##Set axis
+  vals <- if (i %in% seq(1,16,1)) {
+    list(x_min = -15, x_max = 10, x_inc = 5)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
 
-  res <- reduced_yearly_imr(var,var_name,df,3,1998,-25,15,5,
+  res <- reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,10,
                             paste0("1_cont_level_",i),weight = "reweightPop",
                             year_cap = 2010, cont = 1, spec=3)
   print(res)
@@ -1214,7 +1094,8 @@ for (i in seq(1,16,1)){
   iter <- 2
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_imr(var,var_name,df,3,1998,-25,15,5,
+    res <- reduced_yearly_imr(var,var_name,df,
+                              3,1998,vals$x_min,vals$x_max,vals$x_inc,
                               paste0("1_cont_level_",i),weight = "peso_pop",
                               year_cap = 2010, cont = 1, spec=control)
     print(res)
@@ -1222,6 +1103,7 @@ for (i in seq(1,16,1)){
     output_list[[iter]] <- res
     iter <- iter + 1
   }
+  table_main <- table_main %>% cbind(table_final)
   combined_df <- do.call(rbind, output_list)
   combined_df <- combined_df %>%
     mutate(controls = case_when(
@@ -1235,36 +1117,32 @@ for (i in seq(1,16,1)){
   combined_df$con2<-as.character(combined_df$con)
   combined_df$year<- combined_df$year+combined_df$con/10
   ## Robustness plot
-  robustPlot(var,combined_df)  
-  
-  table_main<- table_main %>% cbind(table_final)
+  robustPlot(var,combined_df)
 }
 
-for (i in seq(4,15,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-15,10,5,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
 
-for (i in seq(16,16,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-15,10,5,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-# continuous above and below
+#--------------------------------------------------------------------------------
+#--- (8B) Estimate with above and below
+#--------------------------------------------------------------------------------
 for (i in seq(1,16,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   output_list <- list()
+
+  #set axis values
+  vals <- if (i %in% seq(1,16,1)) {
+    list(x_min = -20, x_max = 20, x_inc = 5)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
   iter <- 1
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,-40,30,5,
-                                 paste0("2_ab_level_",i),weight = "peso_pop",
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,
+                                 vals$x_min,vals$x_max,vals$x_inc,
+                                  paste0("2_ab_level_",i),weight = "peso_pop",
                                  year_cap = 2010, cont = 1, spec=control)
     print(res)
     res$con <-control 
@@ -1280,6 +1158,7 @@ for (i in seq(1,16,1)){
       con == 4 ~ "(4) + Spending",
       con == 5 ~ "(5) Reweight",
     ))
+  
   table_ab<- table_ab %>% cbind(table_final)
   combined_df$con2<-as.character(combined_df$con)
   combined_df$year<- combined_df$year+combined_df$con/10-0.4
@@ -1290,57 +1169,22 @@ for (i in seq(1,16,1)){
 }
 
 
-for (i in seq(4,15,1)){
+#--------------------------------------------------------------------------------
+#--- (8C) Rambachan & Roth
+#--------------------------------------------------------------------------------
+#Make Rambachan and Roth plots
+for (i in c(1,13,14,15,16)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,3,1998,-15,10,5,"remove",
+                     weight = "peso_pop",year_cap = 2010, cont = 1,ramb_roth=T)
 }
 
-for (i in seq(16,16,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-15,15,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-
-
-# binary
-
-for (i in seq(1,3,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-2,2,0.5,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0,spec=3) # ec29baseline
-}
-
-
-for (i in seq(4,15,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-2,2,0.5,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0,spec=3) # ec29baseline
-}
-
-# DC Comment out Jan 22 -- Matrix indefinite...
-#for (i in seq(16,16,1)){
-#  var <- var_map[i,1]
-#  var_name <- var_map[i,2]
-#  print(var_name)
-#  reduced_yearly_imr(var,var_name,df,3,1998,-2,2,0.5,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-#}
-
-
-
-# 8. Indexes
-# =================================================================
-if(Sys.getenv("USERNAME")=="dcc213") {
-  index <- data.frame(read.dta13("/home/dcc213/investigacion/2021/decentralization/github/ec29/indexes.dta"))
-} else {
-  index <- data.frame(read.dta13("C:/Users/mszklo/Documents/GitHub/ec29/indexes.dta"))
-}
+#--------------------------------------------------------------------------------
+#--- (9) Indexes (Should generate this all natively in R)
+#--------------------------------------------------------------------------------
+index <- data.frame(read.dta13(paste0(DAT, "indexes.dta")))
 # merge indexes to main df
 all_df <- c("df")
 
@@ -1357,26 +1201,39 @@ for(d in all_df){
 
 yearly_folder <- "indexes/"
 
-var_map <-  rbind(cbind('access_index','Access and Production of Health Services Index','peso_pop'),
-                  cbind('access_pc_index','Primary Care Access and Production Index','peso_pop'),
-                  cbind('access_npc_index','Non-Primary Care Access and Production Index','peso_pop'),
-                  cbind('input_index','Health Inputs Index','peso_pop'),
-                  cbind('hr_index','Human Resources Index','peso_pop'),
-                  cbind('hospital_index','Hospitals Index','peso_pop'),
-                  cbind('birth_index','Birth Outcomes Index','peso_pop'),
-                  cbind('imr_index','Infant Mortality Index','peso_pop'),
-                  cbind('birth_others_index','Other Birth Outcomes Index','peso_pop')
+var_map <- rbind(
+  cbind('access_index','Access and Production of Health Services Index','peso_pop'),
+  cbind('access_pc_index','Primary Care Access and Production Index','peso_pop'),
+  cbind('access_npc_index','Non-Primary Care Access and Production Index','peso_pop'),
+  cbind('input_index','Health Inputs Index','peso_pop'),
+  cbind('hr_index','Human Resources Index','peso_pop'),
+  cbind('hospital_index','Hospitals Index','peso_pop'),
+  cbind('birth_index','Birth Outcomes Index','peso_pop'),
+  cbind('imr_index','Infant Mortality Index','peso_pop'),
+  cbind('birth_others_index','Other Birth Outcomes Index','peso_pop')
 )
 
 
-# continous
 
-for (i in seq(1,9,1)){
+
+#--------------------------------------------------------------------------------
+#--- (9A) Estimate single spending shock
+#--------------------------------------------------------------------------------
+for (i in seq(1,9,1)) {
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   output_list <- list()
   
+  ##Set axis
+  vals <- if (i %in% c(seq(1,3,1),7,9)) {
+    list(x_min = -1, x_max = 1.75, x_inc = 0.25)
+  } else if (i %in% seq(4,6,1)) {
+    list(x_min = -1, x_max = 2.5, x_inc = 0.5)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
   if(i<4|i>6) {
     res <- reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,10,
                               paste0("1_cont_level_",i),weight = "reweightPop",
@@ -1394,12 +1251,12 @@ for (i in seq(1,9,1)){
   for (control in c(1,2,4,3)) {
     print(control)
     if(i<4|i>6) {
-      res <- reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,10,
+      res <- reduced_yearly_imr(var,var_name,df,3,1998,vals$x_min,vals$x_max,vals$x_inc,
                               paste0("1_cont_level_",i),weight = "peso_pop",
                               year_cap = 2010, cont = 1, spec=control, base_year=1998)
     } else {
       res <- reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),
-                                3,1998,-1000,1000,10,
+                                3,vals$x_min,vals$x_max,vals$x_inc,
                                 paste0("1_cont_level_",i),weight = "peso_pop",
                                 year_cap = 2010, cont = 1, spec=control)
     }
@@ -1408,6 +1265,8 @@ for (i in seq(1,9,1)){
     output_list[[iter]] <- res
     iter <- iter + 1
   }
+
+  table_main <- table_main %>% cbind(table_final)
   combined_df <- do.call(rbind, output_list)
   combined_df <- combined_df %>%
     mutate(controls = case_when(
@@ -1421,52 +1280,38 @@ for (i in seq(1,9,1)){
   combined_df$con2<-as.character(combined_df$con)
   combined_df$year<- combined_df$year+combined_df$con/10
   ## Robustness plot
-  df_nona <- combined_df[!is.na(combined_df$estimates),]
-  robustPlot(var,df_nona)  
-  
-  table_main<- table_main %>% cbind(table_final)
-}
-
-for (i in c(seq(1,3,1),7,9)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-1,1.75,0.25,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-for (i in seq(4,6,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-1,2.5,0.25,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1, base_year=1998) # ec29baseline
+  robustPlot(var,combined_df)
 }
 
 
-for (i in 8){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-1,1.75,0.25,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-# continous above and below
-# continuous above and below 2_ab_log_
-for (i in seq(1,9,1)) {
+#--------------------------------------------------------------------------------
+#--- (9B) Estimate with above and below
+#--------------------------------------------------------------------------------
+for (i in seq(1,9,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   output_list <- list()
+
+  vals <- if (i %in% c(seq(1,3,1),7,9)) {
+    list(x_min = -2, x_max = 2.5, x_inc = 0.5)
+  } else if (i %in% seq(4,6,1)) {
+    list(x_min = -4, x_max = 6, x_inc = 1)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
   iter <- 1
   for (control in c(1,2,4,3)) {
     print(control)
     if(i<4|i>6) {
-      res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,-1000,1000,10,
+      res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,vals$x_min,vals$x_max,vals$x_inc,
                                  paste0("2_ab_level_",i),weight = "peso_pop",
                                  year_cap = 2010, cont = 1, spec=control)
     } else {
       res <- reduced_yearly_ab_imr(var,var_name,
                                    df %>% mutate(above_pre_99_dist_ec29_baseline=0, below_pre_99_dist_ec29_baseline=0),
-                                   3,1998,-1000,1000,10,
+                                   3,1998,vals$x_min,vals$x_max,vals$x_inc,
                                    paste0("2_ab_level_",i),weight = "peso_pop",
                                    year_cap = 2010, cont = 1, spec=control)
     }
@@ -1475,6 +1320,7 @@ for (i in seq(1,9,1)) {
     output_list[[iter]] <- res
     iter <- iter + 1
   }
+
   combined_df <- do.call(rbind, output_list)
   combined_df <- combined_df %>%
     mutate(controls = case_when(
@@ -1484,6 +1330,7 @@ for (i in seq(1,9,1)) {
       con == 4 ~ "(4) + Spending",
       con == 5 ~ "(5) Reweight",
     ))
+  
   table_ab<- table_ab %>% cbind(table_final)
   combined_df$con2<-as.character(combined_df$con)
   combined_df$year<- combined_df$year+combined_df$con/10-0.4
@@ -1493,284 +1340,215 @@ for (i in seq(1,9,1)) {
   robustPlotAB(var,df_nona)
 }
 
-for (i in c(seq(1,3,1),7,9)){
+
+#--------------------------------------------------------------------------------
+#--- (9C) Rambachan & Roth
+#--------------------------------------------------------------------------------
+#Make Rambachan and Roth plots
+for (i in c(1,2,3)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-2,2.5,0.5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-for (i in seq(4,6,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df %>% mutate(above_pre_99_dist_ec29_baseline=0, below_pre_99_dist_ec29_baseline=0),3,1998,-4,6,1,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,3,1998,-15,10,5,"remove",
+                     weight = "peso_pop",year_cap = 2010, cont = 1,ramb_roth=T)
 }
 
 
-for (i in 8){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-1,1,0.25,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-
-
-# binary
-
-for (i in c(seq(1,3,1),7,9)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df,3,1998,-0.15,0.25,0.025,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-for (i in seq(4,6,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline_binary=0),3,1998,-0.1,0.25,0.025,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-
-for (i in 8){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-0.1,0.175,0.025,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-
-
-
-# 9. System
-# =================================================================
-
-  yearly_folder <- "system/"
+#--------------------------------------------------------------------------------
+#--- (10) System
+#--------------------------------------------------------------------------------
+yearly_folder <- "system/"
   
-  var_map <- rbind(cbind('ams_hospital_pvt_pcapita','N. of Private Hospitals (per capita*1000)'),
-                   cbind('cobertura_plano','Private Insurance Coverage'),
-                   cbind('tx_sih_in_hosp_total','Hospitalization Inflow rate (pop * 1000)'),
-                   cbind('tx_sih_in_hosp_icsap','Hospitalization Inflow rate - APC (pop * 1000)'),
-                   cbind('tx_sih_in_hosp_nicsap','Hospitalization Inflow rate - non-APC (pop * 1000)'),
-                   cbind('tx_sih_out_hosp_total','Hospitalization Outflow rate (pop * 1000)'),
-                   cbind('tx_sih_out_hosp_icsap','Hospitalization Outflow rate - APC (pop * 1000)'),
-                   cbind('tx_sih_out_hosp_nicsap','Hospitalization Outflow rate - non-APC (pop * 1000)'))
-  
-  # continuous
-  
-  for (i in seq(1,8,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    output_list <- list()
-  
-    if (i==1) {
-      res <- reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),
-                                3,1998,-1000,1000,10,
-                                paste0("1_cont_level_",i),weight = "reweightPop",
-                                year_cap = 2010, cont = 1, spec=3)
-      
-    } else { 
-      res <- reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,10,
-                                paste0("1_cont_level_",i),weight = "reweightPop",
-                                year_cap = 2010, cont = 1, spec=3)
-    }
-    print(res)
-    res$con <-5
-    output_list[[1]] <- res
-    iter <- 2
-    for (control in c(1,2,4,3)) {
-      print(control)
-      if (i==1) {
-        res <- reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-1000,1000,10,
-                                  paste0("1_cont_level_",i),weight = "peso_pop",
-                                  year_cap = 2010, cont = 1, spec=control)
-        } else {
-          res <- reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,10,
-                                    paste0("1_cont_level_",i),weight = "peso_pop",
-                                    year_cap = 2010, cont = 1, spec=control)
-        }    
-      print(res)
-      res$con <-control 
-      output_list[[iter]] <- res
-      iter <- iter + 1
-    }
-    combined_df <- do.call(rbind, output_list)
-    combined_df <- combined_df %>%
-      mutate(controls = case_when(
-        con == 1 ~ "(1) Baseline",
-        con == 2 ~ "(2) + Municipal char.",
-        con == 3 ~ "(3) + Economic",
-        con == 4 ~ "(4) + Spending",
-        con == 5 ~ "(5) Reweight",
-      ))
-    
-    combined_df$con2<-as.character(combined_df$con)
-    combined_df$year<- combined_df$year+combined_df$con/10
-    ## Robustness plot
-    df_nona <- combined_df[!is.na(combined_df$estimates),]
-    robustPlot(var,df_nona)  
-    
-    table_main<- table_main %>% cbind(table_final)
-  }
-  
-  
-  for (i in seq(1,1,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-0.06,0.06,0.02,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  }
-  
-  for (i in seq(2,2,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    reduced_yearly_imr(var,var_name,df,3,1998,-0.15,0.15,0.05,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  }
-  
-  
-  for (i in seq(3,8,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    reduced_yearly_imr(var,var_name,df,3,1998,-10,20,2,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  }
-  
-  
-  
-
-# continuous above and below
-  # continuous above and below 2_ab_log_
-  for (i in seq(1,8,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    output_list <- list()
-    iter <- 1
-    for (control in c(1,2,4,3)) {
-      print(control)
-      if (i==1) {
-        res <- reduced_yearly_ab_imr(var,var_name,
-                                     df %>% mutate(pre_99_dist_ec29_baseline=0),
-                                     3,1998,-1000,1000,10,paste0("2_ab_level_",i),
-                                     weight = "peso_pop",year_cap = 2010, 
-                                     cont = 1, spec=control)
-      } else {
-        res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,-1000,1000,10,
-                                     paste0("2_ab_level_",i),weight = "peso_pop",
-                                     year_cap = 2010, cont = 1, spec=control)
-      }
-      print(res)
-      res$con <-control 
-      output_list[[iter]] <- res
-      iter <- iter + 1
-    }
-    combined_df <- do.call(rbind, output_list)
-    combined_df <- combined_df %>%
-      mutate(controls = case_when(
-        con == 1 ~ "(1) Baseline",
-        con == 2 ~ "(2) + Municipal char.",
-        con == 3 ~ "(3) + Economic",
-        con == 4 ~ "(4) + Spending",
-        con == 5 ~ "(5) Reweight",
-      ))
-    table_ab<- table_ab %>% cbind(table_final)
-    combined_df$con2<-as.character(combined_df$con)
-    combined_df$year<- combined_df$year+combined_df$con/10-0.4
-    combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
-    ## Robustness plot
-    df_nona <- combined_df[!is.na(combined_df$estimates),]
-    robustPlotAB(var,df_nona)
-  }
-  
-for (i in seq(1,1,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-0.04,0.1,0.02,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-for (i in seq(2,2,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-0.30,0.20,0.05,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-for (i in seq(3,8,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-40,30,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-
-
-# binary
-for (i in seq(1,1,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),3,1998,-0.006,0.006,0.002,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-for (i in seq(2,2,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-0.04,0.04,0.01,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-
-for (i in seq(3,8,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-4,6,1,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
+var_map <- rbind(
+  cbind('ams_hospital_pvt_pcapita','N. of Private Hospitals (per capita*1000)'),
+  cbind('cobertura_plano','Private Insurance Coverage'),
+  cbind('tx_sih_in_hosp_total','Hospitalization Inflow rate (pop * 1000)'),
+  cbind('tx_sih_in_hosp_icsap','Hospitalization Inflow rate - APC (pop * 1000)'),
+  cbind('tx_sih_in_hosp_nicsap','Hospitalization Inflow rate - non-APC (pop * 1000)'),
+  cbind('tx_sih_out_hosp_total','Hospitalization Outflow rate (pop * 1000)'),
+  cbind('tx_sih_out_hosp_icsap','Hospitalization Outflow rate - APC (pop * 1000)'),
+  cbind('tx_sih_out_hosp_nicsap','Hospitalization Outflow rate - non-APC (pop * 1000)')
+)
 
   
-# Capped at 1000
-for (i in seq(3,8,1)){
-    var <- var_map[i,1]
-    var_name <- var_map[i,2]
-    print(var_name)
-    capped_var <- paste0(var, "_capped")
-    # Assign the capped values to the new variable
-    df[[capped_var]] <- ifelse(df[[var]] > 1000, 1000, df[[var]]) 
-    reduced_yearly_imr(capped_var,var_name,df,3,1998,-10,20,2,paste0("4a_capped_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-    reduced_yearly_ab_imr(capped_var,var_name,df,3,1998,-40,30,5,paste0("4b_capped_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-  
-
-
-# 10. Adult
-# =================================================================
-
-yearly_folder <- "adult/"
-
-var_map <- rbind(cbind('tx_sih_maternal2','Maternal Hospitalization Rate (pop 0-1y * 1000)'),
-                 cbind('tx_sih_adult','Adult Hospitalization Rate (pop 40+y * 1000)'),
-                 cbind('tx_sih_adult_icsap','Adult Hospitalization Rate - APC (pop 40+y * 1000)'),
-                 cbind('tx_sih_adult_nicsap','Adult Hospitalization Rate - non-APC (pop 40+y * 1000)'),
-                 cbind('tx_mm',"Maternal Mortality Rate"),
-                 cbind('tx_ma5','Adult Mortality Rate (40+ y)'),
-                 cbind('tx_ma5_icsap','Adult Mortality Rate (40+ y) - APC'),
-                 cbind('tx_ma5_nicsap','Adult Mortality Rate (40+ y) - non-APC'))
-
-# continuous
-for (i in seq(1,8,1)){
+#--------------------------------------------------------------------------------
+#--- (10A) Estimate single spending shock
+#--------------------------------------------------------------------------------
+for (i in seq(1,8,1)) {
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   output_list <- list()
   
+  ##Set axis
+  vals <- if (i %in% c(1)) {
+    list(x_min = -0.06, x_max = 0.06, x_inc = 0.02)
+  } else if (i %in% c(2)) {
+    list(x_min = -0.15, x_max = 0.15, x_inc = 0.05)
+  } else if (i %in% seq(3,8,1)) {
+    list(x_min = -10, x_max = 20, x_inc = 2)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
+  if(i>1) {
+    res <- reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,10,
+                              paste0("1_cont_level_",i),weight = "reweightPop",
+                              year_cap = 2010, cont = 1, spec=3, base_year=1998)
+  } else {
+    res <- reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),
+                              3,1998,-1000,1000,10,
+                              paste0("1_cont_level_",i),weight = "reweightPop",
+                              year_cap = 2010, cont = 1, spec=3)
+  }
+  print(res)
+  res$con <-5
+  output_list[[1]] <- res
+  iter <- 2
+  for (control in c(1,2,4,3)) {
+    print(control)
+    if(i>1) {
+      res <- reduced_yearly_imr(var,var_name,df,3,1998,vals$x_min,vals$x_max,vals$x_inc,
+                              paste0("1_cont_level_",i),weight = "peso_pop",
+                              year_cap = 2010, cont = 1, spec=control, base_year=1998)
+    } else {
+      res <- reduced_yearly_imr(var,var_name,df %>% mutate(pre_99_dist_ec29_baseline=0),
+                                3,vals$x_min,vals$x_max,vals$x_inc,
+                                paste0("1_cont_level_",i),weight = "peso_pop",
+                                year_cap = 2010, cont = 1, spec=control)
+    }
+    print(res)
+    res$con <-control 
+    output_list[[iter]] <- res
+    iter <- iter + 1
+  }
+
+  table_main <- table_main %>% cbind(table_final)
+  combined_df <- do.call(rbind, output_list)
+  combined_df <- combined_df %>%
+    mutate(controls = case_when(
+      con == 1 ~ "(1) Baseline",
+      con == 2 ~ "(2) + Municipal char.",
+      con == 3 ~ "(3) + Economic",
+      con == 4 ~ "(4) + Spending",
+      con == 5 ~ "(5) Reweight",
+    ))
+  
+  combined_df$con2<-as.character(combined_df$con)
+  combined_df$year<- combined_df$year+combined_df$con/10
+  ## Robustness plot
+  robustPlot(var,combined_df)
+}
+
+
+#--------------------------------------------------------------------------------
+#--- (10B) Estimate with above and below
+#--------------------------------------------------------------------------------
+for (i in seq(1,8,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  output_list <- list()
+
+  vals <- if (i %in% c(1)) {
+    list(x_min = -0.04, x_max = 0.1, x_inc = 0.02)
+  } else if (i %in% c(2)) {
+    list(x_min = -0.30, x_max = 0.20, x_inc = 0.05)
+  } else if (i %in% seq(3,8,1)) {
+    list(x_min = -40, x_max = 30, x_inc = 5)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
+  iter <- 1
+  for (control in c(1,2,4,3)) {
+    print(control)
+    if(i>1) {
+      res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,vals$x_min,vals$x_max,vals$x_inc,
+                                 paste0("2_ab_level_",i),weight = "peso_pop",
+                                 year_cap = 2010, cont = 1, spec=control)
+    } else {
+      res <- reduced_yearly_ab_imr(var,var_name,
+                                   df %>% mutate(above_pre_99_dist_ec29_baseline=0, below_pre_99_dist_ec29_baseline=0),
+                                   3,1998,vals$x_min,vals$x_max,vals$x_inc,
+                                   paste0("2_ab_level_",i),weight = "peso_pop",
+                                   year_cap = 2010, cont = 1, spec=control)
+    }
+    print(res)
+    res$con <-control 
+    output_list[[iter]] <- res
+    iter <- iter + 1
+  }
+
+  combined_df <- do.call(rbind, output_list)
+  combined_df <- combined_df %>%
+    mutate(controls = case_when(
+      con == 1 ~ "(1) Baseline",
+      con == 2 ~ "(2) + Municipal char.",
+      con == 3 ~ "(3) + Economic",
+      con == 4 ~ "(4) + Spending",
+      con == 5 ~ "(5) Reweight",
+    ))
+  
+  table_ab<- table_ab %>% cbind(table_final)
+  combined_df$con2<-as.character(combined_df$con)
+  combined_df$year<- combined_df$year+combined_df$con/10-0.4
+  combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
+  ## Robustness plot
+  df_nona <- combined_df[!is.na(combined_df$estimates),]
+  robustPlotAB(var,df_nona)
+}
+
+
+#--------------------------------------------------------------------------------
+#--- (10C) Rambachan & Roth
+#--------------------------------------------------------------------------------
+#Make Rambachan and Roth plots
+for (i in seq(3,8,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-15,10,5,"remove",
+                     weight = "peso_pop",year_cap = 2010, cont = 1,ramb_roth=T)
+}
+
+#--------------------------------------------------------------------------------
+#--- (11) Adult
+#--------------------------------------------------------------------------------
+yearly_folder <- "adult/"
+
+var_map <- rbind(
+  cbind('tx_sih_maternal2','Maternal Hospitalization Rate (pop 0-1y * 1000)'),
+  cbind('tx_sih_adult','Adult Hospitalization Rate (pop 40+y * 1000)'),
+  cbind('tx_sih_adult_icsap','Adult Hospitalization Rate - APC (pop 40+y * 1000)'),
+  cbind('tx_sih_adult_nicsap','Adult Hospitalization Rate - non-APC (pop 40+y * 1000)'),
+  cbind('tx_mm',"Maternal Mortality Rate"),
+  cbind('tx_ma5','Adult Mortality Rate (40+ y)'),
+  cbind('tx_ma5_icsap','Adult Mortality Rate (40+ y) - APC'),
+  cbind('tx_ma5_nicsap','Adult Mortality Rate (40+ y) - non-APC')
+)
+
+
+
+
+#--------------------------------------------------------------------------------
+#--- (11A) Estimate single spending shock
+#--------------------------------------------------------------------------------
+for (i in seq(1,8,1)) {
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  output_list <- list()
+  
+  ##Set axis
+  vals <- if (i %in% seq(1,4,1)) {
+    list(x_min = -100, x_max = 100, x_inc = 20)
+  } else if (i %in% seq(5,8,1)) {
+    list(x_min = -8, x_max = 4, x_inc = 2)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
   res <- reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,10,
                             paste0("1_cont_level_",i),weight = "reweightPop",
                             year_cap = 2010, cont = 1, spec=3)
@@ -1780,7 +1558,8 @@ for (i in seq(1,8,1)){
   iter <- 2
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,10,
+    res <- reduced_yearly_imr(var,var_name,df,
+                              3,1998,vals$x_min,vals$x_max,vals$x_inc,
                               paste0("1_cont_level_",i),weight = "peso_pop",
                               year_cap = 2010, cont = 1, spec=control)
     print(res)
@@ -1788,6 +1567,7 @@ for (i in seq(1,8,1)){
     output_list[[iter]] <- res
     iter <- iter + 1
   }
+  table_main <- table_main %>% cbind(table_final)
   combined_df <- do.call(rbind, output_list)
   combined_df <- combined_df %>%
     mutate(controls = case_when(
@@ -1801,49 +1581,36 @@ for (i in seq(1,8,1)){
   combined_df$con2<-as.character(combined_df$con)
   combined_df$year<- combined_df$year+combined_df$con/10
   ## Robustness plot
-  df_nona <- combined_df[!is.na(combined_df$estimates),]
-  robustPlot(var,df_nona)  
-  
-  table_main<- table_main %>% cbind(table_final)
+  robustPlot(var,combined_df)
 }
 
 
-for (i in seq(1,1,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-1000,1000,200,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-for (i in seq(2,4,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-100,100,20,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-for (i in seq(5,8,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-8,4,2,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-
-
-# continuous above and below
+#--------------------------------------------------------------------------------
+#--- (11B) Estimate with above and below
+#--------------------------------------------------------------------------------
 for (i in seq(1,8,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   output_list <- list()
+
+  #set axis values
+  vals <- if (i %in% c(1)) {
+    list(x_min = -2500, x_max = 3500, x_inc = 500)
+  } else if (i %in% seq(2,4,1)) {
+    list(x_min = -300, x_max = 300, x_inc = 50)
+  } else if (i %in% seq(5,8,1)) {
+    list(x_min = -20, x_max = 20, x_inc = 5)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
   iter <- 1
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,-1000,1000,10,
-                                 paste0("2_ab_level_",i),weight = "peso_pop",
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,
+                                 vals$x_min,vals$x_max,vals$x_inc,
+                                  paste0("2_ab_level_",i),weight = "peso_pop",
                                  year_cap = 2010, cont = 1, spec=control)
     print(res)
     res$con <-control 
@@ -1859,6 +1626,7 @@ for (i in seq(1,8,1)){
       con == 4 ~ "(4) + Spending",
       con == 5 ~ "(5) Reweight",
     ))
+  
   table_ab<- table_ab %>% cbind(table_final)
   combined_df$con2<-as.character(combined_df$con)
   combined_df$year<- combined_df$year+combined_df$con/10-0.4
@@ -1868,164 +1636,75 @@ for (i in seq(1,8,1)){
   robustPlotAB(var,df_nona)
 }
 
-for (i in seq(1,1,1)){
+#--------------------------------------------------------------------------------
+#--- (11C) Rambachan & Roth
+#--------------------------------------------------------------------------------
+#Make Rambachan and Roth plots
+for (i in seq(1,8,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-2500,3500,500,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-for (i in seq(2,4,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-300,300,50,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-for (i in seq(5,8,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_ab_imr(var,var_name,df,3,1998,-20,20,5,paste0("2_ab_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
+  reduced_yearly_imr(var,var_name,df,3,1998,-15,10,5,"remove",
+                     weight = "peso_pop",year_cap = 2010, cont = 1,ramb_roth=T)
 }
 
 
 
-# binary
-
-for (i in seq(1,1,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-200,200,50,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-for (i in seq(2,4,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-40,40,10,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-
-for (i in seq(5,8,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-1.4,1,0.2,paste0("3_binary_level_",i),weight = "peso_pop",year_cap = 2010, cont = 0) # ec29baseline
-}
-
-# Capped at 1000
-for (i in seq(1,1,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  capped_var <- paste0(var, "_capped")
-  # Assign the capped values to the new variable
-  df[[capped_var]] <- ifelse(df[[var]] > 1000, 1000, df[[var]]) 
-  reduced_yearly_imr(capped_var,var_name,df,3,1998,-1000,1000,200,paste0("4a_capped_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  reduced_yearly_ab_imr(capped_var,var_name,df,3,1998,-2500,3500,500,paste0("4b_capped_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-for (i in seq(2,4,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  capped_var <- paste0(var, "_capped")
-  # Assign the capped values to the new variable
-  df[[capped_var]] <- ifelse(df[[var]] > 1000, 1000, df[[var]]) 
-  reduced_yearly_imr(capped_var,var_name,df,3,1998,-100,100,20,paste0("4a_capped_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  reduced_yearly_ab_imr(capped_var,var_name,df,3,1998,-300,300,50,paste0("4b_capped_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-for (i in seq(5,8,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  capped_var <- paste0(var, "_capped")
-  # Assign the capped values to the new variable
-  df[[capped_var]] <- ifelse(df[[var]] > 1000, 1000, df[[var]]) 
-  reduced_yearly_imr(capped_var,var_name,df,3,1998,-8,4,2,paste0("4a_capped_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-  reduced_yearly_ab_imr(capped_var,var_name,df,3,1998,-20,20,5,paste0("4b_capped_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1) # ec29baseline
-}
-
-
-# 11. Other
-# =================================================================
-
-yearly_folder <- "robust_other/"
-
-var_map <- rbind(cbind('gdp_mun_pcapita','GDP per capita'))
-
-
-
-for (i in seq(1,1,1)){
-  var <- var_map[i,1]
-  var_name <- var_map[i,2]
-  print(var_name)
-  reduced_yearly_imr(var,var_name,df,3,1998,-50,50,10,paste0("1_cont_level_",i),weight = "peso_pop",year_cap = 2010, cont = 1, spec = 2) # ec29baseline
-}
-
-
-
-
-# 12. Child, maternal and female mortality
-# =================================================================
-
+#--------------------------------------------------------------------------------
+#--- (12A) Estimate with child and other mortality (above and below only)
+#--------------------------------------------------------------------------------
 yearly_folder <- "cmr/"
-
-var_map <-  rbind(cbind('tx_mc','1-4y Mortality Rate'),
-                  cbind('tx_mc_icsap','1-4y Mortality Rate - APC'),
-                  cbind('tx_mc_nicsap','1-4y Mortality Rate - non-APC'),
-                  cbind('tx_mc_infec','1-4y Mortality Rate - Infectious'),
-                  cbind('tx_mc_resp','1-4y Mortality Rate - Respiratory'),
-                  cbind('tx_mc_cong','1-4y Mortality Rate - Congenital'),
-                  cbind('tx_mc_ext','1-4y Mortality Rate - External'),
-                  cbind('tx_mc_nerv', '1-4y Mortality Rate - Nervous'),
-                  cbind('tx_mc_neop', '1-4y Mortality Rate - Neoplasm'),
-                  cbind('tx_mc_out','1-4y Mortality Rate - Other'),
-                  cbind('tx_mc_illdef','1-4y Mortality Rate - Ill-Defined'),
-                  
-                  
-                  cbind('tx_mc2','Under 5 Mortality Rate'),
-                  cbind('tx_mc2_icsap','Under 5 Mortality Rate - APC'),
-                  cbind('tx_mc2_nicsap','Under 5 Mortality Rate - non-APC'),
-                  cbind('tx_mc2_infec','Under 5 Mortality Rate - Infectious'),
-                  cbind('tx_mc2_resp','Under 5 Mortality Rate - Respiratory'),
-                  cbind('tx_mc2_cong','Under 5 Mortality Rate - Congenital'),
-                  cbind('tx_mc2_ext','Under 5 Mortality Rate - External'),
-                  cbind('tx_mc2_out','Under 5 Mortality Rate - Other'),
-                  cbind('tx_mc2_illdef','Under 5 Mortality Rate - Ill-Defined'),
-                  
-                  cbind('tx_mf',"Female Mortality Rate (10-49y)"),
-                  cbind('tx_mm',"Maternal Mortality Rate"))
-# continuous
+var_map <- rbind(
+  cbind('tx_mc','1-4y Mortality Rate'),
+  cbind('tx_mc_icsap','1-4y Mortality Rate - APC'),
+  cbind('tx_mc_nicsap','1-4y Mortality Rate - non-APC'),
+  cbind('tx_mc_infec','1-4y Mortality Rate - Infectious'),
+  cbind('tx_mc_resp','1-4y Mortality Rate - Respiratory'),
+  cbind('tx_mc_cong','1-4y Mortality Rate - Congenital'),
+  cbind('tx_mc_ext','1-4y Mortality Rate - External'),
+  cbind('tx_mc_nerv', '1-4y Mortality Rate - Nervous'),
+  cbind('tx_mc_neop', '1-4y Mortality Rate - Neoplasm'),
+  cbind('tx_mc_out','1-4y Mortality Rate - Other'),
+  cbind('tx_mc_illdef','1-4y Mortality Rate - Ill-Defined'),
+  cbind('tx_mc2','Under 5 Mortality Rate'),
+  cbind('tx_mc2_icsap','Under 5 Mortality Rate - APC'),
+  cbind('tx_mc2_nicsap','Under 5 Mortality Rate - non-APC'),
+  cbind('tx_mc2_infec','Under 5 Mortality Rate - Infectious'),
+  cbind('tx_mc2_resp','Under 5 Mortality Rate - Respiratory'),
+  cbind('tx_mc2_cong','Under 5 Mortality Rate - Congenital'),
+  cbind('tx_mc2_ext','Under 5 Mortality Rate - External'),
+  cbind('tx_mc2_out','Under 5 Mortality Rate - Other'),
+  cbind('tx_mc2_illdef','Under 5 Mortality Rate - Ill-Defined'),  
+  cbind('tx_mf',"Female Mortality Rate (10-49y)"),
+  cbind('tx_mm',"Maternal Mortality Rate")
+)
 
 for (i in seq(1, 22, 1)) {
   var <- var_map[i, 1]
   df[[var]][df$birth_nasc_vivos == 0] <- NA  
 }
 
-for (i in seq(1,22,1)){
+
+for (i in seq(1,1,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
   output_list <- list()
-  
-  res <- reduced_yearly_imr(var,var_name,df,3,1998,-3,2,1,
-                            paste0("1_cont_level_",i),weight = "reweightPop",
-                            year_cap = 2010, cont = 1, spec=3)
-  print(res)
-  res$con <-5
-  output_list[[1]] <- res
-  iter <- 2
+
+  #set axis values
+  vals <- if (i %in% seq(1,22,1)) {
+    list(x_min = -3, x_max = 2, x_inc = 1)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
+  iter <- 1
   for (control in c(1,2,4,3)) {
     print(control)
-    res <- reduced_yearly_imr(var,var_name,df,3,1998,-3,2,1,
-                              paste0("1_cont_level_",i),weight = "peso_pop",
-                              year_cap = 2010, cont = 1, spec=control)
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,
+                                 vals$x_min,vals$x_max,vals$x_inc,
+                                  paste0("2_ab_level_",i),weight = "peso_pop",
+                                 year_cap = 2010, cont = 1, spec=control)
     print(res)
     res$con <-control 
     output_list[[iter]] <- res
@@ -2041,19 +1720,80 @@ for (i in seq(1,22,1)){
       con == 5 ~ "(5) Reweight",
     ))
   
+  table_ab<- table_ab %>% cbind(table_final)
   combined_df$con2<-as.character(combined_df$con)
-  combined_df$year<- combined_df$year+combined_df$con/10
+  combined_df$year<- combined_df$year+combined_df$con/10-0.4
+  combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
   ## Robustness plot
-  robustPlot(var,combined_df)  
-  
-  table_main<- table_main %>% cbind(table_final)
+  df_nona <- combined_df[!is.na(combined_df$estimates),]
+  robustPlotAB(var,df_nona)
 }
 
 
-
+#--------------------------------------------------------------------------------
+#--- (12B) Rambachan & Roth
+#--------------------------------------------------------------------------------
+#Make Rambachan and Roth plots
+for (i in seq(1,22,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df,3,1998,-15,10,5,"remove",
+                     weight = "peso_pop",year_cap = 2010, cont = 1,ramb_roth=T)
+}
 
 #--------------------------------------------------------------------------------
-#--- 12. Tables output
+#--- (13) Estimate with other outcomes (above and below only)
+#--------------------------------------------------------------------------------
+yearly_folder <- "robust_other/"
+var_map <- rbind(cbind('gdp_mun_pcapita','GDP per capita'))
+
+for (i in seq(1,1,1)){
+  var <- var_map[i,1]
+  var_name <- var_map[i,2]
+  print(var_name)
+  output_list <- list()
+
+  #set axis values
+  vals <- if (i %in% c(1)) {
+    list(x_min = -50, x_max = 50, x_inc = 10)
+  } else {
+    list(x_min = -1000, x_max = 1000, x_inc = 100)
+  }
+
+  iter <- 1
+  for (control in c(1,2,4,3)) {
+    print(control)
+    res <- reduced_yearly_ab_imr(var,var_name,df,3,1998,
+                                 vals$x_min,vals$x_max,vals$x_inc,
+                                  paste0("2_ab_level_",i),weight = "peso_pop",
+                                 year_cap = 2010, cont = 1, spec=control)
+    print(res)
+    res$con <-control 
+    output_list[[iter]] <- res
+    iter <- iter + 1
+  }
+  combined_df <- do.call(rbind, output_list)
+  combined_df <- combined_df %>%
+    mutate(controls = case_when(
+      con == 1 ~ "(1) Baseline",
+      con == 2 ~ "(2) + Municipal char.",
+      con == 3 ~ "(3) + Economic",
+      con == 4 ~ "(4) + Spending",
+      con == 5 ~ "(5) Reweight",
+    ))
+  
+  table_ab<- table_ab %>% cbind(table_final)
+  combined_df$con2<-as.character(combined_df$con)
+  combined_df$year<- combined_df$year+combined_df$con/10-0.4
+  combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
+  ## Robustness plot
+  df_nona <- combined_df[!is.na(combined_df$estimates),]
+  robustPlotAB(var,df_nona)
+}
+
+#--------------------------------------------------------------------------------
+#--- (14) Tables output
 #--------------------------------------------------------------------------------
 output_file <- "regression_tables_raw.xlsx"
 

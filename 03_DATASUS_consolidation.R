@@ -264,10 +264,3 @@ import_tabnet_year2(paste0(path,"SIM/","pop.csv"),"pop40",2000,2015,"pop",4)
 write.table(sia, file = paste0(path,"SIA/SIA_final.csv"),sep = ",", fileEncoding = "UTF-8", row.names = F)
 write.table(sinasc, file = paste0(path,"SINASC/SINASC_final.csv"),sep = ",", fileEncoding = "UTF-8", row.names = F)
 write.table(pop40, file = paste0(path,"SIM/pop40.csv"),sep = ",", fileEncoding = "UTF-8", row.names = F)
-
-
-
-
-
-
-
