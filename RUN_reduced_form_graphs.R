@@ -190,6 +190,129 @@ df_balance_siops <- df_noout[
 
 
 
+#--------------------------------------------------------------------------------
+#--- () Descriptive graph
+#--------------------------------------------------------------------------------
+generate_spending_revenue_plots <- function(data, suffix = "") {
+  # Spending labels and variable order
+  labels <- c(
+    finbra_desp_legislativa_pcapita = "Legislative",
+    finbra_desp_judiciaria_pcapita = "Judiciary",
+    finbra_desp_adm_pcapita = "Administration",
+    finbra_desp_agricultura_pcapita = "Agriculture",
+    finbra_desp_educ_cultura_pcapita = "Education & Culture",
+    finbra_desp_hab_urb_pcapita = "Housing & Urbanism",
+    finbra_desp_ind_com_pcapita = "Industry & Commerce",
+    finbra_desp_saude_san_pcapita = "Health & Sanitation",
+    finbra_desp_assist_prev_pcapita = "Social Assistance & Pensions",
+    finbra_desp_transporte_pcapita = "Transport",
+    finbra_desp_seguranca_pcapita = "Public Security"
+  )
+
+  vars_ordered <- c(
+    "finbra_desp_saude_san_pcapita",
+    "finbra_desp_legislativa_pcapita",
+    "finbra_desp_judiciaria_pcapita",
+    "finbra_desp_adm_pcapita",
+    "finbra_desp_agricultura_pcapita",
+    "finbra_desp_educ_cultura_pcapita",
+    "finbra_desp_hab_urb_pcapita",
+    "finbra_desp_ind_com_pcapita",
+    "finbra_desp_assist_prev_pcapita",
+    "finbra_desp_transporte_pcapita",
+    "finbra_desp_seguranca_pcapita"
+  )
+
+  # Spending: mean per capita
+  long_df <- data %>%
+    group_by(ano) %>%
+    summarise(across(all_of(vars_ordered), mean, na.rm = TRUE)) %>%
+    pivot_longer(cols = all_of(vars_ordered), names_to = "variable", values_to = "mean_value") %>%
+    mutate(label = labels[variable],
+           label = factor(label, levels = labels[vars_ordered]))
+
+  long_df_prop <- long_df %>%
+    group_by(ano) %>%
+    mutate(prop_value = mean_value / sum(mean_value))
+
+  plot_totals <- ggplot(long_df, aes(x = ano, y = mean_value, fill = label)) +
+    geom_area() +
+    scale_fill_viridis_d(option = "D", begin = 0.1, end = 0.95) +
+    scale_x_continuous(breaks = 1998:2010, limits = c(1998, 2010)) +
+    scale_y_continuous(breaks = seq(0, 2000, by = 500), limits = c(0, 2000)) +
+    labs(x = "Year", y = "Mean R$/capita", fill = "Spending Category") +
+    geom_vline(xintercept = c(2000, 2005), linetype = "dashed", color = "red") +
+    theme_minimal() +
+    theme(legend.position = "bottom", axis.text.x = element_text(angle = 45, hjust = 1))
+
+  plot_props <- ggplot(long_df_prop, aes(x = ano, y = prop_value, fill = label)) +
+    geom_area() +
+    scale_y_continuous(labels = scales::percent_format()) +
+    scale_fill_viridis_d(option = "D", begin = 0.1, end = 0.95) +
+    scale_x_continuous(breaks = 1998:2010, limits = c(1998, 2010)) +
+    labs(x = "Year", y = "Share of Total Spending", fill = "Spending Category") +
+    geom_vline(xintercept = c(2000, 2005), linetype = "dashed", color = "red") +
+    theme_minimal() +
+    theme(legend.position = "bottom", axis.text.x = element_text(angle = 45, hjust = 1))
+
+  ggsave(paste0(FIG, "descriptive/spendingTotals", suffix, ".pdf"), plot = plot_totals, width = 10, height = 6, dpi = 300)
+  ggsave(paste0(FIG, "descriptive/spendingProportions", suffix, ".pdf"), plot = plot_props, width = 10, height = 6, dpi = 300)
+
+  # Revenue
+  df_revenue_long <- data %>%
+    mutate(
+      other_current_pcapita = finbra_reccorr_pcapita - finbra_rectribut_pcapita - finbra_rectransf_pcapita
+    ) %>%
+    select(ano, finbra_rectribut_pcapita, finbra_rectransf_pcapita, other_current_pcapita) %>%
+    pivot_longer(cols = -ano, names_to = "category", values_to = "value") %>%
+    group_by(ano, category) %>%
+    summarise(mean_value = mean(value, na.rm = TRUE), .groups = "drop") %>%
+    mutate(
+      label = recode(category,
+                     finbra_rectribut_pcapita = "Tax Revenue",
+                     finbra_rectransf_pcapita = "Transfers",
+                     other_current_pcapita = "Other Revenue"),
+      label = factor(label, levels = c("Other Revenue", "Transfers", "Tax Revenue"))
+    )
+
+  df_revenue_prop <- df_revenue_long %>%
+    group_by(ano) %>%
+    mutate(prop_value = mean_value / sum(mean_value)) %>%
+    ungroup()
+
+  plot_rev_total <- ggplot(df_revenue_long, aes(x = ano, y = mean_value, fill = label)) +
+    geom_area() +
+    scale_fill_viridis_d(option = "D", begin = 0.1, end = 0.95) +
+    scale_x_continuous(breaks = 1998:2010, limits = c(1998, 2010)) +
+    scale_y_continuous(breaks = seq(0, 2000, by = 500), limits = c(0, 2000)) +
+    labs(x = "Year", y = "Mean Revenue per Capita (R$)", fill = "Revenue Category") +
+    geom_vline(xintercept = c(2000, 2005), linetype = "dashed", color = "red") +
+    theme_minimal() +
+    theme(legend.position = "bottom", axis.text.x = element_text(angle = 45, hjust = 1))
+
+  plot_rev_prop <- ggplot(df_revenue_prop, aes(x = ano, y = prop_value, fill = label)) +
+    geom_area() +
+    scale_y_continuous(labels = scales::percent_format()) +
+    scale_x_continuous(breaks = 1998:2010, limits = c(1998, 2010)) +
+    scale_fill_viridis_d(option = "D", begin = 0.1, end = 0.95) +
+    labs(x = "Year", y = "Share of Revenue", fill = "Revenue Category") +
+    geom_vline(xintercept = c(2000, 2005), linetype = "dashed", color = "red") +
+    theme_minimal() +
+    theme(legend.position = "bottom", axis.text.x = element_text(angle = 45, hjust = 1))
+
+  ggsave(paste0(FIG, "descriptive/revenueMeans", suffix, ".pdf"), plot = plot_rev_total, width = 10, height = 6, dpi = 300)
+  ggsave(paste0(FIG, "descriptive/revenueProportions", suffix, ".pdf"), plot = plot_rev_prop, width = 10, height = 6, dpi = 300)
+}
+generate_spending_revenue_plots(df_balance_finbra, suffix = "_all")
+generate_spending_revenue_plots(df_balance_finbra %>% filter(dist_ec29_baseline <= 0), suffix = "_above")
+generate_spending_revenue_plots(df_balance_finbra %>% filter(dist_ec29_baseline > 0), suffix = "_below")
+
+generate_spending_revenue_plots(df_balance_finbra %>% filter(dist_ec29_baseline <= -0.1), suffix = "_above10plus")
+generate_spending_revenue_plots(df_balance_finbra %>% filter(dist_ec29_baseline <= -0.05&dist_ec29_baseline > -0.10), suffix = "_above5-10")
+generate_spending_revenue_plots(df_balance_finbra %>% filter(dist_ec29_baseline > 0.05&dist_ec29_baseline < 0.1), suffix = "_below5-10")
+generate_spending_revenue_plots(df_balance_finbra %>% filter(dist_ec29_baseline > 0.1), suffix = "_below10plus")
+
+
 
 #--------------------------------------------------------------------------------
 #--- (2) Run analysis for fiscal responses
@@ -460,19 +583,132 @@ for (i in seq(1,18,1)){
 
 
 
+
+
+
 #--------------------------------------------------------------------------------
 #--- (3C) Implement Rambachan & Roth
 #--------------------------------------------------------------------------------
-#for (i in c(2,3,4,5)){
-#  var <- var_map1[i,1]
-#  var_name <- var_map1[i,2]
-#  print(var_name)
-#  reduced_yearly_imr(var,var_name,df_balance_finbra,1,1998,-1,2.5,0.25,"remove",weight = "peso_pop",year_cap = 2010,cont = 1,ramb_roth=T) # ec29baseline
-#}
+for (i in c(2,3,4,5)){
+  var <- var_map1[i,1]
+  var_name <- var_map1[i,2]
+  print(var_name)
+  reduced_yearly_imr(var,var_name,df_balance_finbra,1,1998,-1,2.5,0.25,"remove",weight = "peso_pop",year_cap = 2010,cont = 1,ramb_roth=T) # ec29baseline
+}
 
 
 
+#--------------------------------------------------------------------------------
+#--- (3D) Proportions
+#--------------------------------------------------------------------------------
+var_map1 <- rbind(
+  cbind('finbra_desp_saude_san_share','Health and Sanitation Spending per capita (share)'),
+  cbind('finbra_desp_pessoal_share','Personnel (share)'),
+  cbind('finbra_desp_investimento_share','Investment (share)'),
+  cbind('finbra_desp_outros_nature_share','Other nature? (share)'),
+  cbind('finbra_desp_adm_share', 'Admin (share)'),
+  cbind('finbra_desp_transporte_share', 'Transport (share)'),
+  cbind('finbra_desp_educ_cultura_share', 'Education and culture (share)'),
+  cbind('finbra_desp_hab_urb_share', 'Habitational (share)'),
+  cbind('finbra_desp_assist_prev_share', 'Assist prev (share)'),
+  cbind('finbra_desp_outros_area_share', 'Other areas? (share)'),
+  cbind('finbra_rectransf_share', 'Transfers (share)'),
+  cbind('finbra_rectribut_share', 'Taxes (share)'),
+  cbind('finbra_rec_outros_share','Other receipts (share)'), 
+  cbind('siops_desprecpropriosaude_share','Health Spending per capita - Own Resources (share)'),
+  cbind('siops_despexrecproprio_share','Health Spending per capita - Other Resources (share)'),
+  cbind('siops_desppessoal_share','Health Spending per capita - Personnel (share)'),
+  cbind('siops_despinvest_share','Health Spending per capita - Investment (share)'),
+  cbind('siops_despservicoster_share','Health Spending per capita - Outsourced (3rd parties services) (share)'),
+  cbind('siops_despoutros_share','Health Spending per capita - Admin, Management, others (share)'),
+  cbind('finbra_desp_legislativa_pcapita', 'Legislative'),
+  cbind('finbra_desp_judiciaria_pcapita', 'Judiciary'),
+  cbind('finbra_desp_adm_pcapita', 'Administration'),
+  cbind('finbra_desp_agricultura_pcapita', 'Agriculture'),
+  cbind('finbra_desp_educ_cultura_pcapita', 'Education & Culture'),
+  cbind('finbra_desp_hab_urb_pcapita', 'Housing & Urbanism'),
+  cbind('finbra_desp_ind_com_pcapita', 'Industry & Commerce'),
+  cbind('finbra_desp_saude_san_pcapita', 'Health & Sanitation'),
+  cbind('finbra_desp_assist_prev_pcapita', 'Social Assistance & Pensions'),
+  cbind('finbra_desp_transporte_pcapita', 'Transport'),
+  cbind('finbra_desp_seguranca_pcapita', 'Public Security'),
+  cbind('finbra_rectribut_pcapita', 'Tax Revenue'),
+  cbind('finbra_rectransf_pcapita', 'Transfers'),
+  cbind('finbra_reccorr_pcapita', 'Current Revenue')
+  )
 
+#--------------------------------------------------------------------------------
+#--- (3E) Estimate single spending shock
+#--------------------------------------------------------------------------------
+for (i in seq(1,33,1)) {
+  var <- var_map1[i,1]
+  var_name <- var_map1[i,2]
+  print(var_name)
+  output_list <- list()
+  
+  ##Set axis
+  vals <- if (i %in% c(1:12, 16, 17)) {
+    list(x_min = -0.5, x_max = 0.5, x_inc = 0.1)
+  } else if (i %in% c(13, 14, 15, 18, 19)) {
+    list(x_min = -1, x_max = 1, x_inc = 0.2)
+  } else {
+    list(x_min = -4, x_max = 4, x_inc = 0.5)
+  }
+  modval <- 3
+  if (i %in% c(20:33)) {modval <- 1}
+
+  ##Set sample and title
+  if (i %in% c(1:13, 20:33)) {
+    df_est <- df_balance_finbra
+    fname  <- paste0("shares_",i)
+  } else {
+    df_est <- df_balance_siops
+    fname  <- paste0("shares_",i)
+  }
+
+  res <- reduced_yearly_imr(var,var_name,df_est,modval,1998,
+                            vals$x_min,vals$x_max,vals$x_inc,
+                            fname,weight = "peso_pop",
+                            year_cap = 2010, cont = 1, spec=1)
+}
+
+
+#--------------------------------------------------------------------------------
+#--- (3F) Estimate with above and below
+#--------------------------------------------------------------------------------
+for (i in seq(1,33,1)){
+  var <- var_map1[i,1]
+  var_name <- var_map1[i,2]
+  print(var_name)
+  output_list <- list()
+ 
+  ##Set axis
+  vals <- if (i %in% c(1:12, 16, 17)) {
+    list(x_min = -0.5, x_max = 0.5, x_inc = 0.1)
+  } else if (i %in% c(13, 14, 15, 18, 19)) {
+    list(x_min = -1, x_max = 2, x_inc = 0.2)
+  } else {
+    list(x_min = -5, x_max = 5, x_inc = 1)
+  }
+
+
+  modval <- 3
+  if (i %in% c(20:33)) {modval <- 1}
+
+  ##Set sample and title
+  if (i %in% c(1:13, 20:33)) {
+    df_est <- df_balance_finbra
+    fname  <- paste0("sharesAB_",i)
+  } else {
+    df_est <- df_balance_siops
+    fname  <- paste0("sharesAB_",i)
+  }
+
+  res <- reduced_yearly_ab_imr(var,var_name,df_est,modval,1998,
+                                 vals$x_min,vals$x_max,vals$x_inc,
+                                 fname,weight = "peso_pop",
+                                 year_cap = 2010, cont = 1, spec=1)
+}
 #--------------------------------------------------------------------------------
 #--- (4) Run analysis for access and production
 #--------------------------------------------------------------------------------
@@ -709,7 +945,7 @@ for (i in seq(1,11,1)) {
 #--------------------------------------------------------------------------------
 #--- (5B) Estimate with above and below
 #--------------------------------------------------------------------------------
-for (i in seq(1,25,1)){
+for (i in seq(1,11,1)){
   var <- var_map[i,1]
   var_name <- var_map[i,2]
   print(var_name)
