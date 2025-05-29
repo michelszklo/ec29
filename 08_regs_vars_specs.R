@@ -1657,7 +1657,7 @@ reduced_yearly_imr_ext <- function(outcome,var_name,df,transform,year_filter,y0,
       geom_ribbon(aes(ymin = lb, ymax = ub),color = NA, alpha = 0.1) +
       geom_ribbon(aes(ymin = lb2, ymax = ub2),color = NA, alpha = 0.2) +
       scale_x_continuous(breaks = seq(1996,year_cap,1), limits = c(1995.5,year_cap+0.5)) +
-      # scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
+      scale_y_continuous(breaks = seq(y0,yf,ys), limits = c(y0,yf), labels = comma) +
       theme_light() +
       labs(y = var_name,
            x = "Year",
