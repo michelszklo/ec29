@@ -117,7 +117,18 @@ robustPlotAB <- function(var, combined_df,folder) {
 
 # 2. Loads data, remove outliers, balances samples
 # =================================================================
+
+
 load(paste0(DAT,"regs.RData")) 
+
+
+if(YEAR==1998){
+  df <- df %>% 
+    filter(ano>=1998)
+}
+
+
+
 df2 <- df
 
 
@@ -160,14 +171,28 @@ df_balance_finbra <- df[complete.cases(df[c('finbra_recorc_pcapita',
 
 
 
-mun_balanced <- df_balance_finbra %>% 
-  group_by(cod_mun) %>% 
-  summarise(num_years = n()) %>% 
-  filter(num_years==15) %>%
-  select(cod_mun) %>% 
-  pull()
+if(YEAR==1998){
   
+  mun_balanced <- df_balance_finbra %>% 
+    group_by(cod_mun) %>% 
+    summarise(num_years = n()) %>% 
+    filter(num_years==13) %>%
+    select(cod_mun) %>% 
+    pull()
   
+} else{
+  
+  mun_balanced <- df_balance_finbra %>% 
+    group_by(cod_mun) %>% 
+    summarise(num_years = n()) %>% 
+    filter(num_years==15) %>%
+    select(cod_mun) %>% 
+    pull()
+}
+
+
+
+
 
 table(df_balance_finbra$ano)
 table(df$ano)
@@ -224,13 +249,13 @@ var_map2 <- rbind(cbind('finbra_recorc_pcapita','Total Revenue per capita (2010 
                   cbind('finbra_desp_outros_area_pcapita','Non-Social Spending per capita (2010 R$)'),
                   
                   
-                  cbind('siops_despsaude_pcapita','Health Spending per capita - Total (2010 R$)'),
-                  cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (2010 R$)'),
-                  cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Other Resources (2010 R$)'),
-                  cbind('siops_desppessoal_pcapita','Health Spending per capita - Personnel (2010 R$)'),
-                  cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (2010 R$)'),
-                  cbind('siops_despservicoster_pcapita','Health Spending per capita - Outsourced (3rd parties services) (2010 R$)'),
-                  cbind('siops_despoutros_pcapita','Health Spending per capita - Admin, Management, others (2010 R$)'),
+                  # cbind('siops_despsaude_pcapita','Health Spending per capita - Total (2010 R$)'),
+                  # cbind('siops_desprecpropriosaude_pcapita','Health Spending per capita - Own Resources (2010 R$)'),
+                  # cbind('siops_despexrecproprio_pcapita','Health Spending per capita - Other Resources (2010 R$)'),
+                  # cbind('siops_desppessoal_pcapita','Health Spending per capita - Personnel (2010 R$)'),
+                  # cbind('siops_despinvest_pcapita','Health Spending per capita - Investiment (2010 R$)'),
+                  # cbind('siops_despservicoster_pcapita','Health Spending per capita - Outsourced (3rd parties services) (2010 R$)'),
+                  # cbind('siops_despoutros_pcapita','Health Spending per capita - Admin, Management, others (2010 R$)'),
                   
                   cbind('finbra_impostos_total_pcapita', 'Total Tax Revenue (2010 R$)'),
                   cbind('finbra_iptu_pcapita', 'Property Tax Revenue (2010 R$)'),
@@ -242,98 +267,358 @@ var_map2 <- rbind(cbind('finbra_recorc_pcapita','Total Revenue per capita (2010 
 )
 
 
-# a) sample without outliers
-# -----------------------------------------------------------------
-
-yearly_folder <- "fiscal_response_96/"
-
-for (i in seq(1,18,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  output_list <- list()
+if(YEAR==1998){
   
-  res <- reduced_yearly_imr_ext(var,var_name,df,1,1996,-2,2,0.25,
-                            paste0("1_cont_log_",i),weight = "reweightPop",
-                            year_cap = 2010, cont = 1, spec=3)
-  print(res)
-  res$con <-5
-  output_list[[1]] <- res
-  iter <- 2
-  for (control in c(1,2,4,3)) {
-    print(control)
+  # a) sample without outliers
+  # -----------------------------------------------------------------
+  
+  
+  yearly_folder <- "fiscal_response/"
+  
+  # continuous
+  
+  for (i in seq(1,11,1)){
+    var <- var_map1[i,1]
+    var_name <- var_map1[i,2]
+    print(var_name)
+    output_list <- list()
+    
+    res <- reduced_yearly_imr(var,var_name,df,1,1998,-2,2,0.25,
+                              paste0("1_cont_log_",i),weight = "reweightPop",
+                              year_cap = 2010, cont = 1, spec=3)
+    print(res)
+    res$con <-5
+    output_list[[1]] <- res
+    iter <- 2
+    for (control in c(1,2,4,3)) {
+      print(control)
+      res <- reduced_yearly_imr(var,var_name,df,1,1998,-2,2,0.25,
+                                paste0("1_cont_log_",i),weight = "peso_pop",
+                                year_cap = 2010, cont = 1, spec=control)
+      print(res)
+      res$con <-control 
+      output_list[[iter]] <- res
+      iter <- iter + 1
+    }
+    combined_df <- do.call(rbind, output_list)
+    combined_df <- combined_df %>%
+      mutate(controls = case_when(
+        con == 1 ~ "(1) Baseline",
+        con == 2 ~ "(2) + Municipal char.",
+        con == 3 ~ "(3) + Economic",
+        con == 4 ~ "(4) + Spending",
+        con == 5 ~ "(5) Reweight",
+      ))
+    
+    combined_df$con2<-as.character(combined_df$con)
+    combined_df$year<- combined_df$year+combined_df$con/10
+    ## Robustness plot
+    robustPlot(var,combined_df,"robust_fiscal_response")  
+  }
+  
+  # above and below
+  
+  for (i in seq(1,11,1)){
+    var <- var_map1[i,1]
+    var_name <- var_map1[i,2]
+    print(var_name)
+    output_list <- list()
+    iter <- 1
+    for (control in c(1,2,4,3)) {
+      print(control)
+      res <- reduced_yearly_ab_imr(var,var_name,df,1,1998,-4,4,0.5,
+                                   paste0("2_ab_log_",i),weight = "peso_pop",
+                                   year_cap = 2010, cont = 1, spec=control)
+      print(res)
+      res$con <-control 
+      output_list[[iter]] <- res
+      iter <- iter + 1
+    }
+    combined_df <- do.call(rbind, output_list)
+    combined_df <- combined_df %>%
+      mutate(controls = case_when(
+        con == 1 ~ "(1) Baseline",
+        con == 2 ~ "(2) + Municipal char.",
+        con == 3 ~ "(3) + Economic",
+        con == 4 ~ "(4) + Spending",
+        con == 5 ~ "(5) Reweight",
+      ))
+    ##table_ab<- table_ab %>% cbind(table_final)
+    combined_df$con2<-as.character(combined_df$con)
+    combined_df$year<- combined_df$year+combined_df$con/10-0.4
+    combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
+    ## Robustness plot
+    df_nona <- combined_df[!is.na(combined_df$estimates),]
+    robustPlotAB(var,df_nona,"robust_fiscal_response")
+  }
+  
+  
+  
+  # b) finbra balanced
+  # -----------------------------------------------------------------
+  
+  yearly_folder <- "fiscal_response_bal/"
+  
+  # continuous
+  
+  for (i in seq(1,11,1)){
+    var <- var_map1[i,1]
+    var_name <- var_map1[i,2]
+    print(var_name)
+    output_list <- list()
+    
+    res <- reduced_yearly_imr(var,var_name,df_balance_finbra,1,1998,-1.5,2.5,0.25,
+                              paste0("1_cont_log_",i),weight = "reweightPop",
+                              year_cap = 2010, cont = 1, spec=3)
+    print(res)
+    res$con <-5
+    output_list[[1]] <- res
+    iter <- 2
+    for (control in c(1,2,4,3)) {
+      print(control)
+      res <- reduced_yearly_imr(var,var_name,df_balance_finbra,1,1998,-2,2,0.25,
+                                paste0("1_cont_log_",i),weight = "peso_pop",
+                                year_cap = 2010, cont = 1, spec=control)
+      print(res)
+      res$con <-control 
+      output_list[[iter]] <- res
+      iter <- iter + 1
+    }
+    combined_df <- do.call(rbind, output_list)
+    combined_df <- combined_df %>%
+      mutate(controls = case_when(
+        con == 1 ~ "(1) Baseline",
+        con == 2 ~ "(2) + Municipal char.",
+        con == 3 ~ "(3) + Economic",
+        con == 4 ~ "(4) + Spending",
+        con == 5 ~ "(5) Reweight",
+      ))
+    
+    combined_df$con2<-as.character(combined_df$con)
+    combined_df$year<- combined_df$year+combined_df$con/10
+    ## Robustness plot
+    robustPlot(var,combined_df,"robust_fiscal_response_bal")  
+  }
+  
+  
+  # above and below
+  
+  for (i in seq(1,11,1)){
+    var <- var_map1[i,1]
+    var_name <- var_map1[i,2]
+    print(var_name)
+    output_list <- list()
+    iter <- 1
+    for (control in c(1,2,4,3)) {
+      print(control)
+      res <- reduced_yearly_ab_imr(var,var_name,df_balance_finbra,1,1998,-4,4,0.5,
+                                   paste0("2_ab_log_",i),weight = "peso_pop",
+                                   year_cap = 2010, cont = 1, spec=control)
+      print(res)
+      res$con <-control 
+      output_list[[iter]] <- res
+      iter <- iter + 1
+    }
+    combined_df <- do.call(rbind, output_list)
+    combined_df <- combined_df %>%
+      mutate(controls = case_when(
+        con == 1 ~ "(1) Baseline",
+        con == 2 ~ "(2) + Municipal char.",
+        con == 3 ~ "(3) + Economic",
+        con == 4 ~ "(4) + Spending",
+        con == 5 ~ "(5) Reweight",
+      ))
+    ##table_ab<- table_ab %>% cbind(table_final)
+    combined_df$con2<-as.character(combined_df$con)
+    combined_df$year<- combined_df$year+combined_df$con/10-0.4
+    combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
+    ## Robustness plot
+    df_nona <- combined_df[!is.na(combined_df$estimates),]
+    robustPlotAB(var,df_nona,"robust_fiscal_response") 
+  }
+  
+  
+  
+  
+  
+  
+} else {
+  
+  # a) sample without outliers
+  # -----------------------------------------------------------------
+  
+  yearly_folder <- "fiscal_response_96/"
+  
+  
+  # continuous
+  
+  for (i in seq(1,11,1)){
+    var <- var_map1[i,1]
+    var_name <- var_map1[i,2]
+    print(var_name)
+    output_list <- list()
+    
     res <- reduced_yearly_imr_ext(var,var_name,df,1,1996,-2,2,0.25,
-                              paste0("1_cont_log_",i),weight = "peso_pop",
-                              year_cap = 2010, cont = 1, spec=control)
+                                  paste0("1_cont_log_",i),weight = "reweightPop",
+                                  year_cap = 2010, cont = 1, spec=3)
     print(res)
-    res$con <-control 
-    output_list[[iter]] <- res
-    iter <- iter + 1
+    res$con <-5
+    output_list[[1]] <- res
+    iter <- 2
+    for (control in c(1,2,4,3)) {
+      print(control)
+      res <- reduced_yearly_imr_ext(var,var_name,df,1,1996,-2,2,0.25,
+                                    paste0("1_cont_log_",i),weight = "peso_pop",
+                                    year_cap = 2010, cont = 1, spec=control)
+      print(res)
+      res$con <-control 
+      output_list[[iter]] <- res
+      iter <- iter + 1
+    }
+    combined_df <- do.call(rbind, output_list)
+    combined_df <- combined_df %>%
+      mutate(controls = case_when(
+        con == 1 ~ "(1) Baseline",
+        con == 2 ~ "(2) + Municipal char.",
+        con == 3 ~ "(3) + Economic",
+        con == 4 ~ "(4) + Spending",
+        con == 5 ~ "(5) Reweight",
+      ))
+    
+    combined_df$con2<-as.character(combined_df$con)
+    combined_df$year<- combined_df$year+combined_df$con/10
+    ## Robustness plot
+    robustPlot(var,combined_df,"robust_fiscal_response_96")  
   }
-  combined_df <- do.call(rbind, output_list)
-  combined_df <- combined_df %>%
-    mutate(controls = case_when(
-      con == 1 ~ "(1) Baseline",
-      con == 2 ~ "(2) + Municipal char.",
-      con == 3 ~ "(3) + Economic",
-      con == 4 ~ "(4) + Spending",
-      con == 5 ~ "(5) Reweight",
-    ))
   
-  combined_df$con2<-as.character(combined_df$con)
-  combined_df$year<- combined_df$year+combined_df$con/10
-  ## Robustness plot
-  robustPlot(var,combined_df,"robust_fiscal_response_96")  
+  
+  # above and below
+  
+  for (i in seq(1,11,1)){
+    var <- var_map1[i,1]
+    var_name <- var_map1[i,2]
+    print(var_name)
+    output_list <- list()
+    iter <- 1
+    for (control in c(1,2,4,3)) {
+      print(control)
+      res <- reduced_yearly_ab_imr_ext(var,var_name,df,1,1996,-4,4,0.5,
+                                   paste0("2_ab_log_",i),weight = "peso_pop",
+                                   year_cap = 2010, cont = 1, spec=control)
+      print(res)
+      res$con <-control 
+      output_list[[iter]] <- res
+      iter <- iter + 1
+    }
+    combined_df <- do.call(rbind, output_list)
+    combined_df <- combined_df %>%
+      mutate(controls = case_when(
+        con == 1 ~ "(1) Baseline",
+        con == 2 ~ "(2) + Municipal char.",
+        con == 3 ~ "(3) + Economic",
+        con == 4 ~ "(4) + Spending",
+        con == 5 ~ "(5) Reweight",
+      ))
+    ##table_ab<- table_ab %>% cbind(table_final)
+    combined_df$con2<-as.character(combined_df$con)
+    combined_df$year<- combined_df$year+combined_df$con/10-0.4
+    combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
+    ## Robustness plot
+    df_nona <- combined_df[!is.na(combined_df$estimates),]
+    robustPlotAB(var,df_nona,"robust_fiscal_response_96")
+  }
+  
+  
+  
+  
+  
+  # b) finbra balanced
+  # -----------------------------------------------------------------
+  
+  yearly_folder <- "fiscal_response_96_bal/"
+  
+  # continous
+  
+  for (i in seq(1,11,1)){
+    var <- var_map1[i,1]
+    var_name <- var_map1[i,2]
+    print(var_name)
+    output_list <- list()
+    
+    res <- reduced_yearly_imr_ext(var,var_name,df_balance_finbra,1,1996,-1.5,2.5,0.25,
+                                  paste0("1_cont_log_",i),weight = "reweightPop",
+                                  year_cap = 2010, cont = 1, spec=3)
+    print(res)
+    res$con <-5
+    output_list[[1]] <- res
+    iter <- 2
+    for (control in c(1,2,4,3)) {
+      print(control)
+      res <- reduced_yearly_imr_ext(var,var_name,df_balance_finbra,1,1996,-2,2,0.25,
+                                    paste0("1_cont_log_",i),weight = "peso_pop",
+                                    year_cap = 2010, cont = 1, spec=control)
+      print(res)
+      res$con <-control 
+      output_list[[iter]] <- res
+      iter <- iter + 1
+    }
+    combined_df <- do.call(rbind, output_list)
+    combined_df <- combined_df %>%
+      mutate(controls = case_when(
+        con == 1 ~ "(1) Baseline",
+        con == 2 ~ "(2) + Municipal char.",
+        con == 3 ~ "(3) + Economic",
+        con == 4 ~ "(4) + Spending",
+        con == 5 ~ "(5) Reweight",
+      ))
+    
+    combined_df$con2<-as.character(combined_df$con)
+    combined_df$year<- combined_df$year+combined_df$con/10
+    ## Robustness plot
+    robustPlot(var,combined_df,"robust_fiscal_response_96_bal")  
+  }
+  
+  # above and below
+  for (i in seq(1,11,1)){
+    var <- var_map1[i,1]
+    var_name <- var_map1[i,2]
+    print(var_name)
+    output_list <- list()
+    iter <- 1
+    for (control in c(1,2,4,3)) {
+      print(control)
+      res <- reduced_yearly_ab_imr_ext(var,var_name,df_balance_finbra,1,1996,-4,4,0.5,
+                                       paste0("2_ab_log_",i),weight = "peso_pop",
+                                       year_cap = 2010, cont = 1, spec=control)
+      print(res)
+      res$con <-control 
+      output_list[[iter]] <- res
+      iter <- iter + 1
+    }
+    combined_df <- do.call(rbind, output_list)
+    combined_df <- combined_df %>%
+      mutate(controls = case_when(
+        con == 1 ~ "(1) Baseline",
+        con == 2 ~ "(2) + Municipal char.",
+        con == 3 ~ "(3) + Economic",
+        con == 4 ~ "(4) + Spending",
+        con == 5 ~ "(5) Reweight",
+      ))
+    ##table_ab<- table_ab %>% cbind(table_final)
+    combined_df$con2<-as.character(combined_df$con)
+    combined_df$year<- combined_df$year+combined_df$con/10-0.4
+    combined_df$year[combined_df$target=="Below"]<- combined_df$year[combined_df$target=="Below"]+0.4
+    ## Robustness plot
+    df_nona <- combined_df[!is.na(combined_df$estimates),]
+    robustPlotAB(var,df_nona,"robust_fiscal_response_96")
+  }
+  
+  
+  
 }
 
 
 
-
-
-
-# b) finbra balanced
-# -----------------------------------------------------------------
-
-yearly_folder <- "fiscal_response_96_bal/"
-
-for (i in seq(1,18,1)){
-  var <- var_map1[i,1]
-  var_name <- var_map1[i,2]
-  print(var_name)
-  output_list <- list()
-  
-  res <- reduced_yearly_imr_ext(var,var_name,df_balance_finbra,1,1996,-1.5,2.5,0.25,
-                                paste0("1_cont_log_",i),weight = "reweightPop",
-                                year_cap = 2010, cont = 1, spec=3)
-  print(res)
-  res$con <-5
-  output_list[[1]] <- res
-  iter <- 2
-  for (control in c(1,2,4,3)) {
-    print(control)
-    res <- reduced_yearly_imr_ext(var,var_name,df_balance_finbra,1,1996,-2,2,0.25,
-                                  paste0("1_cont_log_",i),weight = "peso_pop",
-                                  year_cap = 2010, cont = 1, spec=control)
-    print(res)
-    res$con <-control 
-    output_list[[iter]] <- res
-    iter <- iter + 1
-  }
-  combined_df <- do.call(rbind, output_list)
-  combined_df <- combined_df %>%
-    mutate(controls = case_when(
-      con == 1 ~ "(1) Baseline",
-      con == 2 ~ "(2) + Municipal char.",
-      con == 3 ~ "(3) + Economic",
-      con == 4 ~ "(4) + Spending",
-      con == 5 ~ "(5) Reweight",
-    ))
-  
-  combined_df$con2<-as.character(combined_df$con)
-  combined_df$year<- combined_df$year+combined_df$con/10
-  ## Robustness plot
-  robustPlot(var,combined_df,"robust_fiscal_response_96_bal")  
-}
 
 
 
