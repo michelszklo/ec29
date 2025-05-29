@@ -260,7 +260,7 @@ temp_nomerge <- temp %>%
          cod_mun = ifelse(nome_mun=="MATHIAS LOBATO (VILA MATIAS)",317150,cod_mun),
          cod_mun = ifelse(nome_mun=="NOVO HORIZONTE D`OESTE (EX-CACAIEIROS)",110050,cod_mun),
          cod_mun = ifelse(nome_mun=="SANTA TERESA DO TOCANTINS",171900,cod_mun),
-         cod_mun = ifelse(nome_mun=="SERRA CAIADA (EX-PRESIDENTE JUSCELINO)",171900,cod_mun))
+         cod_mun = ifelse(nome_mun=="SERRA CAIADA (EX-PRESIDENTE JUSCELINO)",241030,cod_mun))
 
 temp <- temp %>% 
   filter(!is.na(cod_mun)) %>% 
