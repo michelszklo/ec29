@@ -82,8 +82,8 @@ finbra_receita <- read.csv(paste0(raw,"Finbra/FINBRA_receita.csv"), encoding = "
          finbra_impostos_total = impostos_total,
          finbra_iptu = iptu,
          finbra_iss = iss) %>%
-  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc","finbra_iptu"), function(x) ifelse(.$ano>2012,gsub(",",".",x),x)) %>% 
-  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc","finbra_iptu"),as.numeric)
+  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc","finbra_iptu","finbra_iss","finbra_impostos_total"), function(x) gsub(",","",x)) %>% 
+  mutate_at(c("finbra_reccorr","finbra_rectribut","finbra_rectransf","finbra_recorc","finbra_iptu","finbra_iss","finbra_impostos_total"),as.numeric)
 
 finbra <- finbra %>% left_join(finbra_receita, by = c("ano","cod_mun"))
 rm(finbra_receita)
@@ -99,7 +99,6 @@ rm(finbra_passivo)
 
 
 finbra[8:33] <- lapply(finbra[8:33], function(x) as.numeric(gsub(",","",x),digits = 15))
-
 
 
 # "correcting errors in data
@@ -640,6 +639,7 @@ df <- mun_list %>%
   left_join(firjan, by = "cod_mun") %>% 
   left_join(gdp, by = c("ano","cod_mun")) %>% 
   left_join(pbf, by = c("ano","cod_mun")) %>% 
+  mutate(pbf_pcapita = ifelse(is.na(pbf_pcapita) & ano<1998,0,pbf_pcapita)) %>% 
   left_join(insurance, by = c("ano","cod_mun")) %>% 
   left_join(sih_flow, by = c("ano","cod_mun")) %>% 
   left_join(munic, by = "cod_mun") %>% 
@@ -739,7 +739,7 @@ df[sim_vars_new] <- lapply(df[sim_vars_new], function(x) replace(x,is.infinite(x
 # Child mortality (1-4)
 sim_vars <- c(grep("^mc$",names(df), value = T),
               grep("^mc_",names(df), value = T))
-              
+
 
 sim_vars_new <- sapply(sim_vars, function(x) paste0("tx_",x),simplify = "array", USE.NAMES = F)
 df[sim_vars_new] <- df[sim_vars]
@@ -1002,42 +1002,42 @@ df <- df %>%
          finbra_desp_hab_urb_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_hab_urb_pcapita / finbra_desp_o_pcapita,0),
          finbra_desp_assist_prev_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_assist_prev_pcapita / finbra_desp_o_pcapita,0),
          finbra_desp_outros_area_share = ifelse(finbra_desp_o_pcapita!=0,finbra_desp_outros_area_pcapita / finbra_desp_o_pcapita,0),
-         finbra_rectransf_share = ifelse(finbra_reccorr_pcapita!=0,finbra_rectransf_pcapita / finbra_reccorr_pcapita,0),
-         finbra_rectribut_share = ifelse(finbra_reccorr_pcapita!=0,finbra_rectribut_pcapita / finbra_reccorr_pcapita,0),
-         finbra_rec_outros_share = ifelse(finbra_reccorr_pcapita!=0,finbra_rec_outros_pcapita / finbra_reccorr_pcapita,0),
+         finbra_rectransf_share = ifelse(finbra_recorc_pcapita!=0,finbra_rectransf_pcapita / finbra_recorc_pcapita,0),
+         finbra_rectribut_share = ifelse(finbra_recorc_pcapita!=0,finbra_rectribut_pcapita / finbra_recorc_pcapita,0),
+         finbra_rec_outros_share = ifelse(finbra_recorc_pcapita!=0,finbra_rec_outros_pcapita / finbra_recorc_pcapita,0),
          siops_desprecpropriosaude_share = ifelse(siops_despsaude_pcapita!=0,siops_desprecpropriosaude_pcapita / siops_despsaude_pcapita,0),
          siops_despexrecproprio_share = ifelse(siops_despsaude_pcapita!=0,siops_despexrecproprio_pcapita / siops_despsaude_pcapita,0),
          siops_desppessoal_share = ifelse(siops_despsaude_pcapita!=0,siops_desppessoal_pcapita / siops_despsaude_pcapita,0),
          siops_despinvest_share = ifelse(siops_despsaude_pcapita!=0,siops_despinvest_pcapita / siops_despsaude_pcapita,0),
          siops_despservicoster_share = ifelse(siops_despsaude_pcapita!=0,siops_despservicoster_pcapita / siops_despsaude_pcapita,0),
-         siops_despoutros_share = ifelse(siops_despsaude_pcapita!=0,siops_despoutros_pcapita / siops_despsaude_pcapita,0)) %>% 
-  # checking if values sum 1
-  mutate(sum_check = finbra_desp_saude_san_share + finbra_desp_transporte_share + finbra_desp_educ_cultura_share +
-           finbra_desp_hab_urb_share + finbra_desp_assist_prev_share,
-         sum_check2 = finbra_rectransf_share + finbra_rectribut_share) %>% 
-  mutate(finbra_desp_saude_san_share = ifelse(sum_check>1,NA,finbra_desp_saude_san_share),
-         finbra_desp_saude_san_pcapita = ifelse(sum_check>1,NA,finbra_desp_saude_san_pcapita),
-         finbra_desp_transporte_share = ifelse(sum_check>1,NA,finbra_desp_transporte_share),
-         finbra_desp_transporte_pcapita = ifelse(sum_check>1,NA,finbra_desp_transporte_pcapita),
-         finbra_desp_educ_cultura_share = ifelse(sum_check>1,NA,finbra_desp_educ_cultura_share),
-         finbra_desp_educ_cultura_pcapita = ifelse(sum_check>1,NA,finbra_desp_educ_cultura_pcapita),
-         finbra_desp_hab_urb_share = ifelse(sum_check>1,NA,finbra_desp_hab_urb_share),
-         finbra_desp_hab_urb_pcapita = ifelse(sum_check>1,NA,finbra_desp_hab_urb_pcapita),
-         finbra_desp_assist_prev_share = ifelse(sum_check>1,NA,finbra_desp_assist_prev_share),
-         finbra_desp_assist_prev_pcapita = ifelse(sum_check>1,NA,finbra_desp_assist_prev_pcapita),
-         finbra_desp_outros_nature_pcapita = ifelse(sum_check>1,NA,finbra_desp_outros_nature_pcapita),
-         finbra_desp_outros_nature_share = ifelse(sum_check>1,NA,finbra_desp_outros_nature_share),
-         finbra_desp_outros_area_pcapita = ifelse(sum_check>1,NA,finbra_desp_outros_area_pcapita),
-         finbra_desp_outros_area_share = ifelse(sum_check>1,NA,finbra_desp_outros_area_share),
-         finbra_reccorr_pcapita = ifelse(sum_check2>1,NA,finbra_reccorr_pcapita),
-         finbra_rectransf_pcapita = ifelse(sum_check2>1,NA,finbra_rectransf_pcapita),
-         finbra_rectransf_share = ifelse(sum_check2>1,NA,finbra_rectransf_share),
-         finbra_rectribut_pcapita = ifelse(sum_check2>1,NA,finbra_rectribut_pcapita),
-         finbra_rectribut_share = ifelse(sum_check2>1,NA,finbra_rectribut_share),
-         finbra_rec_outros_pcapita = ifelse(sum_check2>1,NA,finbra_rec_outros_pcapita),
-         finbra_rec_outros_share = ifelse(sum_check2>1,NA,finbra_rec_outros_share)
-  ) %>% 
-  select(-c("sum_check","sum_check2"))
+         siops_despoutros_share = ifelse(siops_despsaude_pcapita!=0,siops_despoutros_pcapita / siops_despsaude_pcapita,0))
+# checking if values sum 1
+# mutate(sum_check = finbra_desp_saude_san_share + finbra_desp_transporte_share + finbra_desp_educ_cultura_share +
+#          finbra_desp_hab_urb_share + finbra_desp_assist_prev_share,
+#        sum_check2 = finbra_rectransf_share + finbra_rectribut_share) %>% 
+# mutate(finbra_desp_saude_san_share = ifelse(sum_check>1,NA,finbra_desp_saude_san_share),
+#        finbra_desp_saude_san_pcapita = ifelse(sum_check>1,NA,finbra_desp_saude_san_pcapita),
+#        finbra_desp_transporte_share = ifelse(sum_check>1,NA,finbra_desp_transporte_share),
+#        finbra_desp_transporte_pcapita = ifelse(sum_check>1,NA,finbra_desp_transporte_pcapita),
+#        finbra_desp_educ_cultura_share = ifelse(sum_check>1,NA,finbra_desp_educ_cultura_share),
+#        finbra_desp_educ_cultura_pcapita = ifelse(sum_check>1,NA,finbra_desp_educ_cultura_pcapita),
+#        finbra_desp_hab_urb_share = ifelse(sum_check>1,NA,finbra_desp_hab_urb_share),
+#        finbra_desp_hab_urb_pcapita = ifelse(sum_check>1,NA,finbra_desp_hab_urb_pcapita),
+#        finbra_desp_assist_prev_share = ifelse(sum_check>1,NA,finbra_desp_assist_prev_share),
+#        finbra_desp_assist_prev_pcapita = ifelse(sum_check>1,NA,finbra_desp_assist_prev_pcapita),
+#        finbra_desp_outros_nature_pcapita = ifelse(sum_check>1,NA,finbra_desp_outros_nature_pcapita),
+#        finbra_desp_outros_nature_share = ifelse(sum_check>1,NA,finbra_desp_outros_nature_share),
+#        finbra_desp_outros_area_pcapita = ifelse(sum_check>1,NA,finbra_desp_outros_area_pcapita),
+#        finbra_desp_outros_area_share = ifelse(sum_check>1,NA,finbra_desp_outros_area_share),
+#        finbra_reccorr_pcapita = ifelse(sum_check2>1,NA,finbra_reccorr_pcapita),
+#        finbra_rectransf_pcapita = ifelse(sum_check2>1,NA,finbra_rectransf_pcapita),
+#        finbra_rectransf_share = ifelse(sum_check2>1,NA,finbra_rectransf_share),
+#        finbra_rectribut_pcapita = ifelse(sum_check2>1,NA,finbra_rectribut_pcapita),
+#        finbra_rectribut_share = ifelse(sum_check2>1,NA,finbra_rectribut_share),
+#        finbra_rec_outros_pcapita = ifelse(sum_check2>1,NA,finbra_rec_outros_pcapita),
+#        finbra_rec_outros_share = ifelse(sum_check2>1,NA,finbra_rec_outros_share)
+# ) %>% 
+# select(-c("sum_check","sum_check2"))
 
 
 # 23. Finbra: splitting non health spending into social and non social
@@ -1049,7 +1049,5 @@ df <- df %>%
 # 24. saving
 # ==============================================================
 df <- df %>% filter(ano<=2015)
-saveRDS(df, paste0(raw,"CONSOL_DATA.rds"))
-
-
+saveRDS(df, paste0(raw,"processed/CONSOL_DATA.rds"))
 
