@@ -1,63 +1,230 @@
-#--------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 #--- Author: Michel Szklo
 #--- January 2024
 #--- Edits: Damian Clarke
 #---        Most recent: 27/03/2025 (DC)
-#--- 
+#---
 #--- This scripts estimates elasticity rates and bootstrap CIs.  Updated version
 #---  now does this based on an IV given comments from Referee 1.
-#--------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
-#--------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 #--- (0) Set-up
-#--------------------------------------------------------------------------------
-rm(list=ls())
+#-------------------------------------------------------------------------------
+rm(list = ls())
+
+#Set-up path for principal directory
+if (Sys.getenv("USERNAME") == "dcc213") {
+  dir <- "/home/dcc213/investigacion/2021/decentralization/github/"
+} else if (Sys.getenv("USERNAME") == "damian") {
+  dir <- "/home/damian/investigacion/2021/decentralization/github/"
+} else {
+  dir <- "G:/My Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
+}
+SRC <- paste0(dir,"source/")
+DAT <- paste0(dir,"data/processed/")
+TAB <- paste0(dir,"results/tables/")
+FIG <- paste0(dir,"results/figures/")
 
 # packages
-packages<-c('readr',
-            'tidyverse',
-            'dplyr',
-            'RCurl',
-            'tidyr',
-            'scales',
-            'RColorBrewer',
-            'ggplot2',
-            'xlsx',
-            'stringdist',
-            'textclean',
-            'readstata13',
-            'lfe',
-            'fastDummies',
-            'purrr',
-            'boot',
-            'broom',
-            'modelsummary',
-            'ggsci')
-to_install<-packages[!(packages %in% installed.packages()[,"Package"])]
-if(length(to_install)>0) install.packages(to_install)
+packages <- c("readr",
+              "tidyverse",
+              "dplyr",
+              "RCurl",
+              "tidyr",
+              "scales",
+              "RColorBrewer",
+              "ggplot2",
+              "xlsx",
+              "stringdist",
+              "textclean",
+              "readstata13",
+              "lfe",
+              "fastDummies",
+              "purrr",
+              "boot",
+              "broom",
+              "modelsummary",
+              "ggsci")
+to_install <- packages[!(packages %in% installed.packages()[, "Package"])]
+if (length(to_install) > 0) install.packages(to_install)
 
-lapply(packages,require,character.only=TRUE)
+lapply(packages, require, character.only = TRUE)
 
 
 options(digits = 15)
 
-# SET PATH FOR EC 29-2000 ON YOUR COMPUTER
-# ------------------------------------
-if(Sys.getenv("USERNAME")=="dcc213") {
-  dir <- "/home/dcc213/investigacion/2021/decentralization/github/ec29/"
-} else if(Sys.getenv("USERNAME")=="damian") {
-  dir <- "/home/damian/investigacion/2021/decentralization/github/ec29/"
-} else {
-  dir <- "C:/Users/Michel/Google Drive/DOUTORADO FGV/Artigos/EC 29-2000/"
-}
-# ------------------------------------
 
 set.seed(121316)
 
-#--------------------------------------------------------------------------------
-#--- (1) Load and subset data
-#--------------------------------------------------------------------------------
-load(paste0(dir,"regs.RData"))
+#-------------------------------------------------------------------------------
+#--- (1) Load data
+#-------------------------------------------------------------------------------
+load(paste0(DAT, "regs.RData"))
+
+# Examine spending data removing outliers as spenders 5sd above or below the mean
+outliers <- df %>% 
+  mutate(s = log(finbra_desp_o_pcapita)) %>% 
+  select(s,everything())
+
+ndesv <- 5
+x <- mean(outliers$s, na.rm = T)
+sd <- sd(outliers$s, na.rm = T)
+outliers <- outliers %>% 
+  mutate(s1 = x - sd * ndesv,
+         s2 = x + sd * ndesv) %>% 
+  filter(s<=s1 | s>=s2) %>% 
+  select(cod_mun) %>% 
+  unique()
+
+outliers <- outliers$cod_mun
+
+df_noout <- df %>% 
+  filter(!(cod_mun %in% outliers))
+
+
+#-------------------------------------------------------------------------------
+#--- (2) Function for elasticity with IV
+#-------------------------------------------------------------------------------
+df_noout <- df_noout %>% mutate(post_dist_ec29_baseline = post * ec29_baseline)
+df_noout <- df_noout %>% mutate(logSpend = log(finbra_desp_saude_san_pcapita))
+df_noout <- df_noout %>% mutate(logSpend = log(siops_despsaude_pcapita))
+
+estimate_elasticity <- function(data,
+                                outcome_var,
+                                var_label,
+                                output_file,
+                                instrument = "post_dist_ec29_baseline",
+                                endogenous = "logSpend",
+                                controls = controls_vec,
+                                weight_var = "pop",
+                                year_var = "ano",
+                                base_year = 2000,
+                                years_to_test = 2001:2010) {
+
+  results_df <- data.frame(
+    Est = numeric(),
+    LB_90 = numeric(),
+    UB_90 = numeric(),
+    LB_95 = numeric(),
+    UB_95 = numeric(),
+    year = numeric()
+  )
+  
+  j <- 0
+  for (yr in years_to_test) {
+    j <- j + 1
+    subset_data <- data %>%
+      filter(.data[[year_var]] <= base_year | .data[[year_var]] == yr)
+
+    controls_formula <- paste(controls, collapse = " + ")
+    fixed_effects_formula <- "cod_mun + uf_y_fe"
+
+    # Full felm formula
+    full_formula <- as.formula(paste0(
+      outcome_var, " ~ ", controls_formula, 
+      " | ", fixed_effects_formula, 
+      " | (", endogenous, " ~ ", instrument, ")", 
+      " | cod_mun"
+    ))
+
+    # Estimate model
+    model <- felm(
+      formula = full_formula,
+      data = subset_data,
+      weights = subset_data[[weight_var]]
+    )
+    print(summary(model)) 
+
+    coef_name <- grep(paste0("^`?", endogenous, "\\(fit\\)`?$"), names(coef(model)), value = TRUE)
+    
+    if (length(coef_name) == 0 || is.na(coef(model)[coef_name])) {
+      warning(paste("No IV estimate found for", endogenous, "in year", yr))
+      next
+    }
+
+    coef_val <- coef(model)[coef_name]
+    se_val <- sqrt(diag(vcov(model)))[coef_name]
+    
+    lb_90 <- coef_val + qnorm(0.05) * se_val
+    ub_90 <- coef_val + qnorm(0.95) * se_val
+
+    lb_95 <- coef_val + qnorm(0.025) * se_val
+    ub_95 <- coef_val + qnorm(0.975) * se_val
+
+    results_df[j, ] <- c(coef_val, lb_90, ub_90, lb_95, ub_95, yr)
+  }
+
+  # Normalize by base year mean
+  base <- mean(data[[outcome_var]][data[[year_var]] == base_year], na.rm = TRUE)
+  results_df <- results_df %>%
+    mutate(across(c(Est, LB_90, UB_90, LB_95, UB_95), ~ . / base))
+
+  # Plot
+  p <- ggplot(results_df, aes(x = year)) +
+    geom_ribbon(aes(ymin = LB_95, ymax = UB_95, fill = "95% CI"), alpha = 0.15) +
+    geom_ribbon(aes(ymin = LB_90, ymax = UB_90, fill = "90% CI"), alpha = 0.3) +
+    geom_point(aes(y = Est, color = "Elasticity")) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+    scale_x_continuous(breaks = 2000:2010, minor_breaks = NULL) +
+    scale_color_manual(name = "", values = c("Elasticity" = "black")) +
+    scale_fill_manual(name = "", values = c("90% CI" = "blue", "95% CI" = "blue")) +
+    labs(
+      y = paste0("Estimated Elasticity (", var_label, ")"),
+      x = "Year"
+    ) +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+
+  ggsave(output_file, plot = p, width = 6.5, height = 4)
+  return(results_df)
+}
+
+
+#-------------------------------------------------------------------------------
+#--- (3) Estimate
+#-------------------------------------------------------------------------------
+controls_vec <- c(
+  "t_analf18m_baseline", "t_espvida_baseline", "t_e_anosestudo_baseline",
+  "t_t_analf18m_baseline", "t_pmpob_baseline", "t_rdpc_baseline",
+  "t_gini_baseline", "t_sewage_gen_network_baseline",
+  "t_garbage_coll_service_baseline", "t_water_gen_network_baseline",
+  "t_elect_access_baseline", "t_urb_baseline", "gdp_mun_pcapita",
+  "pbf_pcapita", "t_tx_mi_baseline"
+)
+
+result_df <- estimate_elasticity(
+  data = df_noout,
+  outcome_var = "tx_mi",
+  var_label = "IMR",
+  output_file = paste0(FIG, "imr/tx_mi.pdf"),
+  controls = controls_vec,
+)
+result_df <- estimate_elasticity(
+  data = df_noout,
+  outcome_var = "tx_mi_24h",
+  var_label = "IMR",
+  output_file = paste0(FIG, "imr/tx_mi_24h.pdf"),
+  controls = controls_vec,
+)
+result_df <- estimate_elasticity(
+  data = df_noout,
+  outcome_var = "tx_mi_27d",
+  var_label = "IMR",
+  output_file = paste0(FIG, "imr/tx_mi_27d.pdf"),
+  controls = controls_vec,
+)
+result_df <- estimate_elasticity(
+  data = df_noout,
+  outcome_var = "tx_mi_ano",
+  var_label = "IMR",
+  output_file = paste0(FIG, "imr/tx_mi_ano.pdf"),
+  controls = controls_vec,
+)
+
+
+stop("Stopping script execution.")
+#https://cran.r-project.org/web/packages/ivDiag/ivDiag.pdf
 
 # removing variables that will not be used
 #------------------------------------------
@@ -78,23 +245,6 @@ df <- df %>%
 #--------------------------------------------------------------------------------
 
 
-df_reg <- df %>% 
-  select(ano, cod_mun,mun_name,cod_uf,uf_y_fe,all_of(outcomes),iv,iv_a,iv_b,iv_binary,all_of(controls),pop,
-         all_of(yeartreat_dummies_ab),all_of(yeartreat_dummies),
-         peso_eq,peso_b,peso_a,peso_a1,peso_a2,peso_a3,peso_r,peso_m,peso_ha,peso_ha1,peso_ha2,peso_pop,
-         finbra_desp_saude_san_pcapita_neighbor,lrf) %>% 
-  filter(ano>=year_filter)
-
-weight_vector <- df_reg["peso_pop"] %>% unlist() %>% as.numeric()
-
-
-spec_reduced<- get(paste0("spec",spec,"_post_y_imr"))
-regformula <- as.formula(paste(var,spec_reduced))
-fit <- felm(tx_mi ~  t_analf18m_baseline + t_espvida_baseline + t_e_anosestudo_baseline + 
-            t_t_analf18m_baseline + t_pmpob_baseline + t_rdpc_baseline + t_gini_baseline + 
-            t_sewage_gen_network_baseline + t_garbage_coll_service_baseline + t_water_gen_network_baseline + 
-            t_elect_access_baseline + t_urb_baseline + gdp_mun_pcapita + pbf_pcapita + t_tx_mi_baseline  
-            | cod_mun + uf_y_fe | () | cod_mun, data = df_reg, weights = weight_vector,exactDOF = 
 
 stop("Stopping script execution.")
 
