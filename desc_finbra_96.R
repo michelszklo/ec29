@@ -79,65 +79,80 @@ df <- df %>%
   mutate(below = ifelse(dist_ec29_baseline>0,"1. Below",below)) %>% 
   mutate(below = ifelse(dist_ec29_baseline<=0,"2. Above",below))
 
-# dropping municipalities with outliers in spending
-outliers <- df %>% 
-  mutate(s = log(finbra_desp_o_pcapita)) %>% 
-  select(s,everything())
 
-ndesv <- 5
-x <- mean(outliers$s, na.rm = T)
-sd <- sd(outliers$s, na.rm = T)
-outliers <- outliers %>% 
-  mutate(s1 = x - sd * ndesv,
-         s2 = x + sd * ndesv) %>% 
-  filter(s<=s1 | s>=s2) %>% 
-  select(cod_mun) %>% 
-  unique()
-
-outliers <- outliers$cod_mun
-
-
-df_nout <- df %>% 
-  filter(!(cod_mun %in% outliers))
-
-
-
-df_balance_finbra <- df[complete.cases(df[c('finbra_recorc_pcapita',
-                                            'finbra_desp_o_pcapita',
-                                            'finbra_desp_saude_san_pcapita',
-                                            'finbra_desp_nao_saude_pcapita',
-                                            'finbra_despsocial_pcapita',
-                                            'finbra_desp_outros_area_pcapita',
-                                            'gdp_mun_pcapita',
-                                            'pbf_pcapita',
-                                            't_tx_mi_baseline',
-                                            'dist_ec29_baseline')]) & 
-                          df$finbra_recorc_pcapita != 0 & 
-                          df$finbra_desp_o_pcapita != 0 & 
-                          df$finbra_desp_saude_san_pcapita != 0 & 
-                          df$finbra_desp_nao_saude_pcapita != 0 & 
-                          df$finbra_despsocial_pcapita != 0 & 
-                          df$finbra_desp_outros_area_pcapita != 0, ]
-
-
-mun_balanced <- df_balance_finbra %>% 
-  group_by(cod_mun) %>% 
-  summarise(num_years = n()) %>% 
-  filter(num_years==15) %>%
-  select(cod_mun) %>% 
-  pull()
-
-df_balance_finbra <- df_balance_finbra %>% 
-  filter(cod_mun %in% mun_balanced)
-
-
-
+# 
+# # removing spending outliers from the sample
+# # ----------------------------------------------
+# # calculating SD withing municipalities, across years
+# 
+# out <- df %>% 
+#   group_by(cod_mun) %>% 
+#   summarise(std_dev = sd(finbra_desp_o_pcapita, na.rm = TRUE))
+# 
+# # setting the 95 percentile threshold
+# threshold <- quantile(out$std_dev, 0.95, na.rm = TRUE)
+# 
+# # filtering cod_mun of outliers
+# out <- out %>% 
+#   mutate(outlier = ifelse(std_dev>threshold,1,0)) %>% 
+#   filter(outlier==1) %>% 
+#   select(cod_mun) %>% 
+#   pull()
+# 
+# length(out)
+# 
+# # removing spending outliers from the sample
+# # ----------------------------------------------
+# df <- df %>% 
+#   filter(!(cod_mun %in% out))
+# 
+# 
+# 
+# # removing population outliers from the sample
+# # ----------------------------------------------
+# # calculating SD withing municipalities, across years
+# 
+# out <- df %>% 
+#   group_by(cod_mun) %>% 
+#   summarise(std_dev = sd(pop, na.rm = TRUE))
+# 
+# # setting the 95 percentile threshold
+# threshold <- quantile(out$std_dev, 0.95, na.rm = TRUE)
+# 
+# # filtering cod_mun of outliers
+# out <- out %>% 
+#   mutate(outlier = ifelse(std_dev>threshold,1,0)) %>% 
+#   filter(outlier==1) %>% 
+#   select(cod_mun) %>% 
+#   pull()
+# 
+# length(out)
+# 
+# # removing outliers from the sample
+# df <- df %>% 
+#   filter(!(cod_mun %in% out))
+# 
+# 
+# df_balance_finbra <- df[complete.cases(df[c('finbra_recorc_pcapita',
+#                                             'finbra_desp_o_pcapita',
+#                                             'finbra_desp_saude_san_pcapita',
+#                                             'finbra_desp_nao_saude_pcapita',
+#                                             'finbra_despsocial_pcapita',
+#                                             'finbra_desp_outros_area_pcapita',
+#                                             'gdp_mun_pcapita',
+#                                             'pbf_pcapita',
+#                                             't_tx_mi_baseline',
+#                                             'dist_ec29_baseline')]) & 
+#                           df$finbra_recorc_pcapita != 0 & 
+#                           df$finbra_desp_o_pcapita != 0 & 
+#                           df$finbra_desp_saude_san_pcapita != 0 & 
+#                           df$finbra_desp_nao_saude_pcapita != 0 & 
+#                           df$finbra_despsocial_pcapita != 0 & 
+#                           df$finbra_desp_outros_area_pcapita != 0, ]
+# 
 
 # 2. Time trend plots
 # =================================================================
-
-sample <- df_balance_finbra
-
 
 ts <- function(folder,sample){
   vars_name <- vars_map[,1]
@@ -1160,7 +1175,10 @@ vars_map <- rbind(cbind('finbra_recorc_pcapita','Total Revenue'),
 
 
 # ts("desc_finbra/",df_nout)
-ts("desc_finbra_96_bal/",df_balance_finbra)
+ts("desc_finbra_96_bal/",df %>%
+     filter(sample_rm_outlier_spending_96==1) %>% 
+     filter(sample_rm_outlier_pop_96==1) %>% 
+     filter(sample_balance_finbra==1))
 
 
 

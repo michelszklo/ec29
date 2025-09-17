@@ -79,26 +79,60 @@ df <- df %>%
   mutate(below = ifelse(dist_ec29_baseline>0,"1. Below",below)) %>% 
   mutate(below = ifelse(dist_ec29_baseline<=0,"2. Above",below))
 
-# dropping municipalities with outliers in spending
-outliers <- df %>% 
-  mutate(s = log(finbra_desp_o_pcapita)) %>% 
-  select(s,everything())
 
-ndesv <- 5
-x <- mean(outliers$s, na.rm = T)
-sd <- sd(outliers$s, na.rm = T)
-outliers <- outliers %>% 
-  mutate(s1 = x - sd * ndesv,
-         s2 = x + sd * ndesv) %>% 
-  filter(s<=s1 | s>=s2) %>% 
+
+
+# removing spending outliers from the sample
+# ----------------------------------------------
+# calculating SD withing municipalities, across years
+
+out <- df %>% 
+  group_by(cod_mun) %>% 
+  summarise(std_dev = sd(finbra_desp_o_pcapita, na.rm = TRUE))
+
+# setting the 95 percentile threshold
+threshold <- quantile(out$std_dev, 0.95, na.rm = TRUE)
+
+# filtering cod_mun of outliers
+out <- out %>% 
+  mutate(outlier = ifelse(std_dev>threshold,1,0)) %>% 
+  filter(outlier==1) %>% 
   select(cod_mun) %>% 
-  unique()
+  pull()
 
-outliers <- outliers$cod_mun
+length(out)
+
+# removing spending outliers from the sample
+# ----------------------------------------------
+df_nout<- df %>% 
+  filter(!(cod_mun %in% out))
 
 
-df_nout <- df %>% 
-  filter(!(cod_mun %in% outliers))
+
+# removing population outliers from the sample
+# ----------------------------------------------
+# calculating SD withing municipalities, across years
+
+out <- df_nout %>% 
+  group_by(cod_mun) %>% 
+  summarise(std_dev = sd(pop, na.rm = TRUE))
+
+# setting the 95 percentile threshold
+threshold <- quantile(out$std_dev, 0.95, na.rm = TRUE)
+
+# filtering cod_mun of outliers
+out <- out %>% 
+  mutate(outlier = ifelse(std_dev>threshold,1,0)) %>% 
+  filter(outlier==1) %>% 
+  select(cod_mun) %>% 
+  pull()
+
+length(out)
+
+# removing outliers from the sample
+df_nout <- df_nout %>% 
+  filter(!(cod_mun %in% out))
+
 
 
 
@@ -1104,7 +1138,7 @@ vars_map <- rbind(cbind('finbra_recorc_pcapita','Total Revenue'),
                   cbind('finbra_desp_seguranca_pcapita', 'Public Safety Spending'))
 
 
-# ts("desc_finbra/",df_nout)
+ts("desc_finbra/",df_nout)
 ts("desc_finbra_bal/",df_balance_finbra)
 
 

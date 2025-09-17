@@ -114,95 +114,104 @@ robustPlotAB <- function(var, combined_df,folder) {
          units = "in")
 }
 
-
-# 2. Loads data, remove outliers, balances samples
-# =================================================================
-
-
-load(paste0(DAT,"regs.RData")) 
-
-
-if(YEAR==1998){
-  df <- df %>% 
-    filter(ano>=1998)
-}
-
-
-
-df2 <- df
-
-
-outliers <- df %>% 
-  mutate(s = log(finbra_desp_o_pcapita)) %>% 
-  select(s,everything())
-
-ndesv <- 5
-x <- mean(outliers$s, na.rm = T)
-sd <- sd(outliers$s, na.rm = T)
-outliers <- outliers %>% 
-  mutate(s1 = x - sd * ndesv,
-         s2 = x + sd * ndesv) %>% 
-  filter(s<=s1 | s>=s2) %>% 
-  select(cod_mun) %>% 
-  unique()
-
-outliers <- outliers$cod_mun
-
-df <- df %>% 
-  filter(!(cod_mun %in% outliers))
-
-
-df_balance_finbra <- df[complete.cases(df[c('finbra_recorc_pcapita',
-                                            'finbra_desp_o_pcapita',
-                                            'finbra_desp_saude_san_pcapita',
-                                            'finbra_desp_nao_saude_pcapita',
-                                            'finbra_despsocial_pcapita',
-                                            'finbra_desp_outros_area_pcapita',
-                                            'gdp_mun_pcapita',
-                                            'pbf_pcapita',
-                                            't_tx_mi_baseline',
-                                            'dist_ec29_baseline')]) & 
-                          df$finbra_recorc_pcapita != 0 & 
-                          df$finbra_desp_o_pcapita != 0 & 
-                          df$finbra_desp_saude_san_pcapita != 0 & 
-                          df$finbra_desp_nao_saude_pcapita != 0 & 
-                          df$finbra_despsocial_pcapita != 0 & 
-                          df$finbra_desp_outros_area_pcapita != 0, ]
-
-
-
-if(YEAR==1998){
-  
-  mun_balanced <- df_balance_finbra %>% 
-    group_by(cod_mun) %>% 
-    summarise(num_years = n()) %>% 
-    filter(num_years==13) %>%
-    select(cod_mun) %>% 
-    pull()
-  
-} else{
-  
-  mun_balanced <- df_balance_finbra %>% 
-    group_by(cod_mun) %>% 
-    summarise(num_years = n()) %>% 
-    filter(num_years==15) %>%
-    select(cod_mun) %>% 
-    pull()
-}
-
-
-
-
-
-table(df_balance_finbra$ano)
-table(df$ano)
-
-
-df_balance_finbra <- df_balance_finbra %>% 
-  filter(cod_mun %in% mun_balanced)
-
-table(df_balance_finbra$ano)
-
+# 
+# # 2. Loads data, remove outliers, balances samples
+# # =================================================================
+# 
+# 
+load(paste0(DAT,"regs.RData"))
+# 
+# 
+# if(YEAR==1998){
+#   df <- df %>% 
+#     filter(ano>=1998)
+# }
+# 
+# 
+# 
+# df2 <- df
+# 
+# 
+# # As a first method of examining data quality issues and to remove sample observations with abnor
+# # mal values we consider the relative variation of IMR over time. We first identified municipalities
+# # with abnormally high variations in IMR across years by calculating the standard deviation of IMR
+# # within municipalities. While we would expect to observe substantial variation in IMR both across
+# # municipalities and over time, we should not observe abnormal variation in IMR from year to year
+# # for a given municipality. We thus estimated the withinmunicipality IMR standard deviation (SD)
+# # for the whole sample, and flagged the municipalities above the 95th percentile of the SD distribu
+# # tion
+# 
+# 
+# # removing spending outliers from the sample
+# # ----------------------------------------------
+# # calculating SD withing municipalities, across years
+# 
+# out <- df %>% 
+#   group_by(cod_mun) %>% 
+#   summarise(std_dev = sd(finbra_desp_o_pcapita, na.rm = TRUE))
+# 
+# # setting the 95 percentile threshold
+# threshold <- quantile(out$std_dev, 0.95, na.rm = TRUE)
+# 
+# # filtering cod_mun of outliers
+# out <- out %>% 
+#   mutate(outlier = ifelse(std_dev>threshold,1,0)) %>% 
+#   filter(outlier==1) %>% 
+#   select(cod_mun) %>% 
+#   pull()
+# 
+# length(out)
+# 
+# # removing spending outliers from the sample
+# # ----------------------------------------------
+# df <- df %>% 
+#   filter(!(cod_mun %in% out))
+# 
+# 
+# 
+# # removing population outliers from the sample
+# # ----------------------------------------------
+# # calculating SD withing municipalities, across years
+# 
+# out <- df %>% 
+#   group_by(cod_mun) %>% 
+#   summarise(std_dev = sd(pop, na.rm = TRUE))
+# 
+# # setting the 95 percentile threshold
+# threshold <- quantile(out$std_dev, 0.95, na.rm = TRUE)
+# 
+# # filtering cod_mun of outliers
+# out <- out %>% 
+#   mutate(outlier = ifelse(std_dev>threshold,1,0)) %>% 
+#   filter(outlier==1) %>% 
+#   select(cod_mun) %>% 
+#   pull()
+# 
+# length(out)
+# 
+# # removing outliers from the sample
+# df <- df %>% 
+#   filter(!(cod_mun %in% out))
+# 
+# 
+# # balancing finbra sample within year
+# df_balance_finbra <- df[complete.cases(df[c('finbra_recorc_pcapita',
+#                                             'finbra_desp_o_pcapita',
+#                                             'finbra_desp_saude_san_pcapita',
+#                                             'finbra_desp_nao_saude_pcapita',
+#                                             'finbra_despsocial_pcapita',
+#                                             'finbra_desp_outros_area_pcapita',
+#                                             'gdp_mun_pcapita',
+#                                             'pbf_pcapita',
+#                                             't_tx_mi_baseline',
+#                                             'dist_ec29_baseline')]) & 
+#                           df$finbra_recorc_pcapita != 0 & 
+#                           df$finbra_desp_o_pcapita != 0 & 
+#                           df$finbra_desp_saude_san_pcapita != 0 & 
+#                           df$finbra_desp_nao_saude_pcapita != 0 & 
+#                           df$finbra_despsocial_pcapita != 0 & 
+#                           df$finbra_desp_outros_area_pcapita != 0, ]
+# 
 
 
 # 3. Runs regressions
@@ -283,7 +292,9 @@ if(YEAR==1998){
     print(var_name)
     output_list <- list()
     
-    res <- reduced_yearly_imr(var,var_name,df,1,1998,-2,2,0.25,
+    res <- reduced_yearly_imr(var,var_name,df %>%
+                                filter(sample_rm_outlier_spending_98==1) %>% 
+                                filter(sample_rm_outlier_pop_98==1),1,1998,-2,2,0.25,
                               paste0("1_cont_log_",i),weight = "reweightPop",
                               year_cap = 2010, cont = 1, spec=3)
     print(res)
@@ -292,7 +303,9 @@ if(YEAR==1998){
     iter <- 2
     for (control in c(1,2,4,3)) {
       print(control)
-      res <- reduced_yearly_imr(var,var_name,df,1,1998,-2,2,0.25,
+      res <- reduced_yearly_imr(var,var_name,df %>%
+                                  filter(sample_rm_outlier_spending_98==1) %>% 
+                                  filter(sample_rm_outlier_pop_98==1),1,1998,-2,2,0.25,
                                 paste0("1_cont_log_",i),weight = "peso_pop",
                                 year_cap = 2010, cont = 1, spec=control)
       print(res)
@@ -326,7 +339,9 @@ if(YEAR==1998){
     iter <- 1
     for (control in c(1,2,4,3)) {
       print(control)
-      res <- reduced_yearly_ab_imr(var,var_name,df,1,1998,-4,4,0.5,
+      res <- reduced_yearly_ab_imr(var,var_name,df %>%
+                                     filter(sample_rm_outlier_spending_98==1) %>% 
+                                     filter(sample_rm_outlier_pop_98==1),1,1998,-4,4,0.5,
                                    paste0("2_ab_log_",i),weight = "peso_pop",
                                    year_cap = 2010, cont = 1, spec=control)
       print(res)
@@ -367,7 +382,10 @@ if(YEAR==1998){
     print(var_name)
     output_list <- list()
     
-    res <- reduced_yearly_imr(var,var_name,df_balance_finbra,1,1998,-1.5,2.5,0.25,
+    res <- reduced_yearly_imr(var,var_name,df %>%
+                                filter(sample_rm_outlier_spending_98==1) %>%
+                                filter(sample_rm_outlier_pop_98==1) %>% 
+                                filter(sample_balance_finbra==1),1,1998,-1.5,2.5,0.25,
                               paste0("1_cont_log_",i),weight = "reweightPop",
                               year_cap = 2010, cont = 1, spec=3)
     print(res)
@@ -376,7 +394,10 @@ if(YEAR==1998){
     iter <- 2
     for (control in c(1,2,4,3)) {
       print(control)
-      res <- reduced_yearly_imr(var,var_name,df_balance_finbra,1,1998,-2,2,0.25,
+      res <- reduced_yearly_imr(var,var_name,df %>%
+                                  filter(sample_rm_outlier_spending_98==1) %>%
+                                  filter(sample_rm_outlier_pop_98==1) %>% 
+                                  filter(sample_balance_finbra==1),1,1998,-2,2,0.25,
                                 paste0("1_cont_log_",i),weight = "peso_pop",
                                 year_cap = 2010, cont = 1, spec=control)
       print(res)
@@ -411,7 +432,10 @@ if(YEAR==1998){
     iter <- 1
     for (control in c(1,2,4,3)) {
       print(control)
-      res <- reduced_yearly_ab_imr(var,var_name,df_balance_finbra,1,1998,-4,4,0.5,
+      res <- reduced_yearly_ab_imr(var,var_name,df %>%
+                                     filter(sample_rm_outlier_spending_98==1) %>%
+                                     filter(sample_rm_outlier_pop_98==1) %>% 
+                                     filter(sample_balance_finbra==1),1,1998,-4,4,0.5,
                                    paste0("2_ab_log_",i),weight = "peso_pop",
                                    year_cap = 2010, cont = 1, spec=control)
       print(res)
@@ -458,7 +482,9 @@ if(YEAR==1998){
     print(var_name)
     output_list <- list()
     
-    res <- reduced_yearly_imr_ext(var,var_name,df,1,1996,-2,2,0.25,
+    res <- reduced_yearly_imr_ext(var,var_name,df %>%
+                                    filter(sample_rm_outlier_spending_96==1) %>% 
+                                    filter(sample_rm_outlier_pop_96==1),1,1996,-2,2,0.25,
                                   paste0("1_cont_log_",i),weight = "reweightPop",
                                   year_cap = 2010, cont = 1, spec=3)
     print(res)
@@ -467,7 +493,9 @@ if(YEAR==1998){
     iter <- 2
     for (control in c(1,2,4,3)) {
       print(control)
-      res <- reduced_yearly_imr_ext(var,var_name,df,1,1996,-2,2,0.25,
+      res <- reduced_yearly_imr_ext(var,var_name,df %>%
+                                      filter(sample_rm_outlier_spending_96==1) %>% 
+                                      filter(sample_rm_outlier_pop_96==1),1,1996,-2,2,0.25,
                                     paste0("1_cont_log_",i),weight = "peso_pop",
                                     year_cap = 2010, cont = 1, spec=control)
       print(res)
@@ -502,7 +530,9 @@ if(YEAR==1998){
     iter <- 1
     for (control in c(1,2,4,3)) {
       print(control)
-      res <- reduced_yearly_ab_imr_ext(var,var_name,df,1,1996,-4,4,0.5,
+      res <- reduced_yearly_ab_imr_ext(var,var_name,df %>%
+                                         filter(sample_rm_outlier_spending_96==1) %>% 
+                                         filter(sample_rm_outlier_pop_96==1),1,1996,-4,4,0.5,
                                    paste0("2_ab_log_",i),weight = "peso_pop",
                                    year_cap = 2010, cont = 1, spec=control)
       print(res)
@@ -545,7 +575,10 @@ if(YEAR==1998){
     print(var_name)
     output_list <- list()
     
-    res <- reduced_yearly_imr_ext(var,var_name,df_balance_finbra,1,1996,-1.5,2.5,0.25,
+    res <- reduced_yearly_imr_ext(var,var_name,df %>%
+                                    filter(sample_rm_outlier_spending_96==1) %>% 
+                                    filter(sample_rm_outlier_pop_96==1) %>% 
+                                    filter(sample_balance_finbra==1),1,1996,-1.5,2.5,0.25,
                                   paste0("1_cont_log_",i),weight = "reweightPop",
                                   year_cap = 2010, cont = 1, spec=3)
     print(res)
@@ -554,7 +587,10 @@ if(YEAR==1998){
     iter <- 2
     for (control in c(1,2,4,3)) {
       print(control)
-      res <- reduced_yearly_imr_ext(var,var_name,df_balance_finbra,1,1996,-2,2,0.25,
+      res <- reduced_yearly_imr_ext(var,var_name,df %>%
+                                      filter(sample_rm_outlier_spending_96==1) %>% 
+                                      filter(sample_rm_outlier_pop_96==1) %>% 
+                                      filter(sample_balance_finbra==1),1,1996,-2,2,0.25,
                                     paste0("1_cont_log_",i),weight = "peso_pop",
                                     year_cap = 2010, cont = 1, spec=control)
       print(res)
@@ -587,7 +623,10 @@ if(YEAR==1998){
     iter <- 1
     for (control in c(1,2,4,3)) {
       print(control)
-      res <- reduced_yearly_ab_imr_ext(var,var_name,df_balance_finbra,1,1996,-4,4,0.5,
+      res <- reduced_yearly_ab_imr_ext(var,var_name,df %>%
+                                         filter(sample_rm_outlier_spending_96==1) %>% 
+                                         filter(sample_rm_outlier_pop_96==1) %>% 
+                                         filter(sample_balance_finbra==1),1,1996,-4,4,0.5,
                                        paste0("2_ab_log_",i),weight = "peso_pop",
                                        year_cap = 2010, cont = 1, spec=control)
       print(res)
