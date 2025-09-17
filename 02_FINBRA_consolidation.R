@@ -468,112 +468,152 @@ for (ano in seq(2004,2012,1)){
 # # 5. FINBRA 2013 - 2019
 # # =================================================================
 # 
-# desp <- c("3.0.00.00.00.00 - Despesas Correntes",
-#           "3.1.00.00.00.00 - Pessoal e Encargos Sociais",
-#           "4.0.00.00.00.00 - Despesas de Capital",
-#           "4.4.00.00.00.00 - Investimentos")
-# 
-# desp2 <- c("3.0.00.00.00 - Despesas Correntes",
-#           "3.1.00.00.00 - Pessoal e Encargos Sociais",
-#           "4.0.00.00.00 - Despesas de Capital",
-#           "4.4.00.00.00 - Investimentos")
-# 
-# desp_func <- c("01 - Legislativa",
-#                "02 - Judiciária",
-#                "20 - Agricultura",
-#                "26 - Transporte",
-#                "06 - Segurança Pública",
-#                "24 - Comunicações",
-#                "03 - Essencial à Justiça",
-#                "04 - Administração",
-#                "05 - Defesa Nacional",
-#                "07 - Relações Exteriores",
-#                "08 - Assistência Social",
-#                "09 - Previdência Social",
-#                "10 - Saúde",
-#                "11 - Trabalho",
-#                "12 - Educação",
-#                "13 - Cultura",
-#                "14 - Direitos da Cidadania",
-#                "15 - Urbanismo",
-#                "16 - Habitação",
-#                "17 - Saneamento",
-#                "18 - Gestão Ambiental",
-#                "19 - Ciência e Tecnologia",
-#                "21 - Organização Agrária",
-#                "22 - Indústria",
-#                "23 - Comércio e Serviços",
-#                "25 - Energia",
-#                "27 - Desporto e Lazer",
-#                "28 - Encargos Especiais")
-# 
-# 
-# 
-# 
-# for(ano in seq.int(2013,2017)){
-#   
-#   temp1 <- fread (file = paste0(raw,"finbra",ano,"_despesa.csv"), skip = 3) %>%
-#     filter(Coluna == "Despesas Liquidadas") %>% 
-#     select(Cod.IBGE,Conta,Valor) %>% 
-#     filter(Conta %in% desp) %>% 
-#     mutate(Conta = substr(Conta,19,nchar(Conta)))
-#   
-#   temp1[,3] <- sapply(temp1[,3], function(x) gsub(",",".",x))
-#   temp1[,3] <- sapply(temp1[,3], as.numeric)
-#   
-#   temp1 <- temp1 %>% 
-#     pivot_wider(id_cols = "Cod.IBGE",
-#                 names_from = "Conta",
-#                 values_from = "Valor") 
-#   
-#   colnames(temp1) <- c("cod_mun","desp_c","desp_pessoal","desp_capital","desp_investimentos")
-#   
-#   
-#   
-#   temp2 <- fread(file = paste0(raw,"finbra",ano,"_despesa_funcao.csv"), skip = 3) %>%
-#     filter(Coluna == "Despesas Liquidadas") %>% 
-#     select(Cod.IBGE,Conta,Valor) %>% 
-#     filter(Conta %in% desp_func) %>% 
-#     mutate(Conta = substr(Conta,6,nchar(Conta)))
-#   
-#   temp2[,3] <- sapply(temp2[,3], function(x) gsub(",",".",x))
-#   temp2[,3] <- sapply(temp2[,3], as.numeric)
-#   
-#   temp2 <- temp2 %>% 
-#     pivot_wider(id_cols = "Cod.IBGE",
-#                 names_from = "Conta",
-#                 values_from = "Valor") 
-#   
-#   colnames(temp2) <- c('cod_mun','desp_adm','desp_assist','desp_saude','desp_educ','desp_cultura','desp_urb','desp_san','desp_gambiental',
-#                        'desp_agricultura','desp_com','desp_transporte','desp_esporte','desp_legislativa','desp_seguranca','desp_encargos',
-#                        'desp_prev','desp_hab','desp_ind','desp_cidadania','desp_energia','desp_judiciaria','desp_defesa','desp_trabalho',
-#                        'desp_ct','desp_comunicacoes','desp_justica','desp_orgagraria','desp_rext')
-#   
-#   
-#   temp <- full_join(temp1, temp2, by = c("cod_mun")) %>% 
-#     mutate(ano = ano)
-#   
-#   temp <- temp %>%
-#     mutate(desp_educ_cultura = desp_educ + desp_cultura,
-#            desp_hab_urb = desp_hab + desp_urb,
-#            desp_ind_com = desp_ind + desp_com,
-#            desp_saude_san = desp_saude + desp_san,
-#            desp_assist_prev = desp_assist + desp_prev) %>% 
-#     mutate(cod_mun = as.numeric(substr(as.character(cod_mun),1,6))) %>% 
-#     select(cod_mun,ano,everything())
-#   
-#   
-#   
-#   
-#   temp[is.na(temp)] <- 0
-#   
-#   temp[,3:ncol(temp)] <- sapply(temp[,3:ncol(temp)], as.character)
-#   
-#   finbra <- bind_rows(finbra,temp)
-#   
-#   print(ano)
-#   
-# }
+desp <- c("3.0.00.00.00.00 - Despesas Correntes",
+          "3.1.00.00.00.00 - Pessoal e Encargos Sociais",
+          "4.0.00.00.00.00 - Despesas de Capital",
+          "4.4.00.00.00.00 - Investimentos")
+
+desp2 <- c("3.0.00.00.00 - Despesas Correntes",
+          "3.1.00.00.00 - Pessoal e Encargos Sociais",
+          "4.0.00.00.00 - Despesas de Capital",
+          "4.4.00.00.00 - Investimentos")
+
+desp_func <- c("01 - Legislativa",
+               "02 - Judiciária",
+               "20 - Agricultura",
+               "26 - Transporte",
+               "06 - Segurança Pública",
+               "24 - Comunicações",
+               "03 - Essencial à Justiça",
+               "04 - Administração",
+               "05 - Defesa Nacional",
+               "07 - Relações Exteriores",
+               "08 - Assistência Social",
+               "09 - Previdência Social",
+               "10 - Saúde",
+               "11 - Trabalho",
+               "12 - Educação",
+               "13 - Cultura",
+               "14 - Direitos da Cidadania",
+               "15 - Urbanismo",
+               "16 - Habitação",
+               "17 - Saneamento",
+               "18 - Gestão Ambiental",
+               "19 - Ciência e Tecnologia",
+               "21 - Organização Agrária",
+               "22 - Indústria",
+               "23 - Comércio e Serviços",
+               "25 - Energia",
+               "27 - Desporto e Lazer",
+               "28 - Encargos Especiais")
+
+
+
+
+for(ano in seq.int(2013,2017)){
+  
+  if(ano==2014){
+    temp1 <- fread (file = paste0(raw,"finbra",ano,"_despesa.csv"), skip = 3, encoding = "UTF-8")
+  } else{
+    temp1 <- fread (file = paste0(raw,"finbra",ano,"_despesa.csv"), skip = 3, encoding = "Latin-1")
+  }
+
+  temp1 <- temp1 %>%
+    filter(Coluna == "Despesas Liquidadas") %>%
+    select(Cod.IBGE,Conta,Valor) %>%
+    filter(Conta %in% desp) %>%
+    mutate(Conta = substr(Conta,19,nchar(Conta)))
+
+  temp1[,3] <- sapply(temp1[,3], function(x) gsub(",",".",x))
+  temp1[,3] <- sapply(temp1[,3], as.numeric)
+
+  temp1 <- temp1 %>%
+    pivot_wider(id_cols = "Cod.IBGE",
+                names_from = "Conta",
+                values_from = "Valor")
+
+  colnames(temp1) <- c("cod_mun","desp_c","desp_pessoal","desp_capital","desp_investimentos")
+
+
+  if(ano<2015){
+    temp2 <- fread (file = paste0(raw,"finbra",ano,"_despesa_funcao.csv"), skip = 3)
+  } else{
+    temp2 <- fread (file = paste0(raw,"finbra",ano,"_despesa_funcao.csv"), skip = 3, encoding = "Latin-1")
+  }
+
+  temp2 <- temp2 %>%
+    filter(Coluna == "Despesas Liquidadas") %>%
+    select(Cod.IBGE,Conta,Valor) %>%
+    filter(Conta %in% desp_func) %>%
+    mutate(Conta = substr(Conta,6,nchar(Conta)))
+
+  temp2[,3] <- sapply(temp2[,3], function(x) gsub(",",".",x))
+  temp2[,3] <- sapply(temp2[,3], as.numeric)
+  
+  temp2 <- temp2 %>% 
+    arrange(Conta)
+
+  temp2 <- temp2 %>%
+    pivot_wider(id_cols = "Cod.IBGE",
+                names_from = "Conta",
+                values_from = "Valor")
+
+  colnames(temp2) <- c( 'cod_mun',           # Cod.IBGE
+                        'desp_adm',           # Administração
+                        'desp_agricultura',   # Agricultura
+                        'desp_assist',        # Assistência Social
+                        'desp_ct',             # Ciência e Tecnologia
+                        'desp_comunicacoes',   # Comunicações
+                        'desp_com',             # Comércio e Serviços
+                        'desp_cultura',         # Cultura
+                        'desp_defesa',           # Defesa Nacional
+                        'desp_esporte',           # Desporto e Lazer
+                        'desp_cidadania',          # Direitos da Cidadania
+                        'desp_educ',                 # Educação
+                        'desp_encargos',               # Encargos Especiais
+                        'desp_energia',                  # Energia
+                        'desp_justica',                    # Essencial à Justiça
+                        'desp_gambiental',                   # Gestão Ambiental
+                        'desp_hab',                             # Habitação
+                        'desp_ind',                               # Indústria
+                        'desp_judiciaria',                          # Judiciária
+                        'desp_legislativa',                           # Legislativa
+                        'desp_orgagraria',                               # Organização Agrária
+                        'desp_prev',                                        # Previdência Social
+                        'desp_rext',                                            # Relações Exteriores
+                        'desp_san',                                                 # Saneamento
+                        'desp_saude',                                                   # Saúde
+                        'desp_seguranca',                                                    # Segurança Pública
+                        'desp_trabalho',                                                         # Trabalho
+                        'desp_transporte',                                                           # Transporte
+                        'desp_urb'                                                                       # Urbanismo
+  )
+
+
+  temp <- full_join(temp1, temp2, by = c("cod_mun")) %>%
+    mutate(ano = ano)
+
+  temp <- temp %>%
+    mutate(desp_educ_cultura = desp_educ + desp_cultura,
+           desp_hab_urb = desp_hab + desp_urb,
+           desp_ind_com = desp_ind + desp_com,
+           desp_saude_san = desp_saude + desp_san,
+           desp_assist_prev = desp_assist + desp_prev) %>%
+    mutate(cod_mun = as.numeric(substr(as.character(cod_mun),1,6))) %>%
+    select(cod_mun,ano,everything())
+
+
+
+
+  temp[is.na(temp)] <- 0
+
+  temp[,3:ncol(temp)] <- sapply(temp[,3:ncol(temp)], as.character)
+
+  finbra <- bind_rows(finbra,temp)
+
+  print(ano)
+
+}
 # 
 # 
 # for(ano in seq.int(2018,2019)){
@@ -714,9 +754,9 @@ ano <- 1997
 # main expenditure data
 temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"), encoding = "UTF-8",sep = ";")
 temp <- temp %>% 
-  select(NOME,UF,REC_ORCAM,REC_CORRE, REC_TRIBUT,IMPOSTOS, IPTU, ISS) %>% 
+  select(NOME,UF,REC_ORCAM,REC_CORRE, REC_TRIBUT,Rec_TR_CORRENTE,IMPOSTOS, IPTU, ISS) %>% 
   filter(UF!="BR")
-colnames(temp) <- c("nome_mun","uf","reccorr","recorc","rectribut",'impostos_total','iptu','iss')
+colnames(temp) <- c("nome_mun","uf","reccorr","recorc","rectribut","rectransf",'impostos_total','iptu','iss')
 temp <- temp %>% 
   left_join(codibge97, by = c("uf","nome_mun"))
 
@@ -850,47 +890,35 @@ for (ano in c(2002)){
 
 # 
 # 
-# for (ano in seq.int(2013,2017)){
-#   temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"))
-#   temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"), encoding = "Latin-1",sep = ";", skip = 3)
-#   temp <- temp %>% 
-#     filter((Conta=="1.0.0.0.00.00.00 - Receitas Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
-#              (Conta=="1.1.0.0.00.00.00 - Receita Tributária" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
-#              (Conta=="1.7.0.0.00.00.00 - Transferências Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas"))) %>% 
-#     rename(cod_mun = Cod.IBGE) %>% 
-#     select(c("cod_mun","Conta","Valor")) %>% 
-#     mutate(Conta = ifelse(Conta=="1.0.0.0.00.00.00 - Receitas Correntes","reccorr",Conta),
-#            Conta = ifelse(Conta=="1.1.0.0.00.00.00 - Receita Tributária","rectribut",Conta),
-#            Conta = ifelse(Conta=="1.7.0.0.00.00.00 - Transferências Correntes","rectransf",Conta)) %>% 
-#     mutate(Conta = gsub(",",".",Conta),
-#            cod_mun = substr(cod_mun,1,6),
-#            cod_mun = as.numeric(cod_mun)) %>% 
-#     pivot_wider(names_from = "Conta",
-#                 values_from = "Valor")
-#   
-#   temp$ano <- ano
-#   finbra <- bind_rows(finbra,temp)
-# }
-# 
-# temp <- read.csv(file = paste0(raw,"receita/finbra",2018,"_receita.csv"), encoding = "Latin-1",sep = ";", skip = 3)
-# temp <- temp %>% 
-#   filter((Conta=="1.0.0.0.00.0.0 - Receitas Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
-#            (Conta=="1.1.0.0.00.0.0 - Impostos, Taxas e Contribuições de Melhoria" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
-#            (Conta=="1.7.0.0.00.0.0 - Transferências Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas"))) %>%
-#   rename(cod_mun = Cod.IBGE) %>% 
-#   select(c("cod_mun","Conta","Valor")) %>% 
-#   mutate(Conta = ifelse(Conta=="1.0.0.0.00.0.0 - Receitas Correntes","reccorr",Conta),
-#          Conta = ifelse(Conta=="1.1.0.0.00.0.0 - Impostos, Taxas e Contribuições de Melhoria","rectribut",Conta),
-#          Conta = ifelse(Conta=="1.7.0.0.00.0.0 - Transferências Correntes","rectransf",Conta)) %>% 
-#   mutate(Conta = gsub(",",".",Conta),
-#          cod_mun = substr(cod_mun,1,6),
-#          cod_mun = as.numeric(cod_mun)) %>% 
-#   pivot_wider(names_from = "Conta",
-#               values_from = "Valor")
-# 
-# 
-# temp$ano <- 2018
-# finbra <- bind_rows(finbra,temp)
+for (ano in seq.int(2013,2017)){
+  temp <- read.csv(file = paste0(raw,"receita/finbra",ano,"_receita.csv"), fileEncoding = "Latin1",sep = ";", skip = 3)
+  temp <- temp %>%
+    filter((Conta=="1.0.0.0.00.00.00 - Receitas Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
+             (Conta=="1.1.0.0.00.00.00 - Receita Tributária" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
+             (Conta=="1.7.0.0.00.00.00 - Transferências Correntes" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
+             (Conta=="Total Receitas" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
+             (Conta=="1.1.1.0.00.00.00 - Impostos" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) | 
+             (Conta=="1.1.1.3.05.00.00 - Imposto sobre Serviços de Qualquer Natureza ¿ ISSQN" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) |
+             (Conta=="1.1.1.2.02.00.00 - Imposto sobre a Propriedade Predial e Territorial Urbana ¿ IPTU" & (Coluna=="Receitas Realizadas" | Coluna == "Receitas Brutas Realizadas")) ) %>%
+    rename(cod_mun = Cod.IBGE) %>%
+    select(c("cod_mun","Conta","Valor")) %>%
+    mutate(Conta = ifelse(Conta=="1.0.0.0.00.00.00 - Receitas Correntes","reccorr",Conta),
+           Conta = ifelse(Conta=="1.1.0.0.00.00.00 - Receita Tributária","rectribut",Conta),
+           Conta = ifelse(Conta=="1.7.0.0.00.00.00 - Transferências Correntes","rectransf",Conta),
+           Conta = ifelse(Conta=="Total Receitas","recorc",Conta),
+           Conta = ifelse(Conta=="1.1.1.0.00.00.00 - Impostos","impostos_total",Conta),
+           Conta = ifelse(Conta=="1.1.1.3.05.00.00 - Imposto sobre Serviços de Qualquer Natureza ¿ ISSQN","iss",Conta),
+           Conta = ifelse(Conta=="1.1.1.2.02.00.00 - Imposto sobre a Propriedade Predial e Territorial Urbana ¿ IPTU","iptu",Conta),
+           ) %>%
+    mutate(Valor = gsub(",",".",Valor),
+           cod_mun = substr(cod_mun,1,6),
+           cod_mun = as.numeric(cod_mun)) %>%
+    pivot_wider(names_from = "Conta",
+                values_from = "Valor")
+
+  temp$ano <- ano
+  finbra <- bind_rows(finbra,temp)
+}
 
 
 # =================================================================
