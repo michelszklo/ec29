@@ -193,15 +193,15 @@ df <- df %>%
   mutate(peso_eq = 1) %>% 
   group_by(cod_mun) %>% 
   mutate(peso_b = mean(birth_nasc_vivos, na.rm = T),
-         peso_a = mean(pop_25_59, na.rm = T),
-         peso_a1 = mean(pop_25_39, na.rm = T),
-         peso_a2 = mean(pop_40_59, na.rm = T),
-         peso_a3 = mean(pop_40, na.rm = T),
+         # peso_a = mean(pop_25_59, na.rm = T),
+         # peso_a1 = mean(pop_25_39, na.rm = T),
+         # peso_a2 = mean(pop_40_59, na.rm = T),
+         # peso_a3 = mean(pop_40, na.rm = T),
          peso_r = mean(finbra_reccorr_pcapita,na.rm = T),
          peso_m = mean(pop_fem_10_49,na.rm = T),
-         peso_ha = mean(pop_45,na.rm = T),
-         peso_ha1 = mean(pop_25_44,na.rm = T),
-         peso_ha2 = mean(pop_45_54,na.rm = T),
+         # peso_ha = mean(pop_45,na.rm = T),
+         # peso_ha1 = mean(pop_25_44,na.rm = T),
+         # peso_ha2 = mean(pop_45_54,na.rm = T),
          peso_pop = mean(pop,na.rm = T)) %>% 
   ungroup() %>% 
   # sample split variable (by LRF)
@@ -369,6 +369,208 @@ df <- df %>%
          iv_a = ifelse(ano<=2000,0,iv_a),
          iv_b = ifelse(ano<=2000,0,iv_b),
          iv_binary = ifelse(ano<=2000,0,iv_binary))
+
+
+
+
+
+
+# 3. Creating dummies to define subsamples
+# =================================================================
+
+# spending outliers 1996 - 2010
+# -----------------------------------------------------------------
+
+out <- df %>% 
+  group_by(cod_mun) %>% 
+  summarise(std_dev = sd(finbra_desp_o_pcapita, na.rm = TRUE))
+
+# setting the 95 percentile threshold
+threshold <- quantile(out$std_dev, 0.95, na.rm = TRUE) %>% as.double()
+out <- out %>% 
+  mutate(outlier = ifelse(std_dev>threshold,1,0)) %>% 
+  filter(outlier==1) %>% 
+  select(cod_mun) %>% 
+  pull()
+
+# creating the dummy
+df <- df %>% 
+  mutate(sample_rm_outlier_spending_96 = 1) %>% 
+  mutate(sample_rm_outlier_spending_96 = ifelse(cod_mun %in% out,0,sample_rm_outlier_spending_96))
+
+
+
+# spending outliers 1998 - 2010
+# -----------------------------------------------------------------
+
+out <- df %>% 
+  filter(ano>=1998) %>% 
+  group_by(cod_mun) %>% 
+  summarise(std_dev = sd(finbra_desp_o_pcapita, na.rm = TRUE))
+
+# setting the 95 percentile threshold
+threshold <- quantile(out$std_dev, 0.95, na.rm = TRUE) %>% as.double()
+out <- out %>% 
+  mutate(outlier = ifelse(std_dev>threshold,1,0)) %>% 
+  filter(outlier==1) %>% 
+  select(cod_mun) %>% 
+  pull()
+
+# creating the dummy
+df <- df %>% 
+  mutate(sample_rm_outlier_spending_98 = 1) %>% 
+  mutate(sample_rm_outlier_spending_98 = ifelse(cod_mun %in% out,0,sample_rm_outlier_spending_98))
+
+
+# population outliers 1996 - 2010
+# -----------------------------------------------------------------
+
+out <- df %>% 
+  group_by(cod_mun) %>% 
+  summarise(std_dev = sd(pop, na.rm = TRUE))
+
+# setting the 95 percentile threshold
+threshold <- quantile(out$std_dev, 0.95, na.rm = TRUE) %>% as.double()
+out <- out %>% 
+  mutate(outlier = ifelse(std_dev>threshold,1,0)) %>% 
+  filter(outlier==1) %>% 
+  select(cod_mun) %>% 
+  pull()
+
+# creating the dummy
+df <- df %>% 
+  mutate(sample_rm_outlier_pop_96 = 1) %>% 
+  mutate(sample_rm_outlier_pop_96 = ifelse(cod_mun %in% out,0,sample_rm_outlier_pop_96))
+
+
+
+# population outliers 1998 - 2010
+# -----------------------------------------------------------------
+
+out <- df %>% 
+  filter(ano>=1998) %>% 
+  group_by(cod_mun) %>% 
+  summarise(std_dev = sd(pop, na.rm = TRUE))
+
+# setting the 95 percentile threshold
+threshold <- quantile(out$std_dev, 0.95, na.rm = TRUE) %>% as.double()
+out <- out %>% 
+  mutate(outlier = ifelse(std_dev>threshold,1,0)) %>% 
+  filter(outlier==1) %>% 
+  select(cod_mun) %>% 
+  pull()
+
+# creating the dummy
+df <- df %>% 
+  mutate(sample_rm_outlier_pop_98 = 1) %>% 
+  mutate(sample_rm_outlier_pop_98 = ifelse(cod_mun %in% out,0,sample_rm_outlier_pop_98))
+
+
+
+# IMR outliers 1996 - 2010
+# -----------------------------------------------------------------
+
+out <- df %>% 
+  group_by(cod_mun) %>% 
+  summarise(std_dev = sd(tx_mi, na.rm = TRUE))
+
+# setting the 95 percentile threshold
+threshold <- quantile(out$std_dev, 0.95, na.rm = TRUE) %>% as.double()
+out <- out %>% 
+  mutate(outlier = ifelse(std_dev>threshold,1,0)) %>% 
+  filter(outlier==1) %>% 
+  select(cod_mun) %>% 
+  pull()
+
+# creating the dummy
+df <- df %>% 
+  mutate(sample_rm_outlier_imr_96 = 1) %>% 
+  mutate(sample_rm_outlier_imr_96 = ifelse(cod_mun %in% out,0,sample_rm_outlier_imr_96))
+
+
+
+# IMR outliers 1998 - 2010
+# -----------------------------------------------------------------
+
+out <- df %>% 
+  filter(ano>=1998) %>% 
+  group_by(cod_mun) %>% 
+  summarise(std_dev = sd(tx_mi, na.rm = TRUE))
+
+# setting the 95 percentile threshold
+threshold <- quantile(out$std_dev, 0.95, na.rm = TRUE) %>% as.double()
+out <- out %>% 
+  mutate(outlier = ifelse(std_dev>threshold,1,0)) %>% 
+  filter(outlier==1) %>% 
+  select(cod_mun) %>% 
+  pull()
+
+# creating the dummy
+df <- df %>% 
+  mutate(sample_rm_outlier_imr_98 = 1) %>% 
+  mutate(sample_rm_outlier_imr_98 = ifelse(cod_mun %in% out,0,sample_rm_outlier_imr_98))
+
+
+
+# FINBRA and SIOPS Balanced sample
+# -----------------------------------------------------------------
+
+df <- df %>% 
+  mutate(row_index = row_number()) %>% 
+  select(row_index,everything())
+
+balance_finbra <- df[complete.cases(df[c('finbra_recorc_pcapita',
+                                            'finbra_desp_o_pcapita',
+                                            'finbra_desp_saude_san_pcapita',
+                                            'finbra_desp_nao_saude_pcapita',
+                                            'finbra_despsocial_pcapita',
+                                            'finbra_desp_outros_area_pcapita',
+                                            'gdp_mun_pcapita',
+                                            'pbf_pcapita',
+                                            't_tx_mi_baseline',
+                                            'dist_ec29_baseline')]) & 
+                          df$finbra_recorc_pcapita != 0 & 
+                          df$finbra_desp_o_pcapita != 0 & 
+                          df$finbra_desp_saude_san_pcapita != 0 & 
+                          df$finbra_desp_nao_saude_pcapita != 0 & 
+                          df$finbra_despsocial_pcapita != 0 & 
+                          df$finbra_desp_outros_area_pcapita != 0, ]
+balance_finbra <- balance_finbra %>% 
+  select(row_index) %>% 
+  pull()
+
+
+
+balance_siops <- df[complete.cases(df[c('siops_despsaude_pcapita',
+                                           'siops_desprecpropriosaude_pcapita',
+                                           'siops_despexrecproprio_pcapita',
+                                           'siops_desppessoal_pcapita',
+                                           'siops_despinvest_pcapita',
+                                           'siops_despservicoster_pcapita',
+                                           'siops_despoutros_pcapita',
+                                           'gdp_mun_pcapita',
+                                           'pbf_pcapita',
+                                           't_tx_mi_baseline',
+                                           'dist_ec29_baseline')]) & 
+                         df$siops_despsaude_pcapita != 0 & 
+                         df$siops_desprecpropriosaude_pcapita != 0 & 
+                         df$siops_despexrecproprio_pcapita != 0 & 
+                         df$siops_desppessoal_pcapita != 0 & 
+                         df$siops_despinvest_pcapita != 0 & 
+                         df$siops_despservicoster_pcapita != 0 & 
+                         df$siops_despoutros_pcapita>0, ]
+balance_siops <- balance_siops %>% 
+  select(row_index) %>% 
+  pull()
+
+
+df <- df %>% 
+  mutate(sample_balance_finbra = 0) %>% 
+  mutate(sample_balance_finbra = ifelse(row_index %in% balance_finbra,1,sample_balance_finbra)) %>% 
+  mutate(sample_balance_siops = 0) %>% 
+  mutate(sample_balance_siops = ifelse(row_index %in% balance_siops,1,sample_balance_siops)) %>% 
+  select(-row_index)
+
 
 
 
@@ -2670,7 +2872,7 @@ rm(raw)
 save.image(paste0(DAT,"regs.RData"))
 
 
-
+write.table(df,paste0(DAT,"df.csv"),sep = ";",row.names = F)
 
 
 
